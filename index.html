@@ -2,7 +2,6 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
@@ -87,7 +86,7 @@ input, select, button{
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycby50nqYC6jhTxQqMMuzLPQBD7nflJOlq_K3SaBuWsxxoT_bRGsLPlDOEKAkf-xxlPau9A/exec"; // <-- change this
+const API="https://script.google.com/macros/s/AKfycby50nqYC6jhTxQqMMuzLPQBD7nflJOlq_K3SaBuWsxxoT_bRGsLPlDOEKAkf-xxlPau9A/exec";
 
 let mode="Pickup";
 
@@ -104,30 +103,45 @@ returnBtn.onclick=()=>{
   pickupBtn.classList.remove("active");
 }
 
-// fetch order
+// 🔥 FETCH ORDER
 function fetchData(){
-  let id=document.getElementById("orderId").value;
+  let id=document.getElementById("orderId").value.trim();
 
-  fetch(API+"?orderId="+id)
+  if(!id){
+    alert("Enter Order ID");
+    return;
+  }
+
+  // ✅ IMPORTANT: encode (fix # issue)
+  fetch(API+"?orderId="+encodeURIComponent(id))
   .then(r=>r.json())
   .then(d=>{
     if(d.status=="success"){
       result.innerHTML=`
+        <div class="card">Order: ${d.orderId}</div>
         <div class="card">SKU: ${d.sku}</div>
         <div class="card">Amount: ${d.amount}</div>
         <div class="card">Qty: ${d.qty}</div>
       `;
     }else{
-      result.innerHTML="Not Found";
+      result.innerHTML="<div class='card'>❌ Not Found</div>";
     }
+  })
+  .catch(()=>{
+    alert("Server Error");
   });
 }
 
-// save
+// 🔥 SAVE DATA
 function saveData(){
-  let orderId=document.getElementById("orderId").value;
+  let orderId=document.getElementById("orderId").value.trim();
   let payment=document.getElementById("payment").value;
-  let tracking=document.getElementById("tracking").value;
+  let tracking=document.getElementById("tracking").value.trim();
+
+  if(!orderId || !payment || !tracking){
+    alert("All fields required");
+    return;
+  }
 
   fetch(API,{
     method:"POST",
@@ -140,7 +154,20 @@ function saveData(){
   })
   .then(r=>r.json())
   .then(d=>{
-    alert("Saved Successfully");
+    if(d.status=="saved"){
+      alert("✅ Saved");
+
+      // reset
+      orderId.value="";
+      tracking.value="";
+      result.innerHTML="";
+      payment.value="";
+    }else{
+      alert("❌ Save Failed");
+    }
+  })
+  .catch(()=>{
+    alert("Server Error");
   });
 }
 </script>
