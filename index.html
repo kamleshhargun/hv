@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body{
+  font-family: Arial;
+  background:#f2f2f2;
+  margin:0;
+}
+
+.header{
+  background:#5a3e2b;
+  color:#fff;
+  text-align:center;
+  padding:15px;
+  font-size:22px;
+}
+
+.toggle{
+  display:flex;
+}
+
+.toggle button{
+  flex:1;
+  padding:15px;
+  border:none;
+  font-size:16px;
+  cursor:pointer;
+}
+
+.active{
+  background:#8b5e3c;
+  color:#fff;
+}
+
+.box{
+  padding:15px;
+}
+
+input, select, button{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  font-size:16px;
+}
+
+.card{
+  background:#fff;
+  padding:10px;
+  margin-top:10px;
+  border-radius:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Harsidhi Ventures</div>
+
+<div class="toggle">
+  <button id="pickupBtn" class="active">Pickup</button>
+  <button id="returnBtn">Return</button>
+</div>
+
+<div class="box">
+
+<input type="text" id="orderId" placeholder="Scan / Enter Order ID">
+
+<button onclick="fetchData()">Find Order</button>
+
+<div id="result"></div>
+
+<select id="payment">
+  <option value="">Select Payment Type</option>
+  <option value="Prepaid">Prepaid</option>
+  <option value="COD">COD</option>
+</select>
+
+<input type="text" id="tracking" placeholder="Scan / Enter Tracking ID">
+
+<button onclick="saveData()">Save</button>
+
+</div>
+
+<script>
+const API="YOUR_WEB_APP_URL"; // <-- change this
+
+let mode="Pickup";
+
+// toggle
+pickupBtn.onclick=()=>{
+  mode="Pickup";
+  pickupBtn.classList.add("active");
+  returnBtn.classList.remove("active");
+}
+
+returnBtn.onclick=()=>{
+  mode="Return";
+  returnBtn.classList.add("active");
+  pickupBtn.classList.remove("active");
+}
+
+// fetch order
+function fetchData(){
+  let id=document.getElementById("orderId").value;
+
+  fetch(API+"?orderId="+id)
+  .then(r=>r.json())
+  .then(d=>{
+    if(d.status=="success"){
+      result.innerHTML=`
+        <div class="card">SKU: ${d.sku}</div>
+        <div class="card">Amount: ${d.amount}</div>
+        <div class="card">Qty: ${d.qty}</div>
+      `;
+    }else{
+      result.innerHTML="Not Found";
+    }
+  });
+}
+
+// save
+function saveData(){
+  let orderId=document.getElementById("orderId").value;
+  let payment=document.getElementById("payment").value;
+  let tracking=document.getElementById("tracking").value;
+
+  fetch(API,{
+    method:"POST",
+    body:JSON.stringify({
+      orderId:orderId,
+      paymentType:payment,
+      tracking:tracking,
+      mode:mode
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    alert("Saved Successfully");
+  });
+}
+</script>
+
+</body>
+</html>
