@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Scan Operations - Harsidhi Ventures</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-soft: #eff6ff;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --border: #e2e8f0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+    body { background: var(--bg); display:flex; justify-content:center; }
+    .viewport { width:100%; max-width:440px; min-height:100vh; background:var(--card); padding:20px; display:flex; flex-direction:column; }
+    .header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    .back-btn { width:38px; height:38px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; text-decoration:none; color:var(--text); }
+    .type-switcher { display:flex; background:var(--bg); border:1px solid var(--border); border-radius:14px; padding:4px; margin-bottom:16px; }
+    .type-btn { flex:1; padding:10px; border:none; background:transparent; font-weight:700; border-radius:10px; cursor:pointer; font-size:13px; color:#64748b; }
+    .type-btn.active { background:var(--primary); color:#fff; }
+    .input-group { margin-bottom:14px; }
+    .input-group label { display:block; font-size:12px; font-weight:700; color:#64748b; margin-bottom:6px; }
+    .input-box { width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--border); font-size:15px; font-weight:600; outline:none; }
+    .input-box:focus { border-color:var(--primary); }
+    .reader-box { width:100%; border-radius:16px; overflow:hidden; border:1.5px dashed var(--border); margin-bottom:16px; background:#000; min-height:200px; display:flex; align-items:center; justify-content:center; color:#fff; }
+    .action-btn { width:100%; padding:14px; border-radius:14px; border:none; background:var(--primary); color:#fff; font-size:14px; font-weight:700; cursor:pointer; }
+    .status-alert { margin-top:14px; padding:12px; border-radius:12px; font-size:13px; font-weight:600; display:none; }
+  </style>
+</head>
+<body>
+<div class="viewport">
+  <div class="header">
+    <a href="index.html" class="back-btn"><i data-lucide="arrow-left"></i></a>
+    <h2 style="font-size:18px; font-weight:800;">Barcode / AWB Scanner</h2>
+  </div>
+
+  <div class="type-switcher">
+    <button class="type-btn active" id="btn-pickup" onclick="setType('Pickup')">Pickup Scan</button>
+    <button class="type-btn" id="btn-return" onclick="setType('Return')">Return Scan</button>
+  </div>
+
+  <div id="reader" class="reader-box">Camera Initializing...</div>
+
+  <div class="input-group">
+    <label>MANUAL BARCODE / AWB NUMBER</label>
+    <input type="text" id="awb-input" class="input-box" placeholder="Scan or enter AWB number..." autofocus />
+  </div>
+
+  <button class="action-btn" onclick="submitAwb()">Submit Scan Entry</button>
+  <div id="status-msg" class="status-alert"></div>
+</div>
+
+<script>
+  lucide.createIcons();
+  let currentType = "Pickup";
+  const API_URL = localStorage.getItem("GS_API_URL") || "";
+
+  function setType(type) {
+    currentType = type;
+    document.getElementById("btn-pickup").classList.toggle("active", type === "Pickup");
+    document.getElementById("btn-return").classList.toggle("active", type === "Return");
+  }
+
+  // Camera Barcode Scanner
+  const html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 180 } },
+    (decodedText) => {
+      document.getElementById("awb-input").value = decodedText;
+      submitAwb();
+    },
+    () => {}
+  ).catch(() => {
+    document.getElementById("reader").innerHTML = "<p style='color:#94a3b8;font-size:12px;'>Camera access disabled or unsupported</p>";
+  });
+
+  // Handle Enter Key
+  document.getElementById("awb-input").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") submitAwb();
+  });
+
+  async function submitAwb() {
+    const awb = document.getElementById("awb-input").value.trim();
+    const statusMsg = document.getElementById("status-msg");
+    if (!awb) return;
+
+    statusMsg.style.display = "block";
+    statusMsg.style.background = "#eff6ff";
+    statusMsg.style.color = "#2563eb";
+    statusMsg.innerText = `Saving ${awb}...`;
+
+    if (!API_URL) {
+      statusMsg.style.background = "#fee2e2";
+      statusMsg.style.color = "#ef4444";
+      statusMsg.innerText = "Error: Settings page me jaakar Apps Script API URL set karein!";
+      return;
+    }
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "saveEntry",
+          payload: {
+            awb: awb,
+            type: currentType
+          }
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        statusMsg.style.background = "#dcfce7";
+        statusMsg.style.color = "#16a34a";
+        statusMsg.innerText = `✔ Success: ${awb} (${currentType}) Saved to Sheet!`;
+        document.getElementById("awb-input").value = "";
+      } else {
+        statusMsg.style.background = "#fee2e2";
+        statusMsg.style.color = "#ef4444";
+        statusMsg.innerText = `✖ ${data.message || "Duplicate or Error"}`;
+      }
+    } catch (err) {
+      statusMsg.style.background = "#fee2e2";
+      statusMsg.style.color = "#ef4444";
+      statusMsg.innerText = "Server connection error!";
+    }
+  }
+</script>
+</body>
+</html>

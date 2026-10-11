@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Exchange Requests - Harsidhi Ventures</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root { --primary: #2563eb; --primary-soft: #eff6ff; --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --border: #e2e8f0; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+    body { background: var(--bg); display:flex; justify-content:center; }
+    .viewport { width:100%; max-width:440px; min-height:100vh; background:var(--card); padding:20px; }
+    .header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    .back-btn { width:38px; height:38px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; text-decoration:none; color:var(--text); }
+    .card { background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:16px; }
+    .inp { width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); margin-bottom:10px; font-size:13px; font-weight:600; }
+    .btn { width:100%; padding:12px; border-radius:10px; border:none; background:var(--primary); color:#fff; font-weight:700; cursor:pointer; }
+    .item-card { border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px; font-size:13px; }
+  </style>
+</head>
+<body>
+<div class="viewport">
+  <div class="header">
+    <a href="index.html" class="back-btn"><i data-lucide="arrow-left"></i></a>
+    <h2 style="font-size:18px; font-weight:800;">Exchange Portal</h2>
+  </div>
+
+  <div class="card">
+    <div style="font-size:14px; font-weight:700; margin-bottom:10px;">New Exchange Request</div>
+    <input type="text" id="ex-order" class="inp" placeholder="Order ID (e.g. 1042)" />
+    <input type="text" id="ex-mobile" class="inp" placeholder="Customer Mobile Number" />
+    <input type="text" id="ex-awb" class="inp" placeholder="Original AWB Number" />
+    <input type="text" id="ex-desc" class="inp" placeholder="Reason / Item Description" />
+    <button class="btn" onclick="saveExchange()">Submit Request</button>
+  </div>
+
+  <div style="font-size:15px; font-weight:700; margin:16px 0 10px;">Pending Requests</div>
+  <div id="exchange-list">Loading...</div>
+</div>
+
+<script>
+  lucide.createIcons();
+  const API_URL = localStorage.getItem("GS_API_URL") || "";
+
+  async function loadExchanges() {
+    if(!API_URL) return document.getElementById("exchange-list").innerHTML = "<div style='font-size:12px; color:#64748b;'>Configure API in Settings</div>";
+    try {
+      const res = await fetch(`${API_URL}?action=getExchangeReport`);
+      const data = await res.json();
+      if(data.success && data.requested.length) {
+        document.getElementById("exchange-list").innerHTML = data.requested.map(x => `
+          <div class="item-card">
+            <div style="font-weight:700; color:var(--primary);">${x.exchangeId} • Order #${x.orderId}</div>
+            <div style="color:#64748b; font-size:12px; margin-top:2px;">Phone: ${x.mobile} | AWB: ${x.originalAwb}</div>
+            <div style="font-size:12px; margin-top:4px;"><b>Note:</b> ${x.description || 'N/A'}</div>
+          </div>
+        `).join("");
+      } else {
+        document.getElementById("exchange-list").innerHTML = "<div style='font-size:12px; color:#64748b;'>No pending exchange requests.</div>";
+      }
+    } catch(e) {}
+  }
+
+  async function saveExchange() {
+    const orderId = document.getElementById("ex-order").value.trim();
+    const mobile = document.getElementById("ex-mobile").value.trim();
+    const originalAwb = document.getElementById("ex-awb").value.trim();
+    const description = document.getElementById("ex-desc").value.trim();
+
+    if(!orderId || !API_URL) return alert("Fill Order ID & ensure API is saved.");
+
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "addExchangeRequest",
+        payload: { orderId, mobile, originalAwb, description }
+      })
+    });
+    const d = await res.json();
+    if(d.success) {
+      alert("Exchange Added Successfully!");
+      location.reload();
+    }
+  }
+
+  loadExchanges();
+</script>
+</body>
+</html>

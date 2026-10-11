@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Settings - Harsidhi Ventures</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root { --primary: #2563eb; --primary-soft: #eff6ff; --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --border: #e2e8f0; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+    body { background: var(--bg); display:flex; justify-content:center; }
+    .viewport { width:100%; max-width:440px; min-height:100vh; background:var(--card); padding:20px; }
+    .header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+    .back-btn { width:38px; height:38px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; text-decoration:none; color:var(--text); }
+    .card { background:var(--bg); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px; }
+    .inp { width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:13px; font-weight:600; margin-top:8px; }
+    .btn { width:100%; padding:13px; border-radius:12px; border:none; background:var(--primary); color:#fff; font-weight:700; cursor:pointer; margin-top:12px; }
+  </style>
+</head>
+<body>
+<div class="viewport">
+  <div class="header">
+    <a href="index.html" class="back-btn"><i data-lucide="arrow-left"></i></a>
+    <h2 style="font-size:18px; font-weight:800;">Settings & API Config</h2>
+  </div>
+
+  <div class="card">
+    <label style="font-size:13px; font-weight:700;">Google Apps Script Web App URL</label>
+    <p style="font-size:11.5px; color:#64748b; margin-top:2px;">Paste your published Web App exec URL here:</p>
+    <input type="text" id="api-url" class="inp" placeholder="https://script.google.com/macros/s/.../exec" />
+    <button class="btn" onclick="saveConfig()">Save API URL</button>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700; font-size:13px;">System Info</div>
+    <p style="font-size:12px; color:#64748b; margin-top:4px;">App Version: 4.1.0 Enterprise</p>
+    <p style="font-size:12px; color:#64748b;">Developer: Kamlesh Hargun</p>
+    <p style="font-size:12px; color:#64748b;">Theme: Royal Tech Blue (Default)</p>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+  document.getElementById("api-url").value = localStorage.getItem("GS_API_URL") || "";
+
+  function saveConfig() {
+    const val = document.getElementById("api-url").value.trim();
+    localStorage.setItem("GS_API_URL", val);
+    alert("Saved! Now open Home to see live Google Sheet sync.");
+  }
+</script>
+</body>
+</html>
