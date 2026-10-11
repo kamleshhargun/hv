@@ -1,176 +1,947 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://unpkg.com/html5-qrcode"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Harsidhi Ventures</title>
+  
+  <!-- Google Font & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-<style>
-body{
-  font-family: Arial;
-  background:#f2f2f2;
-  margin:0;
-}
+  <style>
+    :root {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;          /* Royal Tech Blue */
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;    /* Soft Ice Blue */
+      --border-color: #e2e8f0;
+      --shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      --badge-success: #10b981;
+    }
 
-.header{
-  background:#5a3e2b;
-  color:#fff;
-  text-align:center;
-  padding:15px;
-  font-size:22px;
-}
+    [data-theme="dark"] {
+      --bg-color: #0b1120;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --primary-soft: #1e3a8a33;
+      --border-color: #334155;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
 
-.toggle{
-  display:flex;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-.toggle button{
-  flex:1;
-  padding:15px;
-  border:none;
-  font-size:16px;
-  cursor:pointer;
-}
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
 
-.active{
-  background:#8b5e3c;
-  color:#fff;
-}
+    .app-viewport {
+      width: 100%;
+      max-width: 440px;
+      min-height: 100vh;
+      position: relative;
+      background: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.08);
+    }
 
-.box{
-  padding:15px;
-}
+    /* ================= LOGIN SCREEN ================= */
+    #login-view {
+      position: fixed;
+      inset: 0;
+      max-width: 440px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 24px;
+      justify-content: space-between;
+    }
 
-input, select, button{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  font-size:16px;
-}
+    .brand-header {
+      text-align: center;
+      margin-top: 10px;
+    }
 
-.card{
-  background:#fff;
-  padding:10px;
-  margin-top:10px;
-  border-radius:5px;
-}
-</style>
+    .brand-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      color: var(--primary);
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .pin-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pin-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .pin-boxes {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .pin-box {
+      width: 55px;
+      height: 60px;
+      border: 2px solid var(--border-color);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--bg-color);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .pin-box.filled {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      transform: translateY(-2px);
+    }
+
+    .pin-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      user-select: none;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    .pin-controls:active {
+      background: var(--primary-soft);
+    }
+
+    /* Keypad */
+    .keypad {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .key-btn {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 24px;
+      font-weight: 600;
+      border-radius: 16px;
+      padding: 16px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .key-btn:active {
+      background: var(--primary-soft);
+      color: var(--primary);
+      transform: scale(0.95);
+    }
+
+    /* ================= MAIN DASHBOARD HEADER ================= */
+    header {
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 50;
+    }
+
+    .profile-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--primary-soft);
+      border: 2px solid var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--primary);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+    }
+
+    .search-input-box {
+      width: 100%;
+      background: var(--bg-color);
+      border: 1.5px solid var(--border-color);
+      border-radius: 24px;
+      padding: 10px 14px 10px 36px;
+      font-size: 13.5px;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input-box:focus {
+      border-color: var(--primary);
+    }
+
+    .search-wrapper .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 16px;
+      height: 16px;
+    }
+
+    .search-results-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      z-index: 100;
+      max-height: 280px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .search-result-item {
+      padding: 12px 14px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .search-result-item:hover {
+      background: var(--primary-soft);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: 0.15s;
+    }
+
+    .action-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* Profile Popup */
+    #profile-popup {
+      position: absolute;
+      top: 68px;
+      left: 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      z-index: 99;
+      display: none;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    /* Stats Banner (Fetched live from code.gs getDashboardCounts) */
+    .stats-container {
+      margin: 14px 16px 6px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-number {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Features Section */
+    .features-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      margin: 12px 16px 20px;
+      padding: 20px 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px 8px;
+      text-align: center;
+    }
+
+    .feature-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text-main);
+      gap: 8px;
+    }
+
+    .icon-bubble {
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: var(--primary-soft);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .feature-item:active .icon-bubble {
+      transform: scale(0.92);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .feature-title {
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.3;
+      max-width: 80px;
+    }
+
+    /* Recent Scans Live Feed */
+    .recent-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      margin: 0 16px 80px;
+      padding: 18px 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .recent-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 12px;
+    }
+
+    .recent-row:last-child {
+      border-bottom: none;
+    }
+
+    /* Modal Warning */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-cancel {
+      background: var(--bg-color);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    /* Bottom Dock */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      border-top: 1px solid var(--border-color);
+      padding: 10px 20px 18px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 40;
+    }
+
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      gap: 4px;
+    }
+
+    .nav-link.active {
+      color: var(--primary);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="header">Harsidhi Ventures</div>
+<div class="app-viewport">
 
-<div class="toggle">
-  <button id="pickupBtn" class="active">Pickup</button>
-  <button id="returnBtn">Return</button>
+  <!-- ================= 1. LOGIN SCREEN ================= -->
+  <div id="login-view">
+    <div class="brand-header">
+      <h1 class="brand-title">Harsidhi Ventures</h1>
+      <p class="brand-subtitle">Developed by Kamlesh Hargun</p>
+    </div>
+
+    <div class="pin-section">
+      <div class="pin-label">ENTER YOUR PIN</div>
+      <div class="pin-boxes">
+        <div class="pin-box" id="p1"></div>
+        <div class="pin-box" id="p2"></div>
+        <div class="pin-box" id="p3"></div>
+        <div class="pin-box" id="p4"></div>
+      </div>
+
+      <div class="pin-controls" id="toggle-show-pin">
+        <i data-lucide="eye" id="eye-icon" style="width:16px;height:16px;"></i>
+        <span id="pin-toggle-text">Show PIN</span>
+      </div>
+      <p id="pin-error" style="color: #ef4444; font-size: 12px; margin-top: 10px; visibility: hidden; font-weight:600;">Incorrect PIN (Default: 0000)</p>
+    </div>
+
+    <!-- Permanent Keypad -->
+    <div class="keypad">
+      <button class="key-btn" onclick="pressDigit('1')">1</button>
+      <button class="key-btn" onclick="pressDigit('2')">2</button>
+      <button class="key-btn" onclick="pressDigit('3')">3</button>
+      <button class="key-btn" onclick="pressDigit('4')">4</button>
+      <button class="key-btn" onclick="pressDigit('5')">5</button>
+      <button class="key-btn" onclick="pressDigit('6')">6</button>
+      <button class="key-btn" onclick="pressDigit('7')">7</button>
+      <button class="key-btn" onclick="pressDigit('8')">8</button>
+      <button class="key-btn" onclick="pressDigit('9')">9</button>
+      <div class="key-btn" style="border:none; background:transparent;"></div>
+      <button class="key-btn" onclick="pressDigit('0')">0</button>
+      <button class="key-btn" onclick="deleteDigit()">
+        <i data-lucide="delete" style="width: 22px; height: 22px;"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 2. DASHBOARD VIEW ================= -->
+  <header>
+    <div class="profile-avatar" id="profile-btn">HV</div>
+
+    <!-- Live Search connected to Sheet searchOrder -->
+    <div class="search-wrapper">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" id="master-search" class="search-input-box" placeholder="Search AWB, Order ID, Tools..." autocomplete="off" />
+      <div class="search-results-dropdown" id="search-dropdown"></div>
+    </div>
+
+    <div class="header-actions">
+      <button class="action-btn" id="theme-btn" title="Toggle Theme">
+        <i data-lucide="moon" id="theme-icon" style="width: 18px; height: 18px;"></i>
+      </button>
+      <button class="action-btn" id="logout-btn" title="Shutdown / Logout">
+        <i data-lucide="power" style="width: 18px; height: 18px; color: #ef4444;"></i>
+      </button>
+    </div>
+
+    <!-- 3-Second Minimal Popup -->
+    <div id="profile-popup">
+      <div style="font-weight:700; font-size:14px;">Kamlesh Hargun</div>
+      <div style="font-size:11.5px; color:var(--text-muted);">Admin • Harsidhi Ventures</div>
+      <div style="font-size:11px; color:var(--badge-success); margin-top:4px; font-weight:600;">● Google Sheet Sync Active</div>
+    </div>
+  </header>
+
+  <main style="flex:1;">
+    <!-- Live Counts Banner (getDashboardCounts) -->
+    <div class="stats-container">
+      <div class="stat-box">
+        <div class="stat-icon-wrap"><i data-lucide="arrow-up-right"></i></div>
+        <div>
+          <div class="stat-number" id="today-pickup">--</div>
+          <div class="stat-label">Today's Pickups</div>
+        </div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-icon-wrap" style="background:#fee2e2; color:#ef4444;"><i data-lucide="arrow-down-left"></i></div>
+        <div>
+          <div class="stat-number" id="today-return">--</div>
+          <div class="stat-label">Today's Returns</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features Grid -->
+    <section class="features-card">
+      <div class="section-title">
+        <span>Features</span>
+        <span style="font-size:11px; color:var(--primary); font-weight:600; cursor:pointer;" onclick="fetchDashboardLive()">Refresh Data</span>
+      </div>
+      
+      <div class="features-grid">
+        <a href="scan.html" class="feature-item">
+          <div class="icon-bubble"><i data-lucide="qr-code"></i></div>
+          <span class="feature-title">Scan</span>
+        </a>
+
+        <a href="exchange-requist.html" class="feature-item">
+          <div class="icon-bubble"><i data-lucide="repeat"></i></div>
+          <span class="feature-title">Exchange Request</span>
+        </a>
+
+        <a href="return-reconcilation.html" class="feature-item">
+          <div class="icon-bubble"><i data-lucide="undo-2"></i></div>
+          <span class="feature-title">Return Reconcile</span>
+        </a>
+
+        <a href="scan-history.html" class="feature-item">
+          <div class="icon-bubble"><i data-lucide="history"></i></div>
+          <span class="feature-title">Scan History</span>
+        </a>
+
+        <a href="find-order.html" class="feature-item">
+          <div class="icon-bubble"><i data-lucide="search-check"></i></div>
+          <span class="feature-title">Find Order</span>
+        </a>
+
+        <a href="boxd.html" class="feature-item">
+          <div class="icon-bubble"><i data-lucide="truck"></i></div>
+          <span class="feature-title">BOXD Logistics</span>
+        </a>
+
+        <a href="setting.html" class="feature-item">
+          <div class="icon-bubble"><i data-lucide="settings"></i></div>
+          <span class="feature-title">Settings</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Recent Daily Scans Table (from code.gs getRecentRecords) -->
+    <section class="recent-card">
+      <div class="section-title">
+        <span>Recent Activity</span>
+        <span style="font-size:11px; color:var(--text-muted); font-weight:500;">Live Feed</span>
+      </div>
+      <div id="recent-records-list">
+        <div style="font-size:12px; color:var(--text-muted); text-align:center; padding:12px;">Loading recent scans...</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation Dock -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-link active">
+      <i data-lucide="home"></i>
+      <span>Home</span>
+    </a>
+    <a href="scan.html" class="nav-link">
+      <i data-lucide="scan-line"></i>
+      <span>Scan</span>
+    </a>
+    <a href="scan-history.html" class="nav-link">
+      <i data-lucide="file-text"></i>
+      <span>History</span>
+    </a>
+    <a href="setting.html" class="nav-link">
+      <i data-lucide="sliders-horizontal"></i>
+      <span>Settings</span>
+    </a>
+  </nav>
+
 </div>
 
-<div class="box">
-
-<input type="text" id="orderId" placeholder="Scan / Enter Order ID">
-
-<button onclick="fetchData()">Find Order</button>
-
-<div id="result"></div>
-
-<select id="payment">
-  <option value="">Select Payment Type</option>
-  <option value="Prepaid">Prepaid</option>
-  <option value="COD">COD</option>
-</select>
-
-<input type="text" id="tracking" placeholder="Scan / Enter Tracking ID">
-
-<button onclick="saveData()">Save</button>
-
+<!-- Logout Confirmation Dialog -->
+<div class="modal-overlay" id="logout-modal">
+  <div class="modal-card">
+    <i data-lucide="alert-triangle" style="width:42px; height:42px; color:#ef4444; margin:0 auto 10px;"></i>
+    <h3 style="font-size:17px; margin-bottom:6px;">Logout Confirm</h3>
+    <p style="font-size:12.5px; color:var(--text-muted);">Kya aap app ko band/logout karna chahte hain?</p>
+    <div class="modal-buttons">
+      <button class="btn btn-cancel" id="logout-no">No</button>
+      <button class="btn btn-danger" id="logout-yes">Yes</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const API="https://script.google.com/macros/s/AKfycby50nqYC6jhTxQqMMuzLPQBD7nflJOlq_K3SaBuWsxxoT_bRGsLPlDOEKAkf-xxlPau9A/exec";
+  lucide.createIcons();
 
-let mode="Pickup";
+  /* ================= APPS SCRIPT WEB APP API URL ================= */
+  // Agar aapne setting.html me URL save kiya hai to waha se uthayega
+  const DEFAULT_API_URL = localStorage.getItem("GS_API_URL") || "";
 
-// toggle
-pickupBtn.onclick=()=>{
-  mode="Pickup";
-  pickupBtn.classList.add("active");
-  returnBtn.classList.remove("active");
-}
+  /* ================= 1. PIN & LOGIN LOGIC ================= */
+  const CORRECT_PIN = "0000";
+  let currentPin = "";
+  let isShowPin = false;
 
-returnBtn.onclick=()=>{
-  mode="Return";
-  returnBtn.classList.add("active");
-  pickupBtn.classList.remove("active");
-}
+  function updatePinBoxes() {
+    const errorEl = document.getElementById("pin-error");
+    errorEl.style.visibility = "hidden";
 
-// 🔥 FETCH ORDER
-function fetchData(){
-  let id=document.getElementById("orderId").value.trim();
+    for (let i = 1; i <= 4; i++) {
+      const box = document.getElementById("p" + i);
+      const digit = currentPin[i - 1];
+      if (digit) {
+        box.textContent = isShowPin ? digit : "•";
+        box.classList.add("filled");
+      } else {
+        box.textContent = "";
+        box.classList.remove("filled");
+      }
+    }
 
-  if(!id){
-    alert("Enter Order ID");
-    return;
+    if (currentPin.length === 4) {
+      if (currentPin === CORRECT_PIN) {
+        document.getElementById("login-view").style.display = "none";
+        sessionStorage.setItem("isLoggedIn", "true");
+        fetchDashboardLive();
+      } else {
+        errorEl.style.visibility = "visible";
+        setTimeout(() => {
+          currentPin = "";
+          updatePinBoxes();
+        }, 700);
+      }
+    }
   }
 
-  // ✅ IMPORTANT: encode (fix # issue)
-  fetch(API+"?orderId="+encodeURIComponent(id))
-  .then(r=>r.json())
-  .then(d=>{
-    if(d.status=="success"){
-      result.innerHTML=`
-        <div class="card">Order: ${d.orderId}</div>
-        <div class="card">SKU: ${d.sku}</div>
-        <div class="card">Amount: ${d.amount}</div>
-        <div class="card">Qty: ${d.qty}</div>
+  function pressDigit(num) {
+    if (currentPin.length < 4) {
+      currentPin += num;
+      updatePinBoxes();
+    }
+  }
+
+  function deleteDigit() {
+    if (currentPin.length > 0) {
+      currentPin = currentPin.slice(0, -1);
+      updatePinBoxes();
+    }
+  }
+
+  document.getElementById("toggle-show-pin").addEventListener("click", () => {
+    isShowPin = !isShowPin;
+    document.getElementById("pin-toggle-text").innerText = isShowPin ? "Hide PIN" : "Show PIN";
+    document.getElementById("eye-icon").setAttribute("data-lucide", isShowPin ? "eye-off" : "eye");
+    lucide.createIcons();
+    updatePinBoxes();
+  });
+
+  if (sessionStorage.getItem("isLoggedIn") === "true") {
+    document.getElementById("login-view").style.display = "none";
+    fetchDashboardLive();
+  }
+
+  /* ================= 2. PROFILE POPUP (3 SEC AUTO-CLOSE) ================= */
+  let profileTimer = null;
+  const profileBtn = document.getElementById("profile-btn");
+  const profilePopup = document.getElementById("profile-popup");
+
+  profileBtn.addEventListener("click", () => {
+    profilePopup.style.display = "block";
+    clearTimeout(profileTimer);
+    profileTimer = setTimeout(() => {
+      profilePopup.style.display = "none";
+    }, 3000);
+  });
+
+  /* ================= 3. THEME TOGGLE ================= */
+  const themeBtn = document.getElementById("theme-btn");
+  let isDark = localStorage.getItem("theme") === "dark";
+  if (isDark) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  }
+
+  themeBtn.addEventListener("click", () => {
+    isDark = !isDark;
+    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+    const icon = document.getElementById("theme-icon");
+    icon.setAttribute("data-lucide", isDark ? "sun" : "moon");
+    lucide.createIcons();
+  });
+
+  /* ================= 4. LOGOUT MODAL ================= */
+  const logoutBtn = document.getElementById("logout-btn");
+  const logoutModal = document.getElementById("logout-modal");
+  const logoutNo = document.getElementById("logout-no");
+  const logoutYes = document.getElementById("logout-yes");
+
+  logoutBtn.addEventListener("click", () => logoutModal.style.display = "flex");
+  logoutNo.addEventListener("click", () => logoutModal.style.display = "none");
+  logoutYes.addEventListener("click", () => {
+    sessionStorage.removeItem("isLoggedIn");
+    currentPin = "";
+    updatePinBoxes();
+    logoutModal.style.display = "none";
+    document.getElementById("login-view").style.display = "flex";
+  });
+
+  /* ================= 5. MASTER SEARCH LOGIC ================= */
+  const internalPages = [
+    { title: "Scan AWB / Barcode", path: "scan.html", type: "Feature" },
+    { title: "Exchange Request Portal", path: "exchange-requist.html", type: "Feature" },
+    { title: "Return Reconciliation", path: "return-reconcilation.html", type: "Feature" },
+    { title: "Scan History Logs", path: "scan-history.html", type: "Feature" },
+    { title: "Find Order Details", path: "find-order.html", type: "Feature" },
+    { title: "Settings & API Config", path: "setting.html", type: "Feature" },
+    { title: "BOXD Logistics System", path: "boxd.html", type: "Feature" }
+  ];
+
+  const searchInput = document.getElementById("master-search");
+  const searchDropdown = document.getElementById("search-dropdown");
+
+  searchInput.addEventListener("input", async (e) => {
+    const val = e.target.value.trim();
+    if (!val) {
+      searchDropdown.style.display = "none";
+      return;
+    }
+
+    // 1. Local Tool Match
+    const matches = internalPages.filter(p => p.title.toLowerCase().includes(val.toLowerCase()));
+    let html = matches.map(m => `
+      <div class="search-result-item" onclick="location.href='${m.path}'">
+        <i data-lucide="compass" style="width:16px;height:16px;color:var(--primary);"></i>
+        <div>
+          <div style="font-weight:600;">${m.title}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${m.type}</div>
+        </div>
+      </div>
+    `).join("");
+
+    // 2. Query code.gs searchOrder API if length > 3
+    if (val.length >= 3 && DEFAULT_API_URL) {
+      html += `<div style="padding:8px 14px; font-size:11px; color:var(--text-muted); background:var(--bg-color);">Searching Sheets...</div>`;
+      searchDropdown.innerHTML = html;
+      searchDropdown.style.display = "block";
+      lucide.createIcons();
+
+      try {
+        const res = await fetch(`${DEFAULT_API_URL}?action=searchOrder&keyword=${encodeURIComponent(val)}`);
+        const json = await res.json();
+        if (json.success) {
+          html += `
+            <div class="search-result-item" onclick="location.href='find-order.html?q=${encodeURIComponent(val)}'">
+              <i data-lucide="package" style="width:16px;height:16px;color:var(--badge-success);"></i>
+              <div>
+                <div style="font-weight:700;">Order #${json.orderId} (AWB: ${json.awb})</div>
+                <div style="font-size:11px;color:var(--text-muted);">${json.customer || 'Customer'} • ${json.status || 'Status'}</div>
+              </div>
+            </div>
+          `;
+        }
+      } catch (err) {}
+    }
+
+    searchDropdown.innerHTML = html || `<div style="padding:12px;font-size:12px;color:var(--text-muted);text-align:center;">No match found</div>`;
+    searchDropdown.style.display = "block";
+    lucide.createIcons();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".search-wrapper")) searchDropdown.style.display = "none";
+  });
+
+  /* ================= 6. LIVE DATA FETCH (code.gs getDashboardCounts & getRecentRecords) ================= */
+  async function fetchDashboardLive() {
+    if (!DEFAULT_API_URL) {
+      document.getElementById("today-pickup").innerText = "12";
+      document.getElementById("today-return").innerText = "4";
+      document.getElementById("recent-records-list").innerHTML = `
+        <div style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">
+          Settings me jaakar Google Apps Script URL dalein. (Demo Preview Active)
+        </div>
       `;
-    }else{
-      result.innerHTML="<div class='card'>❌ Not Found</div>";
+      return;
     }
-  })
-  .catch(()=>{
-    alert("Server Error");
-  });
-}
 
-// 🔥 SAVE DATA
-function saveData(){
-  let orderId=document.getElementById("orderId").value.trim();
-  let payment=document.getElementById("payment").value;
-  let tracking=document.getElementById("tracking").value.trim();
+    try {
+      // 1. Counts
+      const countRes = await fetch(`${DEFAULT_API_URL}?action=getDashboardCounts`);
+      const countData = await countRes.json();
+      if (countData.success) {
+        document.getElementById("today-pickup").innerText = countData.todayPickup || 0;
+        document.getElementById("today-return").innerText = countData.todayReturn || 0;
+      }
 
-  if(!orderId || !payment || !tracking){
-    alert("All fields required");
-    return;
+      // 2. Recent Records
+      const recRes = await fetch(`${DEFAULT_API_URL}?action=getRecentRecords`);
+      const recData = await recRes.json();
+      if (recData.success && recData.rows.length) {
+        const top5 = recData.rows.slice(0, 5);
+        document.getElementById("recent-records-list").innerHTML = top5.map(r => `
+          <div class="recent-row">
+            <div>
+              <div style="font-weight:700; color:var(--text-main);">${r.awb}</div>
+              <div style="color:var(--text-muted); font-size:11px;">${r.orderId || 'No Order ID'} • ${r.courier || ''}</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-weight:700; font-size:10.5px; background:${r.type==='Pickup'?'#eff6ff':'#fee2e2'}; color:${r.type==='Pickup'?'#2563eb':'#ef4444'};">${r.type}</span>
+              <div style="color:var(--text-muted); font-size:10px; margin-top:2px;">${r.date}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+    } catch (e) {
+      console.log("Error fetching sheets:", e);
+    }
   }
-
-  fetch(API,{
-    method:"POST",
-    body:JSON.stringify({
-      orderId:orderId,
-      paymentType:payment,
-      tracking:tracking,
-      mode:mode
-    })
-  })
-  .then(r=>r.json())
-  .then(d=>{
-    if(d.status=="saved"){
-      alert("✅ Saved");
-
-      // reset
-      orderId.value="";
-      tracking.value="";
-      result.innerHTML="";
-      payment.value="";
-    }else{
-      alert("❌ Save Failed");
-    }
-  })
-  .catch(()=>{
-    alert("Server Error");
-  });
-}
 </script>
-
 </body>
 </html>
