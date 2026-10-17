@@ -1,947 +1,633 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Harsidhi Ventures</title>
-  
-  <!-- Google Font & Lucide Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Seller Central - Shopify Sales Uploader ERP</title>
+
+  <!-- Google Fonts & Supabase SDK -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
-      --bg-color: #f1f5f9;
+      --amz-nav: #131921;
+      --amz-subnav: #232f3e;
+      --amz-orange: #ff9900;
+      --amz-orange-dark: #e68a00;
+      --amz-btn-border: #a88734;
+      --bg-body: #eaeded;
       --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --primary: #2563eb;          /* Royal Tech Blue */
-      --primary-hover: #1d4ed8;
-      --primary-soft: #eff6ff;    /* Soft Ice Blue */
-      --border-color: #e2e8f0;
-      --shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-      --badge-success: #10b981;
-    }
-
-    [data-theme="dark"] {
-      --bg-color: #0b1120;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --primary-hover: #60a5fa;
-      --primary-soft: #1e3a8a33;
-      --border-color: #334155;
-      --shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      --text-main: #0f1111;
+      --text-sub: #565959;
+      --border: #d5d9d9;
+      --success: #067d62;
+      --danger: #ba0933;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-tap-highlight-color: transparent;
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
-      background-color: var(--bg-color);
+      background: var(--bg-body);
       color: var(--text-main);
-      display: flex;
-      justify-content: center;
       min-height: 100vh;
-      transition: background-color 0.25s ease, color 0.25s ease;
-    }
-
-    .app-viewport {
-      width: 100%;
-      max-width: 440px;
-      min-height: 100vh;
-      position: relative;
-      background: var(--bg-color);
       display: flex;
       flex-direction: column;
-      box-shadow: 0 0 50px rgba(0, 0, 0, 0.08);
     }
 
-    /* ================= LOGIN SCREEN ================= */
-    #login-view {
-      position: fixed;
-      inset: 0;
-      max-width: 440px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      z-index: 1000;
+    /* AMAZON SELLER HEADER */
+    .amz-header {
+      background: var(--amz-nav);
+      color: #ffffff;
+      padding: 10px 24px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      padding: 32px 24px;
       justify-content: space-between;
+      border-bottom: 4px solid var(--amz-orange);
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .brand-logo span {
+      color: var(--amz-orange);
+    }
+    .store-tag {
+      background: var(--amz-subnav);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #cbd5e1;
+      border: 1px solid #374151;
     }
 
-    .brand-header {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    .brand-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.6px;
-      color: var(--primary);
-    }
-
-    .brand-subtitle {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .pin-section {
+    /* MAIN CONTAINER */
+    .main-wrap {
+      max-width: 1280px;
       width: 100%;
+      margin: 20px auto;
+      padding: 0 16px;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      gap: 16px;
     }
 
-    .pin-label {
-      font-size: 12px;
-      letter-spacing: 2px;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 18px;
-    }
-
-    .pin-boxes {
-      display: flex;
-      gap: 14px;
-      margin-bottom: 16px;
-    }
-
-    .pin-box {
-      width: 55px;
-      height: 60px;
-      border: 2px solid var(--border-color);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--primary);
-      background: var(--bg-color);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .pin-box.filled {
-      border-color: var(--primary);
-      background: var(--primary-soft);
-      transform: translateY(-2px);
-    }
-
-    .pin-controls {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      user-select: none;
-      padding: 6px 12px;
-      border-radius: 20px;
-    }
-
-    .pin-controls:active {
-      background: var(--primary-soft);
-    }
-
-    /* Keypad */
-    .keypad {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .key-btn {
-      background: var(--bg-color);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      font-size: 24px;
-      font-weight: 600;
-      border-radius: 16px;
-      padding: 16px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: 0.15s ease;
-    }
-
-    .key-btn:active {
-      background: var(--primary-soft);
-      color: var(--primary);
-      transform: scale(0.95);
-    }
-
-    /* ================= MAIN DASHBOARD HEADER ================= */
-    header {
-      padding: 16px 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      position: sticky;
-      top: 0;
+    /* AMAZON STYLE CARDS */
+    .amz-card {
       background: var(--card-bg);
-      border-bottom: 1px solid var(--border-color);
-      z-index: 50;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
     }
 
-    .profile-avatar {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--primary-soft);
-      border: 2px solid var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 15px;
-      color: var(--primary);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .search-wrapper {
-      position: relative;
-      flex: 1;
-    }
-
-    .search-input-box {
-      width: 100%;
-      background: var(--bg-color);
-      border: 1.5px solid var(--border-color);
-      border-radius: 24px;
-      padding: 10px 14px 10px 36px;
-      font-size: 13.5px;
-      color: var(--text-main);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .search-input-box:focus {
-      border-color: var(--primary);
-    }
-
-    .search-wrapper .search-icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      width: 16px;
-      height: 16px;
-    }
-
-    .search-results-dropdown {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      right: 0;
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      z-index: 100;
-      max-height: 280px;
-      overflow-y: auto;
-      display: none;
-    }
-
-    .search-result-item {
-      padding: 12px 14px;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid var(--border-color);
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-
-    .search-result-item:hover {
-      background: var(--primary-soft);
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .action-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      border: 1px solid var(--border-color);
-      background: var(--card-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--text-main);
-      transition: 0.15s;
-    }
-
-    .action-btn:active {
-      transform: scale(0.94);
-    }
-
-    /* Profile Popup */
-    #profile-popup {
-      position: absolute;
-      top: 68px;
-      left: 18px;
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 14px 16px;
-      box-shadow: var(--shadow);
-      z-index: 99;
-      display: none;
-      animation: fadeIn 0.2s ease-out;
-    }
-
-    /* Stats Banner (Fetched live from code.gs getDashboardCounts) */
-    .stats-container {
-      margin: 14px 16px 6px;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .stat-box {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 18px;
-      padding: 14px;
-      box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .stat-icon-wrap {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: var(--primary-soft);
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .stat-number {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--text-main);
-    }
-
-    .stat-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    /* Features Section */
-    .features-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 24px;
-      margin: 12px 16px 20px;
-      padding: 20px 16px;
-      box-shadow: var(--shadow);
-    }
-
-    .section-title {
+    .card-title {
       font-size: 16px;
       font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 18px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
     }
 
-    .features-grid {
+    /* CONTROLS ROW */
+    .upload-control-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px 8px;
-      text-align: center;
+      grid-template-columns: 240px 1fr auto;
+      gap: 16px;
+      align-items: flex-end;
     }
 
-    .feature-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-decoration: none;
-      color: var(--text-main);
-      gap: 8px;
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      text-transform: uppercase;
     }
 
-    .icon-bubble {
-      width: 56px;
-      height: 56px;
-      border-radius: 18px;
-      background: var(--primary-soft);
-      border: 1px solid var(--border-color);
+    .input-box {
+      width: 100%;
+      height: 40px;
+      padding: 8px 12px;
+      border: 1px solid #888c8c;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      outline: none;
+    }
+    .input-box:focus {
+      border-color: #007185;
+      box-shadow: 0 0 0 3px rgba(0, 113, 133, 0.2);
+    }
+
+    .file-dropzone {
+      border: 2px dashed #007185;
+      background: #f7fafa;
+      border-radius: 6px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--primary);
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #007185;
+      padding: 0 16px;
+      transition: background 0.2s;
+    }
+    .file-dropzone:hover {
+      background: #edfdff;
     }
 
-    .feature-item:active .icon-bubble {
-      transform: scale(0.92);
-      background: var(--primary);
-      color: #fff;
+    /* AMAZON BUTTON */
+    .btn-amz {
+      background: linear-gradient(to bottom, #f7dfa5, #f0c14b);
+      border: 1px solid var(--amz-btn-border);
+      border-radius: 6px;
+      height: 40px;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.4) inset;
+    }
+    .btn-amz:hover {
+      background: linear-gradient(to bottom, #f5d78e, #eeb933);
+    }
+    .btn-amz:disabled {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+      color: #94a3b8;
+      cursor: not-allowed;
     }
 
-    .feature-title {
+    /* KPI STATS CARDS */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .kpi-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--amz-orange);
+      padding: 12px 16px;
+      border-radius: 6px;
+    }
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 4px;
+    }
+    .kpi-lbl {
       font-size: 11px;
-      font-weight: 600;
-      line-height: 1.3;
-      max-width: 80px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
     }
 
-    /* Recent Scans Live Feed */
-    .recent-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 24px;
-      margin: 0 16px 80px;
-      padding: 18px 16px;
-      box-shadow: var(--shadow);
+    /* NOTICES & ALERTS */
+    .alert-box {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 14px;
     }
+    .alert-success { background: #def7ec; border: 1px solid #31c48d; color: var(--success); }
+    .alert-warning { background: #fef08a; border: 1px solid #eab308; color: #854d0e; }
+    .alert-danger { background: #fde8e8; border: 1px solid #f98080; color: var(--danger); }
 
-    .recent-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border-color);
+    /* DATA TABLE */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
       font-size: 12px;
     }
-
-    .recent-row:last-child {
-      border-bottom: none;
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
     }
-
-    /* Modal Warning */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      z-index: 1100;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal-card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 24px;
-      width: 100%;
-      max-width: 320px;
-      text-align: center;
-      box-shadow: var(--shadow);
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
+    th {
+      background: #f8fafc;
+      color: var(--text-sub);
       font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
     }
-
-    .btn-cancel {
-      background: var(--bg-color);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-    }
-
-    .btn-danger {
-      background: #ef4444;
-      color: #fff;
-    }
-
-    /* Bottom Dock */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 440px;
-      background: var(--card-bg);
-      border-top: 1px solid var(--border-color);
-      padding: 10px 20px 18px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 40;
-    }
-
-    .nav-link {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-decoration: none;
-      font-size: 10.5px;
-      font-weight: 600;
-      color: var(--text-muted);
-      gap: 4px;
-    }
-
-    .nav-link.active {
-      color: var(--primary);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-6px); }
-      to { opacity: 1; transform: translateY(0); }
+    .badge-vendor {
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      font-size: 11px;
     }
   </style>
 </head>
 <body>
 
-<div class="app-viewport">
-
-  <!-- ================= 1. LOGIN SCREEN ================= -->
-  <div id="login-view">
-    <div class="brand-header">
-      <h1 class="brand-title">Harsidhi Ventures</h1>
-      <p class="brand-subtitle">Developed by Kamlesh Hargun</p>
+  <!-- Header -->
+  <header class="amz-header">
+    <div class="brand-wrap">
+      <div class="brand-logo">📦 SELLER<span>CENTRAL</span> ERP</div>
+      <div class="store-tag">Multi-Vendor Sales Portal</div>
     </div>
-
-    <div class="pin-section">
-      <div class="pin-label">ENTER YOUR PIN</div>
-      <div class="pin-boxes">
-        <div class="pin-box" id="p1"></div>
-        <div class="pin-box" id="p2"></div>
-        <div class="pin-box" id="p3"></div>
-        <div class="pin-box" id="p4"></div>
-      </div>
-
-      <div class="pin-controls" id="toggle-show-pin">
-        <i data-lucide="eye" id="eye-icon" style="width:16px;height:16px;"></i>
-        <span id="pin-toggle-text">Show PIN</span>
-      </div>
-      <p id="pin-error" style="color: #ef4444; font-size: 12px; margin-top: 10px; visibility: hidden; font-weight:600;">Incorrect PIN (Default: 0000)</p>
-    </div>
-
-    <!-- Permanent Keypad -->
-    <div class="keypad">
-      <button class="key-btn" onclick="pressDigit('1')">1</button>
-      <button class="key-btn" onclick="pressDigit('2')">2</button>
-      <button class="key-btn" onclick="pressDigit('3')">3</button>
-      <button class="key-btn" onclick="pressDigit('4')">4</button>
-      <button class="key-btn" onclick="pressDigit('5')">5</button>
-      <button class="key-btn" onclick="pressDigit('6')">6</button>
-      <button class="key-btn" onclick="pressDigit('7')">7</button>
-      <button class="key-btn" onclick="pressDigit('8')">8</button>
-      <button class="key-btn" onclick="pressDigit('9')">9</button>
-      <div class="key-btn" style="border:none; background:transparent;"></div>
-      <button class="key-btn" onclick="pressDigit('0')">0</button>
-      <button class="key-btn" onclick="deleteDigit()">
-        <i data-lucide="delete" style="width: 22px; height: 22px;"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- ================= 2. DASHBOARD VIEW ================= -->
-  <header>
-    <div class="profile-avatar" id="profile-btn">HV</div>
-
-    <!-- Live Search connected to Sheet searchOrder -->
-    <div class="search-wrapper">
-      <i data-lucide="search" class="search-icon"></i>
-      <input type="text" id="master-search" class="search-input-box" placeholder="Search AWB, Order ID, Tools..." autocomplete="off" />
-      <div class="search-results-dropdown" id="search-dropdown"></div>
-    </div>
-
-    <div class="header-actions">
-      <button class="action-btn" id="theme-btn" title="Toggle Theme">
-        <i data-lucide="moon" id="theme-icon" style="width: 18px; height: 18px;"></i>
-      </button>
-      <button class="action-btn" id="logout-btn" title="Shutdown / Logout">
-        <i data-lucide="power" style="width: 18px; height: 18px; color: #ef4444;"></i>
-      </button>
-    </div>
-
-    <!-- 3-Second Minimal Popup -->
-    <div id="profile-popup">
-      <div style="font-weight:700; font-size:14px;">Kamlesh Hargun</div>
-      <div style="font-size:11.5px; color:var(--text-muted);">Admin • Harsidhi Ventures</div>
-      <div style="font-size:11px; color:var(--badge-success); margin-top:4px; font-weight:600;">● Google Sheet Sync Active</div>
-    </div>
+    <div style="font-size: 12px; color: #94a3b8;" id="liveClock"></div>
   </header>
 
-  <main style="flex:1;">
-    <!-- Live Counts Banner (getDashboardCounts) -->
-    <div class="stats-container">
-      <div class="stat-box">
-        <div class="stat-icon-wrap"><i data-lucide="arrow-up-right"></i></div>
-        <div>
-          <div class="stat-number" id="today-pickup">--</div>
-          <div class="stat-label">Today's Pickups</div>
-        </div>
+  <div class="main-wrap">
+
+    <!-- UPLOAD PANEL -->
+    <div class="amz-card">
+      <div class="card-title">
+        <span>DAILY SHOPIFY SALES CSV UPLOAD</span>
+        <span style="font-size: 12px; font-weight: normal; color: var(--text-sub);">Deduplication & Multi-item Smart Filter</span>
       </div>
-      <div class="stat-box">
-        <div class="stat-icon-wrap" style="background:#fee2e2; color:#ef4444;"><i data-lucide="arrow-down-left"></i></div>
-        <div>
-          <div class="stat-number" id="today-return">--</div>
-          <div class="stat-label">Today's Returns</div>
+
+      <div class="upload-control-grid">
+        <div class="form-group">
+          <label for="filterDate">Sales Order Date</label>
+          <input type="date" id="filterDate" class="input-box">
         </div>
+
+        <div class="form-group">
+          <label>Shopify Export File (.csv)</label>
+          <div class="file-dropzone" onclick="document.getElementById('csvFileInput').click()">
+            <span id="fileLabel">📁 Select or Drop Shopify CSV File</span>
+            <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleFileChosen(this)">
+          </div>
+        </div>
+
+        <button id="btnUpload" class="btn-amz" onclick="processAndUploadSalesCsv()" disabled>Upload to Supabase</button>
+      </div>
+
+      <div id="noticeAlert" class="alert-box"></div>
+    </div>
+
+    <!-- METRICS BAR -->
+    <div class="stats-bar">
+      <div class="kpi-card">
+        <div class="kpi-lbl">Total Uploaded Items</div>
+        <div class="kpi-val" id="kpiItemCount">0</div>
+      </div>
+      <div class="kpi-card" style="border-left-color: #007185;">
+        <div class="kpi-lbl">Unique Orders</div>
+        <div class="kpi-val" id="kpiUniqueOrders">0</div>
+      </div>
+      <div class="kpi-card" style="border-left-color: var(--success);">
+        <div class="kpi-lbl">Total Sales Value (₹)</div>
+        <div class="kpi-val" id="kpiTotalSales">₹0</div>
+      </div>
+      <div class="kpi-card" style="border-left-color: #6366f1;">
+        <div class="kpi-lbl">Vendors Filtered</div>
+        <div class="kpi-val" id="kpiVendors">0</div>
       </div>
     </div>
 
-    <!-- Features Grid -->
-    <section class="features-card">
-      <div class="section-title">
-        <span>Features</span>
-        <span style="font-size:11px; color:var(--primary); font-weight:600; cursor:pointer;" onclick="fetchDashboardLive()">Refresh Data</span>
+    <!-- RECENTLY UPLOADED / PREVIEW TABLE -->
+    <div class="amz-card">
+      <div class="card-title">
+        <span>RECENTLY UPLOADED ORDERS (SUPABASE PREVIEW)</span>
+        <button class="btn-amz" style="height: 30px; font-size: 11px; padding: 0 12px;" onclick="loadRecentSalesData()">Refresh List</button>
       </div>
-      
-      <div class="features-grid">
-        <a href="scan.html" class="feature-item">
-          <div class="icon-bubble"><i data-lucide="qr-code"></i></div>
-          <span class="feature-title">Scan</span>
-        </a>
 
-        <a href="exchange-requist.html" class="feature-item">
-          <div class="icon-bubble"><i data-lucide="repeat"></i></div>
-          <span class="feature-title">Exchange Request</span>
-        </a>
-
-        <a href="return-reconcilation.html" class="feature-item">
-          <div class="icon-bubble"><i data-lucide="undo-2"></i></div>
-          <span class="feature-title">Return Reconcile</span>
-        </a>
-
-        <a href="scan-history.html" class="feature-item">
-          <div class="icon-bubble"><i data-lucide="history"></i></div>
-          <span class="feature-title">Scan History</span>
-        </a>
-
-        <a href="find-order.html" class="feature-item">
-          <div class="icon-bubble"><i data-lucide="search-check"></i></div>
-          <span class="feature-title">Find Order</span>
-        </a>
-
-        <a href="boxd.html" class="feature-item">
-          <div class="icon-bubble"><i data-lucide="truck"></i></div>
-          <span class="feature-title">BOXD Logistics</span>
-        </a>
-
-        <a href="setting.html" class="feature-item">
-          <div class="icon-bubble"><i data-lucide="settings"></i></div>
-          <span class="feature-title">Settings</span>
-        </a>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Created At</th>
+              <th>Customer Name</th>
+              <th>SKU</th>
+              <th>Qty</th>
+              <th>Total (₹)</th>
+              <th>Payment</th>
+              <th>Vendor</th>
+              <th>City</th>
+            </tr>
+          </thead>
+          <tbody id="salesTableBody">
+            <tr>
+              <td colspan="9" style="text-align: center; color: gray; padding: 20px;">Upload a CSV to view extracted sales data.</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </section>
-
-    <!-- Recent Daily Scans Table (from code.gs getRecentRecords) -->
-    <section class="recent-card">
-      <div class="section-title">
-        <span>Recent Activity</span>
-        <span style="font-size:11px; color:var(--text-muted); font-weight:500;">Live Feed</span>
-      </div>
-      <div id="recent-records-list">
-        <div style="font-size:12px; color:var(--text-muted); text-align:center; padding:12px;">Loading recent scans...</div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Bottom Navigation Dock -->
-  <nav class="bottom-nav">
-    <a href="index.html" class="nav-link active">
-      <i data-lucide="home"></i>
-      <span>Home</span>
-    </a>
-    <a href="scan.html" class="nav-link">
-      <i data-lucide="scan-line"></i>
-      <span>Scan</span>
-    </a>
-    <a href="scan-history.html" class="nav-link">
-      <i data-lucide="file-text"></i>
-      <span>History</span>
-    </a>
-    <a href="setting.html" class="nav-link">
-      <i data-lucide="sliders-horizontal"></i>
-      <span>Settings</span>
-    </a>
-  </nav>
-
-</div>
-
-<!-- Logout Confirmation Dialog -->
-<div class="modal-overlay" id="logout-modal">
-  <div class="modal-card">
-    <i data-lucide="alert-triangle" style="width:42px; height:42px; color:#ef4444; margin:0 auto 10px;"></i>
-    <h3 style="font-size:17px; margin-bottom:6px;">Logout Confirm</h3>
-    <p style="font-size:12.5px; color:var(--text-muted);">Kya aap app ko band/logout karna chahte hain?</p>
-    <div class="modal-buttons">
-      <button class="btn btn-cancel" id="logout-no">No</button>
-      <button class="btn btn-danger" id="logout-yes">Yes</button>
     </div>
+
   </div>
-</div>
 
-<script>
-  lucide.createIcons();
+  <script>
+    // ==========================================
+    // 1. SUPABASE CREDENTIALS
+    // ==========================================
+    const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co"; // Apna Supabase URL dalein
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbXluamlveWp0enpqdHdsb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDI5MzIsImV4cCI6MjEwNzgxODkzMn0.L34UB_G55TSP9EAW9Xox-obUUe8XsVIwDTJ8XwfQ85A";          // Apni Anon Key dalein
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  /* ================= APPS SCRIPT WEB APP API URL ================= */
-  // Agar aapne setting.html me URL save kiya hai to waha se uthayega
-  const DEFAULT_API_URL = localStorage.getItem("GS_API_URL") || "";
+    let parsedRowsBuffer = [];
 
-  /* ================= 1. PIN & LOGIN LOGIC ================= */
-  const CORRECT_PIN = "0000";
-  let currentPin = "";
-  let isShowPin = false;
+    // Set today's date in calendar by default
+    document.getElementById("filterDate").value = new Date().toISOString().split("T")[0];
 
-  function updatePinBoxes() {
-    const errorEl = document.getElementById("pin-error");
-    errorEl.style.visibility = "hidden";
+    function handleFileChosen(input) {
+      const file = input.files[0];
+      if (!file) return;
 
-    for (let i = 1; i <= 4; i++) {
-      const box = document.getElementById("p" + i);
-      const digit = currentPin[i - 1];
-      if (digit) {
-        box.textContent = isShowPin ? digit : "•";
-        box.classList.add("filled");
-      } else {
-        box.textContent = "";
-        box.classList.remove("filled");
+      document.getElementById("fileLabel").innerText = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      document.getElementById("btnUpload").disabled = true;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        parsedRowsBuffer = parseCsvToArray(e.target.result);
+        if (parsedRowsBuffer.length > 1) {
+          document.getElementById("btnUpload").disabled = false;
+          showNotice(`File ready: ${parsedRowsBuffer.length - 1} rows detected. Click 'Upload to Supabase' to proceed.`, "alert-warning");
+        } else {
+          showNotice("The selected CSV file appears to be empty.", "alert-danger");
+        }
+      };
+      reader.readAsText(file, "UTF-8");
+    }
+
+    // Robust CSV parser supporting quotes & multi-line
+    function parseCsvToArray(text) {
+      const lines = []; let row = []; let inQuotes = false; let currentCell = '';
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i]; const nextChar = text[i + 1];
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') { currentCell += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          row.push(currentCell.trim()); currentCell = '';
+        } else if ((char === '\r' || char === '\n') && !inQuotes) {
+          if (char === '\r' && nextChar === '\n') i++;
+          row.push(currentCell.trim());
+          if (row.length > 1 || row[0] !== '') lines.push(row);
+          row = []; currentCell = '';
+        } else {
+          currentCell += char;
+        }
       }
-    }
-
-    if (currentPin.length === 4) {
-      if (currentPin === CORRECT_PIN) {
-        document.getElementById("login-view").style.display = "none";
-        sessionStorage.setItem("isLoggedIn", "true");
-        fetchDashboardLive();
-      } else {
-        errorEl.style.visibility = "visible";
-        setTimeout(() => {
-          currentPin = "";
-          updatePinBoxes();
-        }, 700);
+      if (row.length > 0 || currentCell !== '') {
+        row.push(currentCell.trim());
+        lines.push(row);
       }
-    }
-  }
-
-  function pressDigit(num) {
-    if (currentPin.length < 4) {
-      currentPin += num;
-      updatePinBoxes();
-    }
-  }
-
-  function deleteDigit() {
-    if (currentPin.length > 0) {
-      currentPin = currentPin.slice(0, -1);
-      updatePinBoxes();
-    }
-  }
-
-  document.getElementById("toggle-show-pin").addEventListener("click", () => {
-    isShowPin = !isShowPin;
-    document.getElementById("pin-toggle-text").innerText = isShowPin ? "Hide PIN" : "Show PIN";
-    document.getElementById("eye-icon").setAttribute("data-lucide", isShowPin ? "eye-off" : "eye");
-    lucide.createIcons();
-    updatePinBoxes();
-  });
-
-  if (sessionStorage.getItem("isLoggedIn") === "true") {
-    document.getElementById("login-view").style.display = "none";
-    fetchDashboardLive();
-  }
-
-  /* ================= 2. PROFILE POPUP (3 SEC AUTO-CLOSE) ================= */
-  let profileTimer = null;
-  const profileBtn = document.getElementById("profile-btn");
-  const profilePopup = document.getElementById("profile-popup");
-
-  profileBtn.addEventListener("click", () => {
-    profilePopup.style.display = "block";
-    clearTimeout(profileTimer);
-    profileTimer = setTimeout(() => {
-      profilePopup.style.display = "none";
-    }, 3000);
-  });
-
-  /* ================= 3. THEME TOGGLE ================= */
-  const themeBtn = document.getElementById("theme-btn");
-  let isDark = localStorage.getItem("theme") === "dark";
-  if (isDark) {
-    document.documentElement.setAttribute("data-theme", "dark");
-  }
-
-  themeBtn.addEventListener("click", () => {
-    isDark = !isDark;
-    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    localStorage.setItem("theme", isDark ? "dark" : "light");
-    const icon = document.getElementById("theme-icon");
-    icon.setAttribute("data-lucide", isDark ? "sun" : "moon");
-    lucide.createIcons();
-  });
-
-  /* ================= 4. LOGOUT MODAL ================= */
-  const logoutBtn = document.getElementById("logout-btn");
-  const logoutModal = document.getElementById("logout-modal");
-  const logoutNo = document.getElementById("logout-no");
-  const logoutYes = document.getElementById("logout-yes");
-
-  logoutBtn.addEventListener("click", () => logoutModal.style.display = "flex");
-  logoutNo.addEventListener("click", () => logoutModal.style.display = "none");
-  logoutYes.addEventListener("click", () => {
-    sessionStorage.removeItem("isLoggedIn");
-    currentPin = "";
-    updatePinBoxes();
-    logoutModal.style.display = "none";
-    document.getElementById("login-view").style.display = "flex";
-  });
-
-  /* ================= 5. MASTER SEARCH LOGIC ================= */
-  const internalPages = [
-    { title: "Scan AWB / Barcode", path: "scan.html", type: "Feature" },
-    { title: "Exchange Request Portal", path: "exchange-requist.html", type: "Feature" },
-    { title: "Return Reconciliation", path: "return-reconcilation.html", type: "Feature" },
-    { title: "Scan History Logs", path: "scan-history.html", type: "Feature" },
-    { title: "Find Order Details", path: "find-order.html", type: "Feature" },
-    { title: "Settings & API Config", path: "setting.html", type: "Feature" },
-    { title: "BOXD Logistics System", path: "boxd.html", type: "Feature" }
-  ];
-
-  const searchInput = document.getElementById("master-search");
-  const searchDropdown = document.getElementById("search-dropdown");
-
-  searchInput.addEventListener("input", async (e) => {
-    const val = e.target.value.trim();
-    if (!val) {
-      searchDropdown.style.display = "none";
-      return;
+      return lines;
     }
 
-    // 1. Local Tool Match
-    const matches = internalPages.filter(p => p.title.toLowerCase().includes(val.toLowerCase()));
-    let html = matches.map(m => `
-      <div class="search-result-item" onclick="location.href='${m.path}'">
-        <i data-lucide="compass" style="width:16px;height:16px;color:var(--primary);"></i>
-        <div>
-          <div style="font-weight:600;">${m.title}</div>
-          <div style="font-size:11px;color:var(--text-muted);">${m.type}</div>
-        </div>
-      </div>
-    `).join("");
+    async function processAndUploadSalesCsv() {
+      const filterDate = document.getElementById("filterDate").value;
+      if (!filterDate) return alert("Please select a date from the calendar!");
+      if (!parsedRowsBuffer || parsedRowsBuffer.length <= 1) return alert("Please select a valid CSV file!");
 
-    // 2. Query code.gs searchOrder API if length > 3
-    if (val.length >= 3 && DEFAULT_API_URL) {
-      html += `<div style="padding:8px 14px; font-size:11px; color:var(--text-muted); background:var(--bg-color);">Searching Sheets...</div>`;
-      searchDropdown.innerHTML = html;
-      searchDropdown.style.display = "block";
-      lucide.createIcons();
+      const btn = document.getElementById("btnUpload");
+      btn.disabled = true;
+      btn.innerText = "Analyzing & Checking Duplicates...";
 
       try {
-        const res = await fetch(`${DEFAULT_API_URL}?action=searchOrder&keyword=${encodeURIComponent(val)}`);
-        const json = await res.json();
-        if (json.success) {
-          html += `
-            <div class="search-result-item" onclick="location.href='find-order.html?q=${encodeURIComponent(val)}'">
-              <i data-lucide="package" style="width:16px;height:16px;color:var(--badge-success);"></i>
-              <div>
-                <div style="font-weight:700;">Order #${json.orderId} (AWB: ${json.awb})</div>
-                <div style="font-size:11px;color:var(--text-muted);">${json.customer || 'Customer'} • ${json.status || 'Status'}</div>
-              </div>
-            </div>
-          `;
+        const rawHeaders = parsedRowsBuffer[0];
+        const headers = rawHeaders.map(h => h.trim().toLowerCase());
+
+        // Column Index Helper
+        const col = (name) => headers.indexOf(name.toLowerCase());
+
+        const idxName = col("Name");
+        const idxEmail = col("Email");
+        const idxTotal = col("Total");
+        const idxCreatedAt = col("Created at");
+        const idxLineitemQty = col("Lineitem quantity");
+        const idxLineitemSku = col("Lineitem sku");
+        const idxShipName = col("Shipping Name");
+        const idxShipStreet = col("Shipping Street");
+        const idxShipAddr1 = col("Shipping Address1");
+        const idxShipAddr2 = col("Shipping Address2");
+        const idxShipComp = col("Shipping Company");
+        const idxShipCity = col("Shipping City");
+        const idxShipZip = col("Shipping Zip");
+        const idxShipProvince = col("Shipping Province Name");
+        const idxShipCountry = col("Shipping Country");
+        const idxShipPhone = col("Shipping Phone");
+        const idxPaymentMethod = col("Payment Method");
+        const idxVendor = col("Vendor");
+        const idxOutstanding = col("Outstanding Balance");
+
+        if (idxName === -1) {
+          throw new Error("Required column 'Name' (Order ID) missing in the uploaded CSV!");
         }
-      } catch (err) {}
-    }
 
-    searchDropdown.innerHTML = html || `<div style="padding:12px;font-size:12px;color:var(--text-muted);text-align:center;">No match found</div>`;
-    searchDropdown.style.display = "block";
-    lucide.createIcons();
-  });
+        // ==========================================
+        // 2. CHECK FOR EXISTING ORDERS IN SUPABASE
+        // ==========================================
+        const csvOrderNames = [];
+        for (let i = 1; i < parsedRowsBuffer.length; i++) {
+          const val = String(parsedRowsBuffer[i][idxName] || "").trim();
+          if (val) csvOrderNames.push(val);
+        }
 
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".search-wrapper")) searchDropdown.style.display = "none";
-  });
+        const uniqueCsvOrders = [...new Set(csvOrderNames)];
 
-  /* ================= 6. LIVE DATA FETCH (code.gs getDashboardCounts & getRecentRecords) ================= */
-  async function fetchDashboardLive() {
-    if (!DEFAULT_API_URL) {
-      document.getElementById("today-pickup").innerText = "12";
-      document.getElementById("today-return").innerText = "4";
-      document.getElementById("recent-records-list").innerHTML = `
-        <div style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">
-          Settings me jaakar Google Apps Script URL dalein. (Demo Preview Active)
-        </div>
-      `;
-      return;
-    }
+        // Supabase me check karein kya yeh orders already uploaded hain
+        const { data: existingRecords, error: fetchErr } = await supabaseClient
+          .from('shopify_sales')
+          .select('order_name, lineitem_sku, vendor')
+          .in('order_name', uniqueCsvOrders.slice(0, 500)); // check batch
 
-    try {
-      // 1. Counts
-      const countRes = await fetch(`${DEFAULT_API_URL}?action=getDashboardCounts`);
-      const countData = await countRes.json();
-      if (countData.success) {
-        document.getElementById("today-pickup").innerText = countData.todayPickup || 0;
-        document.getElementById("today-return").innerText = countData.todayReturn || 0;
+        if (fetchErr) throw fetchErr;
+
+        // Existing combination set: "order_name||sku||vendor"
+        const existingKeySet = new Set();
+        (existingRecords || []).forEach(r => {
+          existingKeySet.add(`${r.order_name}||${r.lineitem_sku || ''}||${r.vendor || ''}`.toLowerCase());
+        });
+
+        // ==========================================
+        // 3. PARSE & FILTER NEW ROWS
+        // ==========================================
+        const rowsToInsert = [];
+        let duplicateCount = 0;
+        const currentBatchKeys = new Set();
+
+        for (let i = 1; i < parsedRowsBuffer.length; i++) {
+          const row = parsedRowsBuffer[i];
+          const orderName = String(row[idxName] || "").trim();
+          if (!orderName) continue;
+
+          const sku = idxLineitemSku !== -1 ? String(row[idxLineitemSku] || "").trim() : "";
+          const vendor = idxVendor !== -1 ? String(row[idxVendor] || "").trim() : "";
+          const compositeKey = `${orderName}||${sku}||${vendor}`.toLowerCase();
+
+          // Check agar Supabase me pehle se hai YA is current file me repeat hua ho
+          if (existingKeySet.has(compositeKey) || currentBatchKeys.has(compositeKey)) {
+            duplicateCount++;
+            continue;
+          }
+
+          currentBatchKeys.add(compositeKey);
+
+          rowsToInsert.push({
+            filter_date: filterDate,
+            order_name: orderName,
+            email: idxEmail !== -1 ? String(row[idxEmail] || "").trim() : "",
+            total: idxTotal !== -1 ? parseFloat(row[idxTotal]) || 0 : 0,
+            created_at_shopify: idxCreatedAt !== -1 ? String(row[idxCreatedAt] || "").trim() : "",
+            lineitem_quantity: idxLineitemQty !== -1 ? parseInt(row[idxLineitemQty], 10) || 1 : 1,
+            lineitem_sku: sku,
+            shipping_name: idxShipName !== -1 ? String(row[idxShipName] || "").trim() : "",
+            shipping_street: idxShipStreet !== -1 ? String(row[idxShipStreet] || "").trim() : "",
+            shipping_address1: idxShipAddr1 !== -1 ? String(row[idxShipAddr1] || "").trim() : "",
+            shipping_address2: idxShipAddr2 !== -1 ? String(row[idxShipAddr2] || "").trim() : "",
+            shipping_company: idxShipComp !== -1 ? String(row[idxShipComp] || "").trim() : "",
+            shipping_city: idxShipCity !== -1 ? String(row[idxShipCity] || "").trim() : "",
+            shipping_zip: idxShipZip !== -1 ? String(row[idxShipZip] || "").trim() : "",
+            shipping_province_name: idxShipProvince !== -1 ? String(row[idxShipProvince] || "").trim() : "",
+            shipping_country: idxShipCountry !== -1 ? String(row[idxShipCountry] || "").trim() : "",
+            shipping_phone: idxShipPhone !== -1 ? String(row[idxShipPhone] || "").trim() : "",
+            payment_method: idxPaymentMethod !== -1 ? String(row[idxPaymentMethod] || "").trim() : "",
+            vendor: vendor,
+            outstanding_balance: idxOutstanding !== -1 ? parseFloat(row[idxOutstanding]) || 0 : 0
+          });
+        }
+
+        // ==========================================
+        // 4. INSERT BATCHES INTO SUPABASE
+        // ==========================================
+        if (rowsToInsert.length === 0) {
+          showNotice(`⚠️ Duplicate Warning: All ${duplicateCount} line-items in this CSV were already uploaded previously! Nothing was added.`, "alert-warning");
+          btn.disabled = false;
+          btn.innerText = "Upload to Supabase";
+          return;
+        }
+
+        // Chunking in batches of 100 to ensure fast, safe insertion
+        const batchSize = 100;
+        for (let i = 0; i < rowsToInsert.length; i += batchSize) {
+          const chunk = rowsToInsert.slice(i, i + batchSize);
+          const { error: insertErr } = await supabaseClient.from('shopify_sales').insert(chunk);
+          if (insertErr) throw insertErr;
+        }
+
+        let noticeMsg = `✅ Successfully uploaded ${rowsToInsert.length} line items to Supabase!`;
+        if (duplicateCount > 0) {
+          noticeMsg += ` (${duplicateCount} duplicate items were detected and automatically skipped).`;
+        }
+        showNotice(noticeMsg, "alert-success");
+
+        // Load preview
+        loadRecentSalesData();
+
+      } catch (err) {
+        showNotice("Error during upload: " + err.message, "alert-danger");
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Upload to Supabase";
       }
-
-      // 2. Recent Records
-      const recRes = await fetch(`${DEFAULT_API_URL}?action=getRecentRecords`);
-      const recData = await recRes.json();
-      if (recData.success && recData.rows.length) {
-        const top5 = recData.rows.slice(0, 5);
-        document.getElementById("recent-records-list").innerHTML = top5.map(r => `
-          <div class="recent-row">
-            <div>
-              <div style="font-weight:700; color:var(--text-main);">${r.awb}</div>
-              <div style="color:var(--text-muted); font-size:11px;">${r.orderId || 'No Order ID'} • ${r.courier || ''}</div>
-            </div>
-            <div style="text-align:right;">
-              <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-weight:700; font-size:10.5px; background:${r.type==='Pickup'?'#eff6ff':'#fee2e2'}; color:${r.type==='Pickup'?'#2563eb':'#ef4444'};">${r.type}</span>
-              <div style="color:var(--text-muted); font-size:10px; margin-top:2px;">${r.date}</div>
-            </div>
-          </div>
-        `).join("");
-      }
-    } catch (e) {
-      console.log("Error fetching sheets:", e);
     }
-  }
-</script>
+
+    function showNotice(msg, typeClass) {
+      const alertBox = document.getElementById("noticeAlert");
+      alertBox.className = "alert-box " + typeClass;
+      alertBox.innerText = msg;
+      alertBox.style.display = "block";
+    }
+
+    // ==========================================
+    // 5. FETCH RECENT SALES & METRICS
+    // ==========================================
+    async function loadRecentSalesData() {
+      const filterDate = document.getElementById("filterDate").value;
+      try {
+        const { data: sales, error } = await supabaseClient
+          .from('shopify_sales')
+          .select('*')
+          .eq('filter_date', filterDate)
+          .order('id', { ascending: false });
+
+        if (error) throw error;
+
+        // Calculate KPI
+        const totalItems = sales ? sales.length : 0;
+        const uniqueOrders = new Set((sales || []).map(s => s.order_name)).size;
+        
+        // Total order value: count each unique order once
+        const uniqueOrderTotalMap = {};
+        const vendorsSet = new Set();
+
+        (sales || []).forEach(s => {
+          if (!uniqueOrderTotalMap[s.order_name]) {
+            uniqueOrderTotalMap[s.order_name] = Number(s.total) || 0;
+          }
+          if (s.vendor) vendorsSet.add(s.vendor);
+        });
+
+        const totalRevenue = Object.values(uniqueOrderTotalMap).reduce((a, b) => a + b, 0);
+
+        document.getElementById("kpiItemCount").innerText = totalItems;
+        document.getElementById("kpiUniqueOrders").innerText = uniqueOrders;
+        document.getElementById("kpiTotalSales").innerText = "₹" + totalRevenue.toLocaleString('en-IN');
+        document.getElementById("kpiVendors").innerText = vendorsSet.size;
+
+        // Render Table
+        const tbody = document.getElementById("salesTableBody");
+        if (!sales || sales.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: gray; padding: 20px;">No sales data found for ${filterDate}.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = sales.slice(0, 50).map(s => `
+          <tr>
+            <td><b>${s.order_name}</b></td>
+            <td>${s.created_at_shopify || '-'}</td>
+            <td>${s.shipping_name || '-'}</td>
+            <td><code>${s.lineitem_sku || '-'}</code></td>
+            <td><b>${s.lineitem_quantity}</b></td>
+            <td>₹${Number(s.total).toLocaleString('en-IN')}</td>
+            <td>${s.payment_method || '-'}</td>
+            <td><span class="badge-vendor">${s.vendor || 'N/A'}</span></td>
+            <td>${s.shipping_city || '-'}</td>
+          </tr>
+        `).join('');
+
+      } catch (err) {
+        console.error("Fetch sales error:", err);
+      }
+    }
+
+    // Auto-refresh when date changes
+    document.getElementById("filterDate").addEventListener("change", loadRecentSalesData);
+
+    window.onload = function() {
+      loadRecentSalesData();
+    };
+  </script>
 </body>
 </html>
