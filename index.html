@@ -64,7 +64,7 @@
       color: var(--amz-orange);
     }
 
-    .main-wrap { max-width: 1440px; width: 100%; margin: 16px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
+    .main-wrap { max-width: 1460px; width: 100%; margin: 16px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
 
     .amz-card {
       background: var(--card-bg);
@@ -148,7 +148,7 @@
     .tab-section { display: none; flex-direction: column; gap: 16px; }
     .tab-section.active { display: flex; }
 
-    .table-wrap { overflow-x: auto; margin-top: 10px; max-height: 520px; }
+    .table-wrap { overflow-x: auto; margin-top: 10px; max-height: 540px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th, td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
     th { background: #f8fafc; color: var(--text-sub); font-weight: 700; text-transform: uppercase; font-size: 11px; position: sticky; top: 0; z-index: 5; }
@@ -170,7 +170,6 @@
       gap: 12px;
     }
 
-    /* PREVIEW CARD STYLING */
     .preview-modal-box {
       background: #fff;
       border: 2px solid var(--blue);
@@ -191,22 +190,29 @@
       gap: 12px;
       align-items: center;
     }
+
+    .bulk-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
   </style>
 </head>
 <body>
 
   <header class="amz-header">
     <div class="brand-wrap">
-      <div class="brand-logo">📦 SELLER<span>CENTRAL</span> SINGLE-MASTER ERP (UC & GS)</div>
+      <div class="brand-logo">📦 SELLER<span>CENTRAL</span> LOGISTICS MASTER ERP</div>
     </div>
-    <div style="font-size: 12px; color: #94a3b8;">Unified Ledger Engine</div>
+    <div style="font-size: 12px; color: #94a3b8;">Multi-Vendor Engine: Online (UC & GS)</div>
   </header>
 
   <div class="nav-bar">
     <button class="nav-tab active" onclick="switchTab('salesView', this)">📥 1. Shopify Sales Upload</button>
-    <button class="nav-tab" onclick="switchTab('scanConsoleView', this)">📲 2. Direct AWB Inbound/Outbound</button>
-    <button class="nav-tab" onclick="switchTab('masterSearchView', this)">🔍 3. Master Search Engine</button>
-    <button class="nav-tab" onclick="switchTab('rtoReconcileView', this)">🚨 4. Pending RTO Tracker</button>
+    <button class="nav-tab" onclick="switchTab('scanConsoleView', this)">📲 2. Direct AWB Scan (Preview First)</button>
+    <button class="nav-tab" onclick="switchTab('bulkInwardOutwardView', this)">🚚 3. Bulk AWB Upload (Max 100)</button>
+    <button class="nav-tab" onclick="switchTab('masterSearchView', this)">🔍 4. Master Search Engine</button>
+    <button class="nav-tab" onclick="switchTab('rtoReconcileView', this)">🚨 5. Pending RTO Tracker</button>
   </div>
 
   <div class="main-wrap">
@@ -303,11 +309,11 @@
       </div>
     </div>
 
-    <!-- TAB 2: DIRECT AWB SCAN CONSOLE (PREVIEW FIRST, THEN CONFIRM) -->
+    <!-- TAB 2: DIRECT AWB SCAN (PREVIEW FIRST, THEN CONFIRM) -->
     <div id="scanConsoleView" class="tab-section">
       <div class="amz-card">
         <div class="card-title">
-          <span>DIRECT AWB SCAN CONSOLE (PREVIEW & RECONCILIATION)</span>
+          <span>DIRECT AWB SCAN CONSOLE (VERIFICATION PREVIEW FIRST)</span>
         </div>
 
         <div class="scan-box-wrapper">
@@ -339,7 +345,7 @@
                 <option value="PROFESSIONAL">PROFESSIONAL</option>
                 <option value="MANUAL">MANUAL</option>
               </select>
-              <input type="text" id="manualStatusInput" class="input-box" placeholder="Status (e.g. Delivered / Shipment Created)" value="Shipment Created">
+              <input type="text" id="manualStatusInput" class="input-box" placeholder="Status" value="Shipment Created">
             </div>
 
             <div style="display:flex; gap:10px; margin-top:10px;">
@@ -353,7 +359,49 @@
       </div>
     </div>
 
-    <!-- TAB 3: MASTER GLOBAL SEARCH -->
+    <!-- TAB 3: BULK INWARD/OUTWARD RECONCILIATION (MAX 100 AWBS) -->
+    <div id="bulkInwardOutwardView" class="tab-section">
+      <div class="amz-card">
+        <div class="card-title">
+          <span>BULK AWB INWARD / OUTWARD MODULE (LIMIT: 100 AWBs PER BATCH)</span>
+          <span style="font-size:11px; color:var(--text-sub);">Header: <code>AWB</code> | Max: 100 rows</span>
+        </div>
+
+        <div class="grid-form" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label>Scan Date</label>
+            <input type="date" id="bulkScanDate" class="input-box">
+          </div>
+          <div class="form-group">
+            <label>Batch Mode</label>
+            <select id="bulkScanMode" class="input-box">
+              <option value="Pickup">📦 Bulk Outbound (Pickup)</option>
+              <option value="Return">↩️ Bulk Inbound (Return / RTO)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bulk-grid">
+          <!-- CSV Upload -->
+          <div style="border:1px solid #cbd5e1; border-radius:8px; padding:14px; background:#f8fafc;">
+            <div style="font-weight:700; font-size:12px; margin-bottom:8px;">Option A: Upload AWB CSV</div>
+            <input type="file" id="bulkCsvInput" accept=".csv" class="input-box" style="padding-top:4px;">
+            <button class="btn-amz" style="margin-top:10px; width:100%;" onclick="processBulkCsvFile()">Process CSV Batch (Max 100)</button>
+          </div>
+
+          <!-- Direct Paste -->
+          <div style="border:1px solid #cbd5e1; border-radius:8px; padding:14px; background:#f8fafc;">
+            <div style="font-weight:700; font-size:12px; margin-bottom:8px;">Option B: Copy-Paste AWBs (One per line)</div>
+            <textarea id="bulkPasteInput" class="input-box" style="height:80px; resize:none; padding:8px;" placeholder="Paste up to 100 AWBs here..."></textarea>
+            <button class="btn-amz" style="margin-top:10px; width:100%;" onclick="processBulkPasteList()">Process Pasted List</button>
+          </div>
+        </div>
+
+        <div id="bulkStatusReport" style="margin-top:14px; display:none; padding:12px; border-radius:6px; font-size:13px; line-height:1.6;"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: MASTER GLOBAL SEARCH -->
     <div id="masterSearchView" class="tab-section">
       <div class="master-search-card">
         <span style="font-size:20px;">🔍</span>
@@ -392,7 +440,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: PENDING RTO TRACKER -->
+    <!-- TAB 5: PENDING RTO TRACKER -->
     <div id="rtoReconcileView" class="tab-section">
       <div class="amz-card">
         <div class="card-title">
@@ -429,7 +477,7 @@
     // ==========================================
     const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co"; 
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbXluamlveWp0enpqdHdsb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDI5MzIsImV4cCI6MjEwNzgxODkzMn0.L34UB_G55TSP9EAW9Xox-obUUe8XsVIwDTJ8XwfQ85A";          
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0ec3h4mteBkn-BZvR9WdSb5pdJxOgb7GLKHTuhCuhKC6-xOqQks_Hhdch91PNfKPi/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIU-QX7WbubeAvYnVf5647k1PWXLVQN3fHnrAMZWJJNt6SlS5QvVPIWV5UKY8kAWXI/exec"; 
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let parsedRowsBuffer = [];
@@ -438,7 +486,9 @@
     let isShowingAllDates = false;
     let pendingScanPayload = null;
 
-    document.getElementById("filterDate").value = new Date().toISOString().split("T")[0];
+    const todayDateStr = new Date().toISOString().split("T")[0];
+    document.getElementById("filterDate").value = todayDateStr;
+    document.getElementById("bulkScanDate").value = todayDateStr;
 
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-section').forEach(t => t.classList.remove('active'));
@@ -503,7 +553,9 @@
           row.push(currentCell.trim());
           if (row.length > 1 || row[0] !== '') lines.push(row);
           row = []; currentCell = '';
-        } else currentCell += char;
+        } else {
+          currentCell += char;
+        }
       }
       if (row.length > 0 || currentCell !== '') { row.push(currentCell.trim()); lines.push(row); }
       return lines;
@@ -612,7 +664,6 @@
       if (error) return console.error(error);
       currentLoadedRecords = sales || [];
 
-      // Order Grouping: Main primary row first, followed by child multi-item rows
       const groupedOrdersMap = new Map();
       currentLoadedRecords.forEach(r => {
         if (!groupedOrdersMap.has(r.order_name)) {
@@ -621,7 +672,6 @@
         groupedOrdersMap.get(r.order_name).push(r);
       });
 
-      // Calculate Metrics
       let gross = 0, settle = 0, codBal = 0, pickupCount = 0;
       groupedOrdersMap.forEach((items) => {
         const primary = items[0];
@@ -638,7 +688,6 @@
 
       renderGroupedTable(groupedOrdersMap);
 
-      // Automatic Background Live Sync for active AWBs
       if (triggerLiveSync) {
         syncLiveStatusesInBackground(groupedOrdersMap);
       }
@@ -664,7 +713,6 @@
             paymentBadge = `<span class="badge ${isPrepaid ? 'badge-prepaid' : 'badge-cod'}">${r.payment_method}</span>`;
           }
 
-          // AWB, Live Status and Dates ONLY on Primary Row
           let liveStatusBadge = "-";
           let courierAwbCell = "-";
           let pickupDateCell = "-";
@@ -712,14 +760,12 @@
       tbody.innerHTML = html;
     }
 
-    // Background 3PL Auto Status Sync
     async function syncLiveStatusesInBackground(groupedOrdersMap) {
       for (const [orderName, items] of groupedOrdersMap) {
         const primary = items[0];
         const awb = primary.boxd_awb || primary.dto_awb;
         const currentStatus = String(primary.boxd_status || "").toLowerCase();
 
-        // Skip if already locked/delivered/RTO
         if (!awb || currentStatus.includes('delivered') || currentStatus.includes('rto')) continue;
 
         try {
@@ -768,7 +814,6 @@
           liveStatus = res.status || "Shipment Created";
           refNo = res.refNo || "";
         } else {
-          // Fallback manual display
           manualBox.style.display = "flex";
         }
 
@@ -776,7 +821,6 @@
         if (refNo.toUpperCase().includes("GS")) autoVendor = "GS";
         const cleanDigits = extractDigits(refNo);
 
-        // Check if Order exists in Supabase
         let findQuery = supabaseClient.from('shopify_sales').select('*');
         if (cleanDigits) {
           findQuery = findQuery.eq('clean_order_no', cleanDigits).eq('vendor', autoVendor);
@@ -793,7 +837,6 @@
 
         const existingRecord = matchedRecords[0];
 
-        // 10-Days Duplicate Inbound Guard
         let duplicateWarningHtml = "";
         if (scanType === "Return" && existingRecord.physical_scanned_return && existingRecord.return_scanned_at) {
           const lastScanDate = new Date(existingRecord.return_scanned_at);
@@ -882,7 +925,143 @@
     }
 
     // ==========================================
-    // 5. MASTER SEARCH ENGINE
+    // 5. BULK INWARD/OUTWARD RECONCILIATION ENGINE
+    // ==========================================
+    function processBulkCsvFile() {
+      const fileInput = document.getElementById("bulkCsvInput");
+      const file = fileInput.files[0];
+      if (!file) return alert("Select an AWB CSV file first!");
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const rows = parseCsvToArray(e.target.result);
+        if (rows.length <= 1) return alert("CSV appears empty!");
+
+        const awbList = [];
+        for (let i = 1; i < rows.length; i++) {
+          const val = String(rows[i][0] || "").trim();
+          if (val) awbList.push(val);
+        }
+
+        executeBulkBatch(awbList);
+      };
+      reader.readAsText(file, "UTF-8");
+    }
+
+    function processBulkPasteList() {
+      const rawText = document.getElementById("bulkPasteInput").value.trim();
+      if (!rawText) return alert("Paste AWBs first!");
+
+      const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => Boolean(l));
+      executeBulkBatch(lines);
+    }
+
+    async function executeBulkBatch(awbList) {
+      if (awbList.length === 0) return alert("No valid AWBs found!");
+      if (awbList.length > 100) {
+        return alert(`⚠️ Limit Exceeded: Max 100 AWBs per batch allowed. You provided ${awbList.length}.`);
+      }
+
+      const bulkDate = document.getElementById("bulkScanDate").value;
+      const scanType = document.getElementById("bulkScanMode").value;
+      const reportBox = document.getElementById("bulkStatusReport");
+
+      reportBox.style.display = "block";
+      reportBox.style.background = "#eff6ff";
+      reportBox.style.color = "var(--blue)";
+      reportBox.innerHTML = `⏳ Processing bulk batch of ${awbList.length} AWBs... Please wait.`;
+
+      let successCount = 0;
+      let skippedDuplicates = 0;
+      let skippedNotFound = 0;
+      const skippedDetails = [];
+
+      for (let i = 0; i < awbList.length; i++) {
+        const awb = awbList[i];
+
+        try {
+          // Track 3PL details
+          const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
+          let refNo = res && res.success ? (res.refNo || "") : "";
+          let liveStatus = res && res.success ? (res.status || "Shipment Created") : "Manual Batch";
+          let courierName = res && res.success ? (res.courier || "BOXD") : "MANUAL";
+
+          let autoVendor = "UC";
+          if (refNo.toUpperCase().includes("GS")) autoVendor = "GS";
+          const cleanDigits = extractDigits(refNo);
+
+          let findQuery = supabaseClient.from('shopify_sales').select('*');
+          if (cleanDigits) {
+            findQuery = findQuery.eq('clean_order_no', cleanDigits).eq('vendor', autoVendor);
+          } else {
+            findQuery = findQuery.or(`boxd_awb.eq.${awb},dto_awb.eq.${awb}`);
+          }
+
+          const { data: matchedRecords } = await findQuery;
+
+          if (!matchedRecords || matchedRecords.length === 0) {
+            skippedNotFound++;
+            skippedDetails.push(`AWB ${awb}: Order Not Found in Database`);
+            continue;
+          }
+
+          const existingRecord = matchedRecords[0];
+
+          // 10-Days Duplicate Check
+          if (scanType === "Return" && existingRecord.physical_scanned_return && existingRecord.return_scanned_at) {
+            const diffDays = (new Date() - new Date(existingRecord.return_scanned_at)) / (1000 * 60 * 60 * 24);
+            if (diffDays <= 10) {
+              skippedDuplicates++;
+              skippedDetails.push(`AWB ${awb}: Already Returned in last 10 days`);
+              continue;
+            }
+          }
+
+          // Commit Update
+          const updatePayload = {
+            boxd_awb: awb,
+            boxd_status: liveStatus,
+            courier: courierName
+          };
+
+          const scanTimestamp = new Date(bulkDate + "T12:00:00").toISOString();
+          if (scanType === "Pickup") {
+            updatePayload.physical_scanned_pickup = true;
+            updatePayload.pickup_scanned_at = scanTimestamp;
+          } else {
+            updatePayload.physical_scanned_return = true;
+            updatePayload.return_scanned_at = scanTimestamp;
+          }
+
+          await supabaseClient
+            .from('shopify_sales')
+            .update(updatePayload)
+            .eq('clean_order_no', existingRecord.clean_order_no)
+            .eq('vendor', existingRecord.vendor);
+
+          successCount++;
+
+        } catch (e) {
+          skippedNotFound++;
+          skippedDetails.push(`AWB ${awb}: Processing Error`);
+        }
+      }
+
+      reportBox.style.background = "#f0fdf4";
+      reportBox.style.color = "var(--success)";
+      reportBox.innerHTML = `
+        🎉 <b>Bulk Processing Complete for Date: ${bulkDate}!</b><br>
+        ✅ Successfully Reconciled: <b>${successCount}</b><br>
+        ⚠️ Skipped (10-Day Duplicate): <b>${skippedDuplicates}</b><br>
+        ❌ Skipped (Order Not Found / Not Saved): <b>${skippedNotFound}</b><br>
+        ${skippedDetails.length > 0 ? `<div style="font-size:11px; color:#64748b; margin-top:6px;">${skippedDetails.slice(0, 5).join('<br>')}${skippedDetails.length > 5 ? '<br>...and more' : ''}</div>` : ''}
+      `;
+
+      loadSalesData(false);
+    }
+
+    // ==========================================
+    // 6. MASTER SEARCH ENGINE
     // ==========================================
     function debounceMasterSearch(val) {
       clearTimeout(searchDebounceTimer);
@@ -945,7 +1124,7 @@
     }
 
     // ==========================================
-    // 6. PENDING RTO QUEUE
+    // 7. PENDING RTO QUEUE
     // ==========================================
     async function loadPendingRtoQueue() {
       const { data: sales, error } = await supabaseClient
