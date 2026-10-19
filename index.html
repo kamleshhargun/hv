@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Amazon Seller Central - Multi-Vendor Master ERP</title>
+  <title>Amazon Seller Central - Logistics & Multi-Vendor ERP</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -126,6 +126,7 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      text-decoration: none;
     }
     .btn-amz:hover { background: linear-gradient(to bottom, #f5d78e, #eeb933); }
 
@@ -169,6 +170,18 @@
       gap: 12px;
     }
 
+    /* PREVIEW CARD STYLING */
+    .preview-modal-box {
+      background: #fff;
+      border: 2px solid var(--blue);
+      border-radius: 8px;
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
     .master-search-card {
       background: #fff;
       border: 2px solid var(--amz-orange);
@@ -186,7 +199,7 @@
     <div class="brand-wrap">
       <div class="brand-logo">📦 SELLER<span>CENTRAL</span> SINGLE-MASTER ERP (UC & GS)</div>
     </div>
-    <div style="font-size: 12px; color: #94a3b8;">Unified Database Architecture</div>
+    <div style="font-size: 12px; color: #94a3b8;">Unified Ledger Engine</div>
   </header>
 
   <div class="nav-bar">
@@ -198,18 +211,18 @@
 
   <div class="main-wrap">
 
-    <!-- KPI STATS -->
+    <!-- KPI STATS WITH DYNAMIC DATE HEADING -->
     <div class="stats-bar">
       <div class="kpi-card" style="border-left-color: var(--blue);">
-        <div class="kpi-lbl">Total Gross Sales (₹)</div>
+        <div class="kpi-lbl">Total Gross Sales (<span class="kpi-date-label">Today</span>)</div>
         <div class="kpi-val" id="kpiGrossTotal">₹0</div>
       </div>
       <div class="kpi-card" style="border-left-color: var(--success);">
-        <div class="kpi-lbl">Net Settled Amount (₹)</div>
+        <div class="kpi-lbl">Net Settled Amount (<span class="kpi-date-label">Today</span>)</div>
         <div class="kpi-val" id="kpiNetSettle" style="color:var(--success);">₹0</div>
       </div>
       <div class="kpi-card" style="border-left-color: var(--warning);">
-        <div class="kpi-lbl">COD Pending (₹)</div>
+        <div class="kpi-lbl">COD Pending (<span class="kpi-date-label">Today</span>)</div>
         <div class="kpi-val" id="kpiCodBalance">₹0</div>
       </div>
       <div class="kpi-card" style="border-left-color: var(--amz-orange);">
@@ -222,7 +235,7 @@
       </div>
     </div>
 
-    <!-- TAB 1: SHOPIFY SALES UPLOAD -->
+    <!-- TAB 1: SHOPIFY SALES UPLOAD & AUDIT LEDGER -->
     <div id="salesView" class="tab-section active">
       <div class="amz-card">
         <div class="card-title">
@@ -241,7 +254,7 @@
 
           <div class="form-group">
             <label>Sales Order Date</label>
-            <input type="date" id="filterDate" class="input-box">
+            <input type="date" id="filterDate" class="input-box" onchange="onDateChanged()">
           </div>
 
           <div class="form-group" style="grid-column: span 2;">
@@ -256,7 +269,10 @@
       <div class="amz-card">
         <div class="card-title">
           <span>MASTER SALES & ORDER AUDIT (PAYMENT METHOD IN COLUMN 1)</span>
-          <button class="btn-amz" style="height:30px; font-size:11px;" onclick="loadSalesData()">Refresh Ledger</button>
+          <div style="display:flex; gap:8px;">
+            <button id="btnToggleAllDates" class="btn-amz" style="height:30px; font-size:11px;" onclick="toggleAllDatesView()">Show All Dates</button>
+            <button class="btn-amz" style="height:30px; font-size:11px;" onclick="loadSalesData(true)">🔄 Sync Live Status</button>
+          </div>
         </div>
 
         <div class="table-wrap">
@@ -275,22 +291,23 @@
                 <th>Balance</th>
                 <th>Live Status</th>
                 <th>Courier / AWB</th>
+                <th>Pickup Date</th>
                 <th>Physical Scan</th>
               </tr>
             </thead>
             <tbody id="salesTableBody">
-              <tr><td colspan="13" style="text-align:center; padding:20px; color:gray;">Loading records...</td></tr>
+              <tr><td colspan="14" style="text-align:center; padding:20px; color:gray;">Loading records...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 2: DIRECT AWB SCAN (10-DAYS DUPLICATE GUARD + NO ORDER DISCARD) -->
+    <!-- TAB 2: DIRECT AWB SCAN CONSOLE (PREVIEW FIRST, THEN CONFIRM) -->
     <div id="scanConsoleView" class="tab-section">
       <div class="amz-card">
         <div class="card-title">
-          <span>DIRECT AWB SCAN CONSOLE (AUTO 3PL STATUS & 10-DAYS DUPLICATE GUARD)</span>
+          <span>DIRECT AWB SCAN CONSOLE (PREVIEW & RECONCILIATION)</span>
         </div>
 
         <div class="scan-box-wrapper">
@@ -301,8 +318,36 @@
 
           <div style="display:flex; gap:10px;">
             <input type="text" id="barcodeScannerInput" class="input-box" placeholder="Scan or Enter AWB Number (e.g. 50845017996741)..." onkeydown="handleBarcodeEnter(event)">
-            <button class="btn-amz" onclick="processDirectAwbScan()">Auto-Fetch & Reconcile</button>
+            <button class="btn-amz" onclick="fetchScanPreview()">Fetch Preview</button>
           </div>
+
+          <!-- VERIFICATION PREVIEW CARD -->
+          <div id="scanPreviewCard" class="preview-modal-box">
+            <div style="font-weight:700; font-size:14px; color:var(--blue); border-bottom:1px solid #cbd5e1; padding-bottom:4px;">
+              🔍 SCAN VERIFICATION PREVIEW
+            </div>
+            <div id="previewCardBody" style="font-size:13px; line-height:1.6;"></div>
+            
+            <!-- Fallback manual courier if API fails -->
+            <div id="manualCourierBox" style="display:none; gap:10px; margin-top:8px;">
+              <select id="manualCourierSelect" class="input-box" style="width:200px;">
+                <option value="BOXD">BOXD</option>
+                <option value="DELHIVERY">DELHIVERY</option>
+                <option value="SKYKING">SKYKING</option>
+                <option value="DTDC">DTDC</option>
+                <option value="SHREE TIRUPATI">SHREE TIRUPATI</option>
+                <option value="PROFESSIONAL">PROFESSIONAL</option>
+                <option value="MANUAL">MANUAL</option>
+              </select>
+              <input type="text" id="manualStatusInput" class="input-box" placeholder="Status (e.g. Delivered / Shipment Created)" value="Shipment Created">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button id="btnConfirmScan" class="btn-amz" style="background:var(--success); color:#fff;" onclick="commitPhysicalScan()">Confirm & Reconcile Save</button>
+              <button class="btn-amz" style="background:#64748b; color:#fff;" onclick="cancelScanPreview()">Cancel</button>
+            </div>
+          </div>
+
           <div id="scanFeedback" style="font-weight:700; font-size:13px; margin-top:4px;"></div>
         </div>
       </div>
@@ -390,6 +435,8 @@
     let parsedRowsBuffer = [];
     let currentLoadedRecords = [];
     let searchDebounceTimer = null;
+    let isShowingAllDates = false;
+    let pendingScanPayload = null;
 
     document.getElementById("filterDate").value = new Date().toISOString().split("T")[0];
 
@@ -399,7 +446,7 @@
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
 
-      if (tabId === 'salesView') loadSalesData();
+      if (tabId === 'salesView') loadSalesData(false);
       if (tabId === 'rtoReconcileView') loadPendingRtoQueue();
       if (tabId === 'masterSearchView') document.getElementById('masterSearchInput').focus();
     }
@@ -407,6 +454,23 @@
     function extractDigits(str) {
       const match = String(str || "").match(/\d{4,6}/);
       return match ? match[0] : "";
+    }
+
+    function formatCurrency(val) {
+      const num = Number(val || 0);
+      return "₹" + num.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    }
+
+    function onDateChanged() {
+      isShowingAllDates = false;
+      document.getElementById("btnToggleAllDates").innerText = "Show All Dates";
+      loadSalesData(false);
+    }
+
+    function toggleAllDatesView() {
+      isShowingAllDates = !isShowingAllDates;
+      document.getElementById("btnToggleAllDates").innerText = isShowingAllDates ? "Filter Selected Date" : "Show All Dates";
+      loadSalesData(false);
     }
 
     // ==========================================
@@ -526,101 +590,173 @@
         alert("Upload Error: " + error.message);
       } else {
         alert(`🎉 Uploaded ${rowsToInsert.length} items across ${ordersMap.size} orders for ${vendorName}!`);
-        loadSalesData();
+        loadSalesData(false);
       }
     }
 
     // ==========================================
-    // 3. LOAD SALES MASTER LEDGER
+    // 3. LOAD SALES AUDIT (GROUPED & LIVE SYNC)
     // ==========================================
-    async function loadSalesData() {
+    async function loadSalesData(triggerLiveSync = false) {
       const filterDate = document.getElementById("filterDate").value;
-      const { data: sales, error } = await supabaseClient
-        .from('shopify_sales')
-        .select('*')
-        .eq('filter_date', filterDate)
-        .order('id', { ascending: false });
+      const dateLabels = document.querySelectorAll(".kpi-date-label");
+      dateLabels.forEach(el => el.innerText = isShowingAllDates ? "All Dates" : filterDate);
+
+      let query = supabaseClient.from('shopify_sales').select('*');
+      if (!isShowingAllDates) {
+        query = query.eq('filter_date', filterDate);
+      }
+
+      const { data: sales, error } = await query.order('id', { ascending: false });
 
       if (error) return console.error(error);
       currentLoadedRecords = sales || [];
 
-      let gross = 0, settle = 0, codBal = 0, pickupCount = 0;
-      const uniqueOrderMap = {};
-
+      // Order Grouping: Main primary row first, followed by child multi-item rows
+      const groupedOrdersMap = new Map();
       currentLoadedRecords.forEach(r => {
-        if (!uniqueOrderMap[r.order_name]) {
-          uniqueOrderMap[r.order_name] = true;
-          gross += Number(r.total) || 0;
-          settle += Number(r.prepaid_settle_amount) || 0;
-          codBal += Number(r.outstanding_balance) || 0;
+        if (!groupedOrdersMap.has(r.order_name)) {
+          groupedOrdersMap.set(r.order_name, []);
         }
-        if (r.physical_scanned_pickup) pickupCount++;
+        groupedOrdersMap.get(r.order_name).push(r);
       });
 
-      document.getElementById("kpiGrossTotal").innerText = "₹" + gross.toLocaleString('en-IN');
-      document.getElementById("kpiNetSettle").innerText = "₹" + settle.toLocaleString('en-IN');
-      document.getElementById("kpiCodBalance").innerText = "₹" + codBal.toLocaleString('en-IN');
+      // Calculate Metrics
+      let gross = 0, settle = 0, codBal = 0, pickupCount = 0;
+      groupedOrdersMap.forEach((items) => {
+        const primary = items[0];
+        gross += Number(primary.total || 0);
+        settle += Number(primary.prepaid_settle_amount || 0);
+        codBal += Number(primary.outstanding_balance || 0);
+        if (primary.physical_scanned_pickup) pickupCount++;
+      });
+
+      document.getElementById("kpiGrossTotal").innerText = formatCurrency(gross);
+      document.getElementById("kpiNetSettle").innerText = formatCurrency(settle);
+      document.getElementById("kpiCodBalance").innerText = formatCurrency(codBal);
       document.getElementById("kpiPickupScanned").innerText = pickupCount;
 
+      renderGroupedTable(groupedOrdersMap);
+
+      // Automatic Background Live Sync for active AWBs
+      if (triggerLiveSync) {
+        syncLiveStatusesInBackground(groupedOrdersMap);
+      }
+    }
+
+    function renderGroupedTable(groupedOrdersMap) {
       const tbody = document.getElementById("salesTableBody");
-      if (!currentLoadedRecords.length) {
-        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:20px; color:gray;">No records found for ${filterDate}.</td></tr>`;
+      if (groupedOrdersMap.size === 0) {
+        tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:20px; color:gray;">No records found.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = currentLoadedRecords.map(r => {
-        const hasPayment = Boolean(r.payment_method);
-        const isPrepaid = hasPayment && (r.payment_method.toLowerCase().includes("prepaid") || r.outstanding_balance === 0);
-        let paymentBadge = hasPayment ? `<span class="badge ${isPrepaid ? 'badge-prepaid' : 'badge-cod'}">${r.payment_method}</span>` : '-';
+      let html = "";
+      groupedOrdersMap.forEach((items, orderName) => {
+        const primary = items[0];
+        const isPrepaid = primary.payment_method && (primary.payment_method.toLowerCase().includes("prepaid") || primary.outstanding_balance === 0);
 
-        const liveStatus = r.boxd_status || r.dto_status || 'Pending';
-        let statusBadge = `<span class="badge" style="background:#f1f5f9; color:#475569;">${liveStatus}</span>`;
-        if (liveStatus.toLowerCase().includes('created')) statusBadge = `<span class="badge badge-created">${liveStatus}</span>`;
-        else if (liveStatus.toLowerCase().includes('delivered')) statusBadge = `<span class="badge badge-del">${liveStatus}</span>`;
-        else if (liveStatus.toLowerCase().includes('rto') || liveStatus.toLowerCase().includes('return')) statusBadge = `<span class="badge badge-rto">${liveStatus}</span>`;
+        items.forEach((r, idx) => {
+          const isPrimary = (idx === 0);
 
-        return `
-          <tr>
-            <td>${paymentBadge}</td>
-            <td><b>${r.order_name}</b></td>
-            <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
-            <td><code>${r.lineitem_sku}</code></td>
-            <td>${r.lineitem_quantity}</td>
-            <td>₹${r.lineitem_price}</td>
-            <td>${r.total > 0 ? `<b>₹\${r.total}</b>` : '-'}</td>
-            <td>${r.prepaid_service_charges > 0 ? `₹\${r.prepaid_service_charges}` : '-'}</td>
-            <td>${r.prepaid_settle_amount > 0 ? `₹\${r.prepaid_settle_amount}` : '-'}</td>
-            <td>${r.outstanding_balance > 0 ? `₹\${r.outstanding_balance}` : '-'}</td>
-            <td>${statusBadge}</td>
-            <td>${r.boxd_awb || r.dto_awb || '-'}</td>
-            <td>
-              ${r.physical_scanned_pickup ? '<span style="color:var(--success); font-weight:700;">✅ Pickup</span> ' : ''}
-              ${r.physical_scanned_return ? '<span style="color:var(--danger); font-weight:700;">↩️ Returned</span>' : ''}
-              ${!r.physical_scanned_pickup && !r.physical_scanned_return ? '<span style="color:gray;">Pending</span>' : ''}
-            </td>
-          </tr>
-        `;
-      }).join('');
+          let paymentBadge = "-";
+          if (isPrimary && r.payment_method) {
+            paymentBadge = `<span class="badge ${isPrepaid ? 'badge-prepaid' : 'badge-cod'}">${r.payment_method}</span>`;
+          }
+
+          // AWB, Live Status and Dates ONLY on Primary Row
+          let liveStatusBadge = "-";
+          let courierAwbCell = "-";
+          let pickupDateCell = "-";
+          let physicalScanCell = "-";
+
+          if (isPrimary) {
+            const status = primary.boxd_status || primary.dto_status || 'Pending';
+            let badgeClass = "badge";
+            if (status.toLowerCase().includes('created')) badgeClass = "badge badge-created";
+            else if (status.toLowerCase().includes('delivered')) badgeClass = "badge badge-del";
+            else if (status.toLowerCase().includes('rto') || status.toLowerCase().includes('return')) badgeClass = "badge badge-rto";
+            liveStatusBadge = `<span class="${badgeClass}">${status}</span>`;
+
+            courierAwbCell = primary.boxd_awb || primary.dto_awb ? `<b>${primary.courier}:</b> <code>${primary.boxd_awb || primary.dto_awb}</code>` : '-';
+            pickupDateCell = primary.pickup_scanned_at ? new Date(primary.pickup_scanned_at).toLocaleDateString('en-IN') : '-';
+
+            physicalScanCell = `
+              ${primary.physical_scanned_pickup ? '<span style="color:var(--success); font-weight:700;">✅ Pickup</span> ' : ''}
+              ${primary.physical_scanned_return ? '<span style="color:var(--danger); font-weight:700;">↩️ Returned</span>' : ''}
+              ${!primary.physical_scanned_pickup && !primary.physical_scanned_return ? '<span style="color:gray;">Pending</span>' : ''}
+            `;
+          }
+
+          html += `
+            <tr style="${isPrimary ? 'background:#fff;' : 'background:#fafafa; border-left:3px solid var(--amz-orange);'}">
+              <td>${paymentBadge}</td>
+              <td><b>${r.order_name}</b></td>
+              <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
+              <td><code>${r.lineitem_sku}</code></td>
+              <td>${r.lineitem_quantity}</td>
+              <td>${formatCurrency(r.lineitem_price)}</td>
+              <td>${isPrimary ? `<b>\${formatCurrency(r.total)}</b>` : '-'}</td>
+              <td>${isPrimary && r.prepaid_service_charges > 0 ? `<span style="color:var(--danger);">\${formatCurrency(r.prepaid_service_charges)}</span>` : '-'}</td>
+              <td>${isPrimary && r.prepaid_settle_amount > 0 ? `<span style="color:var(--success); font-weight:700;">\${formatCurrency(r.prepaid_settle_amount)}</span>` : '-'}</td>
+              <td>${isPrimary && r.outstanding_balance > 0 ? `<span style="color:var(--warning); font-weight:700;">\${formatCurrency(r.outstanding_balance)}</span>` : '-'}</td>
+              <td>${liveStatusBadge}</td>
+              <td>${courierAwbCell}</td>
+              <td>${pickupDateCell}</td>
+              <td>${physicalScanCell}</td>
+            </tr>
+          `;
+        });
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    // Background 3PL Auto Status Sync
+    async function syncLiveStatusesInBackground(groupedOrdersMap) {
+      for (const [orderName, items] of groupedOrdersMap) {
+        const primary = items[0];
+        const awb = primary.boxd_awb || primary.dto_awb;
+        const currentStatus = String(primary.boxd_status || "").toLowerCase();
+
+        // Skip if already locked/delivered/RTO
+        if (!awb || currentStatus.includes('delivered') || currentStatus.includes('rto')) continue;
+
+        try {
+          const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
+          if (res && res.success && res.status && res.status !== primary.boxd_status) {
+            await supabaseClient.from('shopify_sales').update({
+              boxd_status: res.status,
+              courier: res.courier || primary.courier
+            }).eq('clean_order_no', primary.clean_order_no).eq('vendor', primary.vendor);
+          }
+        } catch(e) {}
+      }
     }
 
     // ==========================================
-    // 4. AWB SCAN (10-DAYS DUPLICATE GUARD + ORDER NOT FOUND RULE)
+    // 4. SCAN CONSOLE (PREVIEW FIRST -> CONFIRM)
     // ==========================================
     function handleBarcodeEnter(e) {
-      if (e.key === "Enter") processDirectAwbScan();
+      if (e.key === "Enter") fetchScanPreview();
     }
 
-    async function processDirectAwbScan() {
+    async function fetchScanPreview() {
       const input = document.getElementById("barcodeScannerInput");
       const awb = input.value.trim();
       if (!awb) return;
 
       const scanType = document.querySelector('input[name="scanType"]:checked').value;
       const feedback = document.getElementById("scanFeedback");
-      feedback.innerHTML = `<span style="color:var(--blue);">🔍 Checking 3PL details for AWB ${awb}...</span>`;
+      const previewCard = document.getElementById("scanPreviewCard");
+      const previewBody = document.getElementById("previewCardBody");
+      const manualBox = document.getElementById("manualCourierBox");
+
+      feedback.innerHTML = `<span style="color:var(--blue);">🔍 Querying Gateway for AWB ${awb}...</span>`;
+      previewCard.style.display = "none";
+      manualBox.style.display = "none";
 
       try {
-        // Step A: Fetch details from code.gs proxy
         const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
 
         let courierName = "BOXD";
@@ -631,14 +767,16 @@
           courierName = res.courier || "BOXD";
           liveStatus = res.status || "Shipment Created";
           refNo = res.refNo || "";
+        } else {
+          // Fallback manual display
+          manualBox.style.display = "flex";
         }
 
-        // Auto Vendor detection
         let autoVendor = "UC";
         if (refNo.toUpperCase().includes("GS")) autoVendor = "GS";
         const cleanDigits = extractDigits(refNo);
 
-        // Step B: Match Order in Master Table first
+        // Check if Order exists in Supabase
         let findQuery = supabaseClient.from('shopify_sales').select('*');
         if (cleanDigits) {
           findQuery = findQuery.eq('clean_order_no', cleanDigits).eq('vendor', autoVendor);
@@ -646,87 +784,109 @@
           findQuery = findQuery.or(`boxd_awb.eq.${awb},dto_awb.eq.${awb}`);
         }
 
-        const { data: matchedRecords, error: findErr } = await findQuery;
+        const { data: matchedRecords } = await findQuery;
 
-        if (findErr || !matchedRecords || matchedRecords.length === 0) {
-          // RULE: Agar order nahi milta toh sheet me save nahi hoga!
-          feedback.innerHTML = `<span style="color:var(--danger); font-size:14px;">❌ ORDER NOT FOUND: Ref/AWB <b>${awb}</b> (${refNo || 'No Ref'}) database me exist nahi karta. Save skipped!</span>`;
-          input.value = "";
-          input.focus();
+        if (!matchedRecords || matchedRecords.length === 0) {
+          feedback.innerHTML = `<span style="color:var(--danger); font-size:14px;">❌ ORDER NOT FOUND: AWB <b>${awb}</b> (${refNo || 'No Ref'}) database me exist nahi karta. Scan cancelled!</span>`;
           return;
         }
 
         const existingRecord = matchedRecords[0];
 
-        // Step C: 10-Days Duplicate Inbound Guard
-        if (scanType === "Return") {
-          if (existingRecord.physical_scanned_return && existingRecord.return_scanned_at) {
-            const lastScanDate = new Date(existingRecord.return_scanned_at);
-            const now = new Date();
-            const diffDays = (now - lastScanDate) / (1000 * 60 * 60 * 24);
+        // 10-Days Duplicate Inbound Guard
+        let duplicateWarningHtml = "";
+        if (scanType === "Return" && existingRecord.physical_scanned_return && existingRecord.return_scanned_at) {
+          const lastScanDate = new Date(existingRecord.return_scanned_at);
+          const diffDays = (new Date() - lastScanDate) / (1000 * 60 * 60 * 24);
 
-            if (diffDays <= 10) {
-              const formattedDate = lastScanDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-              const formattedTime = lastScanDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-
-              feedback.innerHTML = `
-                <div style="background:#fee2e2; border:1px solid #ef4444; color:#b91c1c; padding:10px; border-radius:6px;">
-                  ⚠️ <b>DUPLICATE INBOUND DETECTED (Within Last 10 Days)!</b><br>
-                  Yeh parcel pehle hi <b>${formattedDate} at ${formattedTime}</b> ko Inbound ho chuka hai.<br>
-                  Order: <b>${existingRecord.order_name}</b> (${existingRecord.vendor}) | AWB: <code>${awb}</code>
-                </div>
-              `;
-              input.value = "";
-              input.focus();
-              return;
-            }
+          if (diffDays <= 10) {
+            const formattedDate = lastScanDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            const formattedTime = lastScanDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            duplicateWarningHtml = `
+              <div style="background:#fee2e2; border:1px solid #ef4444; color:#b91c1c; padding:8px; border-radius:6px; margin-bottom:8px;">
+                ⚠️ <b>DUPLICATE ALERT:</b> Yeh parcel pehle hi <b>${formattedDate} (${formattedTime})</b> ko Inbound ho chuka hai!
+              </div>
+            `;
           }
         }
 
-        // Step D: Reconcile in Master Table
-        const updatePayload = {
-          boxd_awb: awb,
-          boxd_status: liveStatus,
-          courier: courierName
+        pendingScanPayload = {
+          awb: awb,
+          scanType: scanType,
+          clean_order_no: existingRecord.clean_order_no,
+          vendor: existingRecord.vendor,
+          courier: courierName,
+          liveStatus: liveStatus
         };
 
-        if (scanType === "Pickup") {
-          updatePayload.physical_scanned_pickup = true;
-          updatePayload.pickup_scanned_at = new Date().toISOString();
-        } else {
-          updatePayload.physical_scanned_return = true;
-          updatePayload.return_scanned_at = new Date().toISOString();
-        }
+        previewBody.innerHTML = `
+          ${duplicateWarningHtml}
+          <div><b>Order ID:</b> ${existingRecord.order_name} (${existingRecord.vendor})</div>
+          <div><b>Customer:</b> ${existingRecord.shipping_name || 'N/A'} | ${existingRecord.shipping_city || 'N/A'}</div>
+          <div><b>AWB:</b> <code>${awb}</code> | <b>Courier:</b> ${courierName}</div>
+          <div><b>Live 3PL Status:</b> <span class="badge badge-created">${liveStatus}</span></div>
+          <div><b>Action Mode:</b> <span style="color:${scanType === 'Pickup' ? 'var(--blue)' : 'var(--danger)'}; font-weight:700;">${scanType.toUpperCase()} SCAN</span></div>
+        `;
 
-        const { error: updateErr } = await supabaseClient
-          .from('shopify_sales')
-          .update(updatePayload)
-          .eq('clean_order_no', existingRecord.clean_order_no)
-          .eq('vendor', existingRecord.vendor);
-
-        if (updateErr) {
-          feedback.innerHTML = `<span style="color:var(--danger);">Update Error: ${updateErr.message}</span>`;
-        } else {
-          feedback.innerHTML = `<span style="color:var(--success); font-size:14px;">✅ Verified & Reconciled: <b>${existingRecord.order_name}</b> (${existingRecord.vendor}) | Status: <b>${liveStatus}</b> | Scan: <b>${scanType}</b></span>`;
-          loadSalesData();
-        }
+        previewCard.style.display = "flex";
+        feedback.innerHTML = "";
 
       } catch (err) {
-        feedback.innerHTML = `<span style="color:var(--danger);">Network Error: ${err.message}</span>`;
+        feedback.innerHTML = `<span style="color:var(--danger);">Error: ${err.message}</span>`;
+      }
+    }
+
+    async function commitPhysicalScan() {
+      if (!pendingScanPayload) return;
+
+      const manualBox = document.getElementById("manualCourierBox");
+      if (manualBox.style.display === "flex") {
+        pendingScanPayload.courier = document.getElementById("manualCourierSelect").value;
+        pendingScanPayload.liveStatus = document.getElementById("manualStatusInput").value.trim() || "Manual Verified";
       }
 
-      input.value = "";
-      input.focus();
+      const updatePayload = {
+        boxd_awb: pendingScanPayload.awb,
+        boxd_status: pendingScanPayload.liveStatus,
+        courier: pendingScanPayload.courier
+      };
+
+      if (pendingScanPayload.scanType === "Pickup") {
+        updatePayload.physical_scanned_pickup = true;
+        updatePayload.pickup_scanned_at = new Date().toISOString();
+      } else {
+        updatePayload.physical_scanned_return = true;
+        updatePayload.return_scanned_at = new Date().toISOString();
+      }
+
+      const { error } = await supabaseClient
+        .from('shopify_sales')
+        .update(updatePayload)
+        .eq('clean_order_no', pendingScanPayload.clean_order_no)
+        .eq('vendor', pendingScanPayload.vendor);
+
+      if (error) {
+        alert("Save Error: " + error.message);
+      } else {
+        document.getElementById("scanFeedback").innerHTML = `<span style="color:var(--success); font-size:14px;">🎉 Reconciled & Saved Successfully! (${pendingScanPayload.scanType})</span>`;
+        cancelScanPreview();
+        loadSalesData(false);
+      }
+    }
+
+    function cancelScanPreview() {
+      pendingScanPayload = null;
+      document.getElementById("scanPreviewCard").style.display = "none";
+      document.getElementById("barcodeScannerInput").value = "";
+      document.getElementById("barcodeScannerInput").focus();
     }
 
     // ==========================================
-    // 5. MASTER GLOBAL SEARCH ENGINE
+    // 5. MASTER SEARCH ENGINE
     // ==========================================
     function debounceMasterSearch(val) {
       clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = setTimeout(() => {
-        executeMasterSearch();
-      }, 400);
+      searchDebounceTimer = setTimeout(() => { executeMasterSearch(); }, 400);
     }
 
     async function executeMasterSearch() {
@@ -735,7 +895,7 @@
       const countEl = document.getElementById("searchResultCount");
 
       if (!keyword || keyword.length < 2) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:gray;">Type at least 2 characters to search across the entire master database.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:gray;">Type at least 2 characters to search across master ledger.</td></tr>`;
         countEl.innerText = "0";
         return;
       }
@@ -751,7 +911,6 @@
           .limit(100);
 
         if (error) throw error;
-
         countEl.innerText = results ? results.length : 0;
 
         if (!results || results.length === 0) {
@@ -771,7 +930,7 @@
               <td>${r.shipping_phone || '-'}</td>
               <td>${r.shipping_city || '-'}</td>
               <td><code>${r.lineitem_sku || '-'}</code></td>
-              <td><b>₹${r.total}</b></td>
+              <td><b>${formatCurrency(r.total)}</b></td>
               <td>${r.courier}: <code>${r.boxd_awb || r.dto_awb || '-'}</code></td>
               <td><span class="badge" style="background:#f1f5f9;">${r.boxd_status || 'Pending'}</span></td>
               <td>${pickupStr}</td>
@@ -812,7 +971,7 @@
           <td><code>${r.boxd_awb || '-'}</code></td>
           <td><span class="badge badge-rto">${r.boxd_status}</span></td>
           <td>${r.shipping_name} (${r.shipping_city})</td>
-          <td><b>₹${r.total}</b></td>
+          <td><b>${formatCurrency(r.total)}</b></td>
           <td style="color:var(--danger); font-weight:700;">❌ Pending Warehouse Scan</td>
         </tr>
       `).join('');
@@ -837,7 +996,7 @@
     }
 
     window.onload = function() {
-      loadSalesData();
+      loadSalesData(false);
     };
   </script>
 </body>
