@@ -1,1182 +1,1026 @@
 <!DOCTYPE html>
 <html lang="hi">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kamlesh Hargun - Harsidhi Ventures ERP</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Harsidhi Logistics Enterprise ERP - Master Unified Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --primary: #2563eb;
+            --primary-soft: #eff6ff;
+            --success: #10b981;
+            --success-soft: #dcfce7;
+            --danger: #ef4444;
+            --danger-soft: #fee2e2;
+            --warning: #f59e0b;
+            --warning-soft: #fef3c7;
+            --border: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+        }
 
-  <style>
-    :root {
-      --amz-nav: #131921;
-      --amz-subnav: #232f3e;
-      --amz-orange: #ff9900;
-      --amz-btn-border: #a88734;
-      --bg-body: #eaeded;
-      --card-bg: #ffffff;
-      --text-main: #0f1111;
-      --text-sub: #565959;
-      --border: #d5d9d9;
-      --success: #067d62;
-      --danger: #ba0933;
-      --warning: #b45309;
-      --blue: #007185;
-    }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; width: 100vw; background: var(--bg-body); color: var(--text-main); overflow: hidden; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
-    body { background: var(--bg-body); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+        .app-shell { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 1440px; margin: 0 auto; background: #fff; }
 
-    .amz-header {
-      background: var(--amz-nav);
-      color: #fff;
-      padding: 10px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 4px solid var(--amz-orange);
-    }
-    .brand-wrap { display: flex; align-items: center; gap: 12px; }
-    .brand-logo { font-size: 18px; font-weight: 700; color: #fff; }
-    .brand-logo span { color: var(--amz-orange); }
+        .header-bar { background: #fff; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .brand-text { font-weight: 800; font-size: 16px; color: var(--primary); letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+        .user-pill { background: var(--primary-soft); border: 1px solid #bfdbfe; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: var(--primary); }
 
-    .nav-bar {
-      background: var(--amz-subnav);
-      padding: 4px 20px;
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-    }
-    .nav-tab {
-      background: transparent;
-      color: #cbd5e1;
-      border: none;
-      padding: 8px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-    .nav-tab.active {
-      background: #374151;
-      color: var(--amz-orange);
-    }
+        .nav-tabs-wrapper { background: #fff; padding: 8px 16px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+        .nav-tabs-wrapper::-webkit-scrollbar { display: none; }
+        .tab-item { flex: 1; min-width: 140px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s ease; }
+        .tab-item .icon { font-size: 15px; }
+        .tab-item .title { font-size: 12px; font-weight: 700; color: var(--text-sub); white-space: nowrap; }
+        .tab-item.active { background: var(--primary-soft); border-color: var(--primary); box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12); }
+        .tab-item.active .title { color: var(--primary); }
 
-    .main-wrap { max-width: 1460px; width: 100%; margin: 16px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
+        .metrics-strip { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; scrollbar-width: none; flex-shrink: 0; background: #f8fafc; border-bottom: 1px solid var(--border); }
+        .metrics-strip::-webkit-scrollbar { display: none; }
+        .m-card { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; min-width: 130px; flex: 1; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+        .m-val { font-size: 16px; font-weight: 800; color: var(--text-main); }
+        .m-lbl { font-size: 10px; font-weight: 600; color: var(--text-sub); margin-top: 2px; text-transform: uppercase; }
 
-    .amz-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 18px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
-    }
-    .card-title {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
-    }
+        .view-viewport { flex: 1; position: relative; overflow: hidden; width: 100%; padding: 12px; background: #f8fafc; }
+        .view-page { position: absolute; inset: 12px; display: none; flex-direction: column; gap: 12px; height: calc(100% - 24px); width: calc(100% - 24px); overflow-y: auto; }
+        .view-page.active { display: flex; }
 
-    .grid-form {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      align-items: flex-end;
-    }
+        .card-panel { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow); }
+        
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; align-items: flex-end; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-sub); margin-bottom: 4px; text-transform: uppercase; }
+        
+        .input-box { width: 100%; height: 40px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-size: 13px; outline: none; background: #fff; font-weight: 600; color: var(--text-main); }
+        .input-box:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
 
-    .form-group label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-sub);
-      margin-bottom: 4px;
-      text-transform: uppercase;
-    }
+        .btn-act { height: 40px; border-radius: 8px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0 16px; text-decoration: none; transition: 0.15s; gap: 6px; }
+        .btn-act:hover { opacity: 0.92; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-save { background: var(--success); color: #fff; }
+        .btn-reset { background: #94a3b8; color: #fff; }
 
-    .input-box {
-      width: 100%;
-      height: 38px;
-      padding: 6px 10px;
-      border: 1px solid #888c8c;
-      border-radius: 6px;
-      font-size: 13px;
-      background: #fff;
-      outline: none;
-    }
-    .input-box:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0, 113, 133, 0.15); }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+        .data-table th, .data-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .data-table th { color: var(--text-sub); font-weight: 700; font-size: 11px; text-transform: uppercase; background: #f8fafc; position: sticky; top: 0; z-index: 10; letter-spacing: 0.3px; }
 
-    .btn-amz {
-      background: linear-gradient(to bottom, #f7dfa5, #f0c14b);
-      border: 1px solid var(--amz-btn-border);
-      border-radius: 6px;
-      height: 38px;
-      padding: 0 18px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #111;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      text-decoration: none;
-    }
-    .btn-amz:hover { background: linear-gradient(to bottom, #f5d78e, #eeb933); }
+        .badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; display: inline-block; letter-spacing: 0.3px; text-transform: uppercase; }
+        .badge-prepaid { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-cod { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-del { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .badge-rto { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .badge-created { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
-    .stats-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 12px;
-    }
-    .kpi-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--amz-orange);
-      padding: 12px 14px;
-      border-radius: 6px;
-    }
-    .kpi-val { font-size: 20px; font-weight: 700; color: var(--text-main); margin-top: 4px; }
-    .kpi-lbl { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; }
+        .mode-row { display: flex; gap: 10px; width: 100%; }
+        .btn-mode { flex: 1; height: 42px; border-radius: 8px; border: 2px solid; font-weight: 800; font-size: 13px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-pickup { border-color: var(--primary); color: var(--primary); }
+        .btn-return { border-color: var(--success); color: var(--success); }
+        .btn-pickup.active { background: var(--primary); color: #fff; }
+        .btn-return.active { background: var(--success); color: #fff; }
 
-    .tab-section { display: none; flex-direction: column; gap: 16px; }
-    .tab-section.active { display: flex; }
+        .preview-box { background: #f8fafc; border: 2px solid var(--primary); border-radius: 10px; padding: 14px; display: none; flex-direction: column; gap: 8px; font-size: 13px; }
 
-    .table-wrap { overflow-x: auto; margin-top: 10px; max-height: 540px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th, td { padding: 9px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
-    th { background: #f8fafc; color: var(--text-sub); font-weight: 700; text-transform: uppercase; font-size: 11px; position: sticky; top: 0; z-index: 5; }
-
-    .badge { padding: 3px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; text-transform: uppercase; display: inline-block; }
-    .badge-prepaid { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-    .badge-cod { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-    .badge-del { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-    .badge-rto { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
-    .badge-created { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-
-    .scan-box-wrapper {
-      background: #f8fafc;
-      border: 2px dashed #007185;
-      padding: 18px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .preview-modal-box {
-      background: #fff;
-      border: 2px solid var(--blue);
-      border-radius: 8px;
-      padding: 16px;
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .master-search-card {
-      background: #fff;
-      border: 2px solid var(--amz-orange);
-      border-radius: 8px;
-      padding: 14px 18px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .bulk-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-  </style>
+        /* CIRCULAR LOADER */
+        #loaderContainer { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.35); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .circle-loader-box { background: #fff; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .circle-svg { width: 60px; height: 60px; transform: rotate(-90deg); }
+        .circle-bg { fill: none; stroke: #e2e8f0; stroke-width: 6; }
+        .circle-progress { fill: none; stroke: var(--primary); stroke-width: 6; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset 0.1s ease; stroke-linecap: round; }
+        .percent-text { font-size: 13px; font-weight: 800; color: var(--text-main); }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 12px; z-index: 9999; }
+    </style>
 </head>
+
 <body>
 
-  <header class="amz-header">
-    <div class="brand-wrap">
-      <div class="brand-logo">📦 KAMLESH<span>HARGUN</span> HARSIDHI VENTURES ERP</div>
-    </div>
-    <div style="font-size: 12px; color: #94a3b8;">Multi-Vendor Engine: Online (UC & GS)</div>
-  </header>
+    <div class="app-shell">
 
-  <div class="nav-bar">
-    <button class="nav-tab active" onclick="switchTab('salesView', this)">📥 1. Shopify Sales Upload</button>
-    <button class="nav-tab" onclick="switchTab('scanConsoleView', this)">📲 2. Direct AWB Scan (Preview First)</button>
-    <button class="nav-tab" onclick="switchTab('bulkInwardOutwardView', this)">🚚 3. Bulk AWB Upload (Max 100)</button>
-    <button class="nav-tab" onclick="switchTab('masterSearchView', this)">🔍 4. Master Search Engine</button>
-    <button class="nav-tab" onclick="switchTab('rtoReconcileView', this)">🚨 5. Pending RTO Tracker</button>
-  </div>
-
-  <div class="main-wrap">
-
-    <!-- KPI STATS WITH DYNAMIC DATE HEADING -->
-    <div class="stats-bar">
-      <div class="kpi-card" style="border-left-color: var(--blue);">
-        <div class="kpi-lbl">Total Gross Sales (<span class="kpi-date-label">Today</span>)</div>
-        <div class="kpi-val" id="kpiGrossTotal">₹0</div>
-      </div>
-      <div class="kpi-card" style="border-left-color: var(--success);">
-        <div class="kpi-lbl">Net Settled Amount (<span class="kpi-date-label">Today</span>)</div>
-        <div class="kpi-val" id="kpiNetSettle" style="color:var(--success);">₹0</div>
-      </div>
-      <div class="kpi-card" style="border-left-color: var(--warning);">
-        <div class="kpi-lbl">COD Pending (<span class="kpi-date-label">Today</span>)</div>
-        <div class="kpi-val" id="kpiCodBalance">₹0</div>
-      </div>
-      <div class="kpi-card" style="border-left-color: var(--amz-orange);">
-        <div class="kpi-lbl">Physical Pickup Scanned</div>
-        <div class="kpi-val" id="kpiPickupScanned">0</div>
-      </div>
-      <div class="kpi-card" style="border-left-color: var(--danger);">
-        <div class="kpi-lbl">Pending RTO (Not Received)</div>
-        <div class="kpi-val" id="kpiPendingRto" style="color:var(--danger);">0</div>
-      </div>
-    </div>
-
-    <!-- TAB 1: SHOPIFY SALES UPLOAD & AUDIT LEDGER -->
-    <div id="salesView" class="tab-section active">
-      <div class="amz-card">
-        <div class="card-title">
-          <span>DAILY SHOPIFY SALES CSV INGESTION (UC & GS)</span>
-          <button class="btn-amz" style="background:#067d62; color:#fff;" onclick="exportGstrDeliveredCsv()">📑 Export GSTR Delivered CSV</button>
+        <!-- Top Header Bar -->
+        <div class="header-bar">
+            <div class="brand-text"><span>📦</span> HARSIDHI LOGISTICS MASTER ERP</div>
+            <div class="user-profile"><span class="user-pill">Multi-Vendor (UC & GS)</span></div>
         </div>
 
-        <div class="grid-form">
-          <div class="form-group">
-            <label>Vendor Brand</label>
-            <select id="salesVendorSelect" class="input-box">
-              <option value="UC">UC (Uncluttered Closet)</option>
-              <option value="GS">GS (Gulabi Shehar)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Sales Order Date</label>
-            <input type="date" id="filterDate" class="input-box" onchange="onDateChanged()">
-          </div>
-
-          <div class="form-group" style="grid-column: span 2;">
-            <label>Shopify CSV File</label>
-            <input type="file" id="csvFileInput" accept=".csv" class="input-box" style="padding-top:4px;" onchange="handleFileChosen(this)">
-          </div>
-
-          <button id="btnUpload" class="btn-amz" onclick="processAndUploadSalesCsv()" disabled>Upload to Supabase</button>
-        </div>
-      </div>
-
-      <div class="amz-card">
-        <div class="card-title">
-          <span>MASTER SALES & ORDER AUDIT (PAYMENT METHOD IN COLUMN 1)</span>
-          <div style="display:flex; gap:8px;">
-            <button id="btnToggleAllDates" class="btn-amz" style="height:30px; font-size:11px;" onclick="toggleAllDatesView()">Show All Dates</button>
-            <button class="btn-amz" style="height:30px; font-size:11px;" onclick="loadSalesData(true)">🔄 Sync Live Status</button>
-          </div>
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs-wrapper">
+            <div id="tabNav1" class="tab-item active" onclick="switchView('salesView', 'tabNav1')"><span class="icon">📥</span><span class="title">Sales Ledger</span></div>
+            <div id="tabNav2" class="tab-item" onclick="switchView('scanView', 'tabNav2')"><span class="icon">📲</span><span class="title">Direct Scan</span></div>
+            <div id="tabNav3" class="tab-item" onclick="switchView('bulkView', 'tabNav3')"><span class="icon">🚚</span><span class="title">Bulk Upload (100)</span></div>
+            <div id="tabNav4" class="tab-item" onclick="switchView('searchView', 'tabNav4')"><span class="icon">🔍</span><span class="title">Master Search</span></div>
+            <div id="tabNav5" class="tab-item" onclick="switchView('rtoView', 'tabNav5')"><span class="icon">🚨</span><span class="title">Pending RTO</span></div>
         </div>
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Payment Mode</th>
-                <th>Order #</th>
-                <th>Vendor</th>
-                <th>SKU</th>
-                <th>Qty</th>
-                <th>Item Price</th>
-                <th>Order Total</th>
-                <th>Fee (2.95%)</th>
-                <th>Net Settle</th>
-                <th>Balance</th>
-                <th>Live Status</th>
-                <th>Courier / AWB</th>
-                <th>Pickup Date</th>
-                <th>Physical Scan</th>
-              </tr>
-            </thead>
-            <tbody id="salesTableBody">
-              <tr><td colspan="14" style="text-align:center; padding:20px; color:gray;">Loading records...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: DIRECT AWB SCAN (PREVIEW FIRST, THEN CONFIRM) -->
-    <div id="scanConsoleView" class="tab-section">
-      <div class="amz-card">
-        <div class="card-title">
-          <span>DIRECT AWB SCAN CONSOLE (VERIFICATION PREVIEW FIRST)</span>
+        <!-- Metrics Strip Bar -->
+        <div class="metrics-strip">
+            <div class="m-card"><span class="m-val" id="cntGrossSales">₹0</span><span class="m-lbl">Gross Sales (<span class="kpi-date-label">Today</span>)</span></div>
+            <div class="m-card"><span class="m-val" id="cntNetSettle" style="color:var(--success);">₹0</span><span class="m-lbl">Net Settled Amount</span></div>
+            <div class="m-card"><span class="m-val" id="cntCodPending" style="color:var(--warning);">₹0</span><span class="m-lbl">COD Pending</span></div>
+            <div class="m-card"><span class="m-val" id="cntPickupScanned" style="color:var(--primary);">0</span><span class="m-lbl">Outbound Picked</span></div>
+            <div class="m-card"><span class="m-val" id="cntPendingRto" style="color:var(--danger);">0</span><span class="m-lbl">Pending RTO Returns</span></div>
         </div>
 
-        <div class="scan-box-wrapper">
-          <div style="display:flex; gap:16px;">
-            <label style="font-weight:700;"><input type="radio" name="scanType" value="Pickup" checked> 📦 Outbound / Dispatch Scan</label>
-            <label style="font-weight:700;"><input type="radio" name="scanType" value="Return"> ↩️ Inbound / Return Physical Scan</label>
-          </div>
+        <!-- Main Viewport -->
+        <div class="view-viewport">
 
-          <div style="display:flex; gap:10px;">
-            <input type="text" id="barcodeScannerInput" class="input-box" placeholder="Scan or Enter AWB Number (e.g. 50845017996741)..." onkeydown="handleBarcodeEnter(event)">
-            <button class="btn-amz" onclick="fetchScanPreview()">Fetch Preview</button>
-          </div>
+            <!-- TAB 1: SHOPIFY SALES LEDGER -->
+            <div id="salesView" class="view-page active">
+                <div class="card-panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:800; font-size:14px; color:var(--primary);">📥 DAILY SHOPIFY CSV INGESTION</span>
+                        <button class="btn-act btn-save" style="height:34px; font-size:11px;" onclick="exportGstrDeliveredCsv()">📑 Export GSTR Delivered CSV</button>
+                    </div>
 
-          <!-- VERIFICATION PREVIEW CARD -->
-          <div id="scanPreviewCard" class="preview-modal-box">
-            <div style="font-weight:700; font-size:14px; color:var(--blue); border-bottom:1px solid #cbd5e1; padding-bottom:4px;">
-              🔍 SCAN VERIFICATION PREVIEW
-            </div>
-            <div id="previewCardBody" style="font-size:13px; line-height:1.6;"></div>
-            
-            <!-- Fallback manual courier if API fails -->
-            <div id="manualCourierBox" style="display:none; gap:10px; margin-top:8px;">
-              <select id="manualCourierSelect" class="input-box" style="width:200px;">
-                <option value="BOXD">BOXD</option>
-                <option value="DELHIVERY">DELHIVERY</option>
-                <option value="SKYKING">SKYKING</option>
-                <option value="DTDC">DTDC</option>
-                <option value="SHREE TIRUPATI">SHREE TIRUPATI</option>
-                <option value="PROFESSIONAL">PROFESSIONAL</option>
-                <option value="MANUAL">MANUAL</option>
-              </select>
-              <input type="text" id="manualStatusInput" class="input-box" placeholder="Status" value="Shipment Created">
+                    <div class="grid-form">
+                        <div class="form-group">
+                            <label>Vendor Brand</label>
+                            <select id="salesVendorSelect" class="input-box">
+                                <option value="UC">UC (Uncluttered Closet)</option>
+                                <option value="GS">GS (Gulabi Shehar)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sales Date</label>
+                            <input type="date" id="filterDate" class="input-box" onchange="onDateChanged()">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Shopify CSV File</label>
+                            <input type="file" id="csvFileInput" accept=".csv" class="input-box" style="padding-top:6px;" onchange="handleFileChosen(this)">
+                        </div>
+                        <button id="btnUpload" class="btn-act btn-primary" onclick="processAndUploadSalesCsv()" disabled>Upload to Master Table</button>
+                    </div>
+                </div>
+
+                <div class="card-panel" style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:800; font-size:14px;">📋 MASTER SALES LEDGER (PAYMENT MODE FIRST)</span>
+                        <div style="display:flex; gap:8px;">
+                            <button id="btnToggleAllDates" class="btn-act" style="background:#f1f5f9; color:var(--text-main); height:32px; font-size:11px;" onclick="toggleAllDatesView()">Show All Dates</button>
+                            <button class="btn-act btn-primary" style="height:32px; font-size:11px;" onclick="loadSalesData(true)">🔄 Sync Live Status</button>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Payment Mode</th>
+                                    <th>Order #</th>
+                                    <th>Vendor</th>
+                                    <th>SKU</th>
+                                    <th>Qty</th>
+                                    <th>Item Price</th>
+                                    <th>Total Amount</th>
+                                    <th>Fee (2.95%)</th>
+                                    <th>Net Settle</th>
+                                    <th>COD Balance</th>
+                                    <th>Live Status</th>
+                                    <th>Courier / AWB</th>
+                                    <th>Physical Audit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTableBody">
+                                <tr><td colspan="13" style="text-align:center; padding:20px; color:gray;">Loading records...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <div style="display:flex; gap:10px; margin-top:10px;">
-              <button id="btnConfirmScan" class="btn-amz" style="background:var(--success); color:#fff;" onclick="commitPhysicalScan()">Confirm & Reconcile Save</button>
-              <button class="btn-amz" style="background:#64748b; color:#fff;" onclick="cancelScanPreview()">Cancel</button>
+            <!-- TAB 2: DIRECT SCAN CONSOLE -->
+            <div id="scanView" class="view-page">
+                <div class="card-panel">
+                    <span style="font-weight:800; font-size:14px; color:var(--primary);">📲 OPERATIONAL SCAN CONSOLE (PREVIEW FIRST)</span>
+                    
+                    <div class="mode-row">
+                        <button id="btnPickupMode" class="btn-mode btn-pickup active" onclick="setScanMode('Pickup')">📦 Pickup Mode (Outbound)</button>
+                        <button id="btnReturnMode" class="btn-mode btn-return" onclick="setScanMode('Return')">↩️ Return Mode (Inbound)</button>
+                    </div>
+
+                    <div style="display:flex; gap:10px;">
+                        <input id="barcodeScannerInput" class="input-box" placeholder="Scan AWB Barcode or Enter Number..." onkeydown="handleBarcodeEnter(event)">
+                        <button class="btn-act btn-primary" onclick="fetchScanPreview()">Fetch Preview</button>
+                    </div>
+
+                    <!-- PREVIEW BOX -->
+                    <div id="scanPreviewBox" class="preview-box">
+                        <div style="font-weight:800; color:var(--primary); border-bottom:1px solid #cbd5e1; padding-bottom:6px;">
+                            🔍 SCAN VERIFICATION PREVIEW
+                        </div>
+                        <div id="previewContent"></div>
+                        <div style="display:flex; gap:10px; margin-top:8px;">
+                            <button class="btn-act btn-save" onclick="commitPhysicalScan()">Confirm & Reconcile Save</button>
+                            <button class="btn-act btn-reset" onclick="cancelScanPreview()">Cancel</button>
+                        </div>
+                    </div>
+
+                    <div id="scanFeedback" style="font-weight:700; font-size:13px; margin-top:4px;"></div>
+                </div>
             </div>
-          </div>
 
-          <div id="scanFeedback" style="font-weight:700; font-size:13px; margin-top:4px;"></div>
+            <!-- TAB 3: BULK INWARD/OUTWARD (MAX 100) -->
+            <div id="bulkView" class="view-page">
+                <div class="card-panel">
+                    <span style="font-weight:800; font-size:14px; color:var(--primary);">🚚 BULK AWB INWARD / OUTWARD MODULE (LIMIT: 100 AWBs)</span>
+                    
+                    <div class="grid-form">
+                        <div class="form-group">
+                            <label>Scan Date</label>
+                            <input type="date" id="bulkScanDate" class="input-box">
+                        </div>
+                        <div class="form-group">
+                            <label>Batch Mode</label>
+                            <select id="bulkScanMode" class="input-box">
+                                <option value="Pickup">📦 Outbound / Dispatch</option>
+                                <option value="Return">↩️ Inbound / Return (10-Day Guard)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;">
+                        <div style="border:1px solid var(--border); border-radius:10px; padding:12px; background:#f8fafc;">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-sub);">Option A: Upload AWB CSV (Header: AWB)</label>
+                            <input type="file" id="bulkCsvInput" accept=".csv" class="input-box" style="padding-top:6px; margin-top:6px;">
+                            <button class="btn-act btn-primary" style="margin-top:10px; width:100%;" onclick="processBulkCsvFile()">Process CSV Batch (Max 100)</button>
+                        </div>
+                        <div style="border:1px solid var(--border); border-radius:10px; padding:12px; background:#f8fafc;">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-sub);">Option B: Paste AWBs (One per line)</label>
+                            <textarea id="bulkPasteInput" class="input-box" style="height:76px; resize:none; padding:8px; margin-top:6px;" placeholder="Paste up to 100 AWBs here..."></textarea>
+                            <button class="btn-act btn-primary" style="margin-top:10px; width:100%;" onclick="processBulkPasteList()">Process Pasted List</button>
+                        </div>
+                    </div>
+
+                    <div id="bulkStatusReport" style="display:none; padding:12px; border-radius:8px; font-size:13px; line-height:1.6; margin-top:10px;"></div>
+                </div>
+            </div>
+
+            <!-- TAB 4: MASTER SEARCH ENGINE -->
+            <div id="searchView" class="view-page">
+                <div class="card-panel">
+                    <span style="font-weight:800; font-size:14px; color:var(--primary);">🔍 MASTER GLOBAL SEARCH ENGINE</span>
+                    <input id="masterSearchInput" class="input-box" placeholder="Search across entire master database: Order ID, Phone, Customer Name, AWB, SKU, City..." oninput="debounceMasterSearch(this.value)">
+                    <div style="font-size:11px; font-weight:700; color:var(--text-sub);">Matches: <span id="searchResultCount" style="color:var(--primary);">0</span> records</div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Payment</th>
+                                    <th>Order #</th>
+                                    <th>Vendor</th>
+                                    <th>Customer</th>
+                                    <th>Mobile</th>
+                                    <th>City</th>
+                                    <th>SKU</th>
+                                    <th>Total</th>
+                                    <th>Courier / AWB</th>
+                                    <th>Status</th>
+                                    <th>Pickup Date</th>
+                                    <th>Return Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterSearchTableBody">
+                                <tr><td colspan="12" style="text-align:center; padding:20px; color:gray;">Type any keyword to search.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: PENDING RTO QUEUE -->
+            <div id="rtoView" class="view-page">
+                <div class="card-panel">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:800; font-size:14px; color:var(--danger);">🚨 PENDING RTO QUEUE (RETURNED IN COURIER BUT NOT IN WAREHOUSE)</span>
+                        <button class="btn-act btn-primary" onclick="loadPendingRtoQueue()">Scan Outstanding RTO</button>
+                    </div>
+
+                    <div style="overflow-x:auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Vendor</th>
+                                    <th>AWB Number</th>
+                                    <th>Live 3PL Status</th>
+                                    <th>Customer Name</th>
+                                    <th>Total Value</th>
+                                    <th>Warehouse Audit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rtoTableBody">
+                                <tr><td colspan="7" style="text-align:center; padding:20px; color:gray;">Click 'Scan Outstanding RTO' to verify records.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
-      </div>
+
     </div>
 
-    <!-- TAB 3: BULK INWARD/OUTWARD RECONCILIATION (MAX 100 AWBS) -->
-    <div id="bulkInwardOutwardView" class="tab-section">
-      <div class="amz-card">
-        <div class="card-title">
-          <span>BULK AWB INWARD / OUTWARD MODULE (LIMIT: 100 AWBs PER BATCH)</span>
-          <span style="font-size:11px; color:var(--text-sub);">Header: <code>AWB</code> | Max: 100 rows</span>
+    <!-- CIRCULAR LOADER -->
+    <div id="loaderContainer">
+        <div class="circle-loader-box">
+            <svg class="circle-svg">
+                <circle class="circle-bg" cx="30" cy="30" r="26"></circle>
+                <circle id="circleProgress" class="circle-progress" cx="30" cy="30" r="26"></circle>
+            </svg>
+            <div class="percent-text" id="percentText">0%</div>
         </div>
-
-        <div class="grid-form" style="margin-bottom:16px;">
-          <div class="form-group">
-            <label>Scan Date</label>
-            <input type="date" id="bulkScanDate" class="input-box">
-          </div>
-          <div class="form-group">
-            <label>Batch Mode</label>
-            <select id="bulkScanMode" class="input-box">
-              <option value="Pickup">📦 Bulk Outbound (Pickup)</option>
-              <option value="Return">↩️ Bulk Inbound (Return / RTO)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bulk-grid">
-          <!-- CSV Upload -->
-          <div style="border:1px solid #cbd5e1; border-radius:8px; padding:14px; background:#f8fafc;">
-            <div style="font-weight:700; font-size:12px; margin-bottom:8px;">Option A: Upload AWB CSV</div>
-            <input type="file" id="bulkCsvInput" accept=".csv" class="input-box" style="padding-top:4px;">
-            <button class="btn-amz" style="margin-top:10px; width:100%;" onclick="processBulkCsvFile()">Process CSV Batch (Max 100)</button>
-          </div>
-
-          <!-- Direct Paste -->
-          <div style="border:1px solid #cbd5e1; border-radius:8px; padding:14px; background:#f8fafc;">
-            <div style="font-weight:700; font-size:12px; margin-bottom:8px;">Option B: Copy-Paste AWBs (One per line)</div>
-            <textarea id="bulkPasteInput" class="input-box" style="height:80px; resize:none; padding:8px;" placeholder="Paste up to 100 AWBs here..."></textarea>
-            <button class="btn-amz" style="margin-top:10px; width:100%;" onclick="processBulkPasteList()">Process Pasted List</button>
-          </div>
-        </div>
-
-        <div id="bulkStatusReport" style="margin-top:14px; display:none; padding:12px; border-radius:6px; font-size:13px; line-height:1.6;"></div>
-      </div>
     </div>
 
-    <!-- TAB 4: MASTER GLOBAL SEARCH -->
-    <div id="masterSearchView" class="tab-section">
-      <div class="master-search-card">
-        <span style="font-size:20px;">🔍</span>
-        <input type="text" id="masterSearchInput" class="input-box" style="height:42px; font-size:14px;" placeholder="Search anything across entire database: Order ID (#10896), Mobile, Customer Name, AWB, SKU, City..." oninput="debounceMasterSearch(this.value)">
-        <button class="btn-amz" onclick="executeMasterSearch()">Search Master</button>
-      </div>
+    <script>
+        // ==========================================
+        // 1. CONFIGURATIONS & INITIALIZATION
+        // ==========================================
+        const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co"; 
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbXluamlveWp0enpqdHdsb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDI5MzIsImV4cCI6MjEwNzgxODkzMn0.L34UB_G55TSP9EAW9Xox-obUUe8XsVIwDTJ8XwfQ85A";          
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIU-QX7WbubeAvYnVf5647k1PWXLVQN3fHnrAMZWJJNt6SlS5QvVPIWV5UKY8kAWXI/exec"; 
 
-      <div class="amz-card">
-        <div class="card-title">
-          <span>MASTER SEARCH RESULTS (<span id="searchResultCount">0</span> Matches Found)</span>
-        </div>
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let parsedRowsBuffer = [];
+        let currentLoadedRecords = [];
+        let searchDebounceTimer = null;
+        let isShowingAllDates = false;
+        let currentScanMode = "Pickup";
+        let pendingScanPayload = null;
 
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Payment</th>
-                <th>Order #</th>
-                <th>Vendor</th>
-                <th>Customer</th>
-                <th>Mobile</th>
-                <th>City</th>
-                <th>SKU</th>
-                <th>Total</th>
-                <th>Courier / AWB</th>
-                <th>Live Status</th>
-                <th>Pickup Date</th>
-                <th>Return Date</th>
-              </tr>
-            </thead>
-            <tbody id="masterSearchTableBody">
-              <tr><td colspan="12" style="text-align:center; padding:24px; color:gray;">Type any keyword in the search bar above to look up records.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+        const todayStr = new Date().toISOString().split("T")[0];
+        document.getElementById("filterDate").value = todayStr;
+        document.getElementById("bulkScanDate").value = todayStr;
 
-    <!-- TAB 5: PENDING RTO TRACKER -->
-    <div id="rtoReconcileView" class="tab-section">
-      <div class="amz-card">
-        <div class="card-title">
-          <span>🚨 PENDING RTO QUEUE (RETURNED IN COURIER BUT NOT RECEIVED IN WAREHOUSE)</span>
-          <button class="btn-amz" onclick="loadPendingRtoQueue()">Scan Outstanding RTO</button>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Vendor</th>
-                <th>AWB Number</th>
-                <th>Live 3PL Status</th>
-                <th>Customer Name</th>
-                <th>Total Value</th>
-                <th>Physical Warehouse Audit</th>
-              </tr>
-            </thead>
-            <tbody id="rtoTableBody">
-              <tr><td colspan="7" style="text-align:center; padding:20px; color:gray;">Click button to check pending RTOs.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    // ==========================================
-    // 1. CONFIGURATIONS
-    // ==========================================
-    const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co"; 
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbXluamlveWp0enpqdHdsb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDI5MzIsImV4cCI6MjEwNzgxODkzMn0.L34UB_G55TSP9EAW9Xox-obUUe8XsVIwDTJ8XwfQ85A";          
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxIU-QX7WbubeAvYnVf5647k1PWXLVQN3fHnrAMZWJJNt6SlS5QvVPIWV5UKY8kAWXI/exec"; 
-
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let parsedRowsBuffer = [];
-    let currentLoadedRecords = [];
-    let searchDebounceTimer = null;
-    let isShowingAllDates = false;
-    let pendingScanPayload = null;
-
-    const todayDateStr = new Date().toISOString().split("T")[0];
-    document.getElementById("filterDate").value = todayDateStr;
-    document.getElementById("bulkScanDate").value = todayDateStr;
-
-    function switchTab(tabId, btn) {
-      document.querySelectorAll('.tab-section').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      btn.classList.add('active');
-
-      if (tabId === 'salesView') loadSalesData(false);
-      if (tabId === 'rtoReconcileView') loadPendingRtoQueue();
-      if (tabId === 'masterSearchView') document.getElementById('masterSearchInput').focus();
-    }
-
-    function extractDigits(str) {
-      const match = String(str || "").match(/\d{4,6}/);
-      return match ? match[0] : "";
-    }
-
-    function formatCurrency(val) {
-      const num = Number(val || 0);
-      return "₹" + num.toLocaleString('en-IN', { maximumFractionDigits: 2 });
-    }
-
-    function onDateChanged() {
-      isShowingAllDates = false;
-      document.getElementById("btnToggleAllDates").innerText = "Show All Dates";
-      loadSalesData(false);
-    }
-
-    function toggleAllDatesView() {
-      isShowingAllDates = !isShowingAllDates;
-      document.getElementById("btnToggleAllDates").innerText = isShowingAllDates ? "Filter Selected Date" : "Show All Dates";
-      loadSalesData(false);
-    }
-
-    // ==========================================
-    // 2. SHOPIFY CSV UPLOAD (PAYMENT ON LINE 1)
-    // ==========================================
-    function handleFileChosen(input) {
-      const file = input.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        parsedRowsBuffer = parseCsvToArray(e.target.result);
-        if (parsedRowsBuffer.length > 1) {
-          document.getElementById("btnUpload").disabled = false;
-        }
-      };
-      reader.readAsText(file, "UTF-8");
-    }
-
-    function parseCsvToArray(text) {
-      const lines = []; let row = []; let inQuotes = false; let currentCell = '';
-      for (let i = 0; i < text.length; i++) {
-        const char = text[i]; const nextChar = text[i + 1];
-        if (char === '"') {
-          if (inQuotes && nextChar === '"') { currentCell += '"'; i++; }
-          else inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          row.push(currentCell.trim()); currentCell = '';
-        } else if ((char === '\r' || char === '\n') && !inQuotes) {
-          if (char === '\r' && nextChar === '\n') i++;
-          row.push(currentCell.trim());
-          if (row.length > 1 || row[0] !== '') lines.push(row);
-          row = []; currentCell = '';
-        } else {
-          currentCell += char;
-        }
-      }
-      if (row.length > 0 || currentCell !== '') { row.push(currentCell.trim()); lines.push(row); }
-      return lines;
-    }
-
-    async function processAndUploadSalesCsv() {
-      const filterDate = document.getElementById("filterDate").value;
-      const vendorName = document.getElementById("salesVendorSelect").value;
-      if (!parsedRowsBuffer.length) return alert("Select CSV File first!");
-
-      const headers = parsedRowsBuffer[0].map(h => h.trim().toLowerCase());
-      const col = (name) => headers.indexOf(name.toLowerCase());
-
-      const idxName = col("Name");
-      const idxEmail = col("Email");
-      const idxPrice = col("Lineitem price");
-      const idxDiscount = col("Discount Amount");
-      const idxTotal = col("Total");
-      const idxBalance = col("Outstanding Balance");
-      const idxQty = col("Lineitem quantity");
-      const idxSku = col("Lineitem sku");
-      const idxCreatedAt = col("Created at");
-      const idxShipName = col("Shipping Name");
-      const idxShipCity = col("Shipping City");
-      const idxShipPhone = col("Shipping Phone");
-      const idxPaymentMethod = col("Payment Method");
-
-      const ordersMap = new Map();
-      for (let i = 1; i < parsedRowsBuffer.length; i++) {
-        const row = parsedRowsBuffer[i];
-        const orderName = String(row[idxName] || "").trim();
-        if (!orderName) continue;
-        if (!ordersMap.has(orderName)) ordersMap.set(orderName, []);
-        ordersMap.get(orderName).push(row);
-      }
-
-      const rowsToInsert = [];
-
-      ordersMap.forEach((rows, orderName) => {
-        const primaryRow = rows[0];
-        const total = idxTotal !== -1 ? parseFloat(primaryRow[idxTotal]) || 0 : 0;
-        const outstanding = idxBalance !== -1 ? parseFloat(primaryRow[idxBalance]) || 0 : 0;
-        const paymentMethod = idxPaymentMethod !== -1 ? String(primaryRow[idxPaymentMethod] || "").trim() : "";
-        const isPrepaid = !paymentMethod.toLowerCase().includes("cash on delivery") && !paymentMethod.toLowerCase().includes("cod") && outstanding === 0;
-
-        let serviceCharges = 0;
-        let settleAmount = total;
-        if (isPrepaid && total > 0) {
-          serviceCharges = parseFloat((total * 0.0295).toFixed(2));
-          settleAmount = parseFloat((total - serviceCharges).toFixed(2));
+        // SAFE STRICT CURRENCY HELPER (Fixes raw text print error)
+        function fmt(val) {
+            const num = Number(val);
+            if (isNaN(num) || num === 0) return "-";
+            return "₹" + num.toLocaleString('en-IN', { maximumFractionDigits: 2 });
         }
 
-        const resolvedPaymentMethod = paymentMethod || (outstanding > 0 ? "Cash on Delivery" : "Prepaid");
-
-        rows.forEach((row, index) => {
-          const isPrimary = (index === 0);
-          const sku = idxSku !== -1 ? String(row[idxSku] || "").trim() : "";
-
-          rowsToInsert.push({
-            payment_method: isPrimary ? resolvedPaymentMethod : "",
-            order_name: orderName,
-            clean_order_no: extractDigits(orderName),
-            vendor: vendorName,
-            email: idxEmail !== -1 ? String(row[idxEmail] || "").trim() : "",
-            lineitem_sku: sku,
-            lineitem_quantity: idxQty !== -1 ? parseInt(row[idxQty], 10) || 1 : 1,
-            lineitem_price: idxPrice !== -1 ? parseFloat(row[idxPrice]) || 0 : 0,
-            discount_amount: isPrimary && idxDiscount !== -1 ? parseFloat(row[idxDiscount]) || 0 : 0,
-            total: isPrimary ? total : 0,
-            outstanding_balance: isPrimary ? outstanding : 0,
-            prepaid_service_charges: isPrimary ? serviceCharges : 0,
-            prepaid_settle_amount: isPrimary ? settleAmount : 0,
-            shipping_name: idxShipName !== -1 ? String(row[idxShipName] || "").trim() : "",
-            shipping_city: idxShipCity !== -1 ? String(row[idxShipCity] || "").trim() : "",
-            shipping_phone: idxShipPhone !== -1 ? String(row[idxShipPhone] || "").trim() : "",
-            created_at_shopify: idxCreatedAt !== -1 ? String(row[idxCreatedAt] || "").trim() : "",
-            filter_date: filterDate
-          });
-        });
-      });
-
-      const { error } = await supabaseClient.from('shopify_sales').upsert(rowsToInsert, { onConflict: 'order_name,lineitem_sku,vendor' });
-      if (error) {
-        alert("Upload Error: " + error.message);
-      } else {
-        alert(`🎉 Uploaded ${rowsToInsert.length} items across ${ordersMap.size} orders for ${vendorName}!`);
-        loadSalesData(false);
-      }
-    }
-
-    // ==========================================
-    // 3. LOAD SALES AUDIT (GROUPED & LIVE SYNC)
-    // ==========================================
-    async function loadSalesData(triggerLiveSync = false) {
-      const filterDate = document.getElementById("filterDate").value;
-      const dateLabels = document.querySelectorAll(".kpi-date-label");
-      dateLabels.forEach(el => el.innerText = isShowingAllDates ? "All Dates" : filterDate);
-
-      let query = supabaseClient.from('shopify_sales').select('*');
-      if (!isShowingAllDates) {
-        query = query.eq('filter_date', filterDate);
-      }
-
-      const { data: sales, error } = await query.order('id', { ascending: false });
-
-      if (error) return console.error(error);
-      currentLoadedRecords = sales || [];
-
-      const groupedOrdersMap = new Map();
-      currentLoadedRecords.forEach(r => {
-        if (!groupedOrdersMap.has(r.order_name)) {
-          groupedOrdersMap.set(r.order_name, []);
-        }
-        groupedOrdersMap.get(r.order_name).push(r);
-      });
-
-      let gross = 0, settle = 0, codBal = 0, pickupCount = 0;
-      groupedOrdersMap.forEach((items) => {
-        const primary = items[0];
-        gross += Number(primary.total || 0);
-        settle += Number(primary.prepaid_settle_amount || 0);
-        codBal += Number(primary.outstanding_balance || 0);
-        if (primary.physical_scanned_pickup) pickupCount++;
-      });
-
-      document.getElementById("kpiGrossTotal").innerText = formatCurrency(gross);
-      document.getElementById("kpiNetSettle").innerText = formatCurrency(settle);
-      document.getElementById("kpiCodBalance").innerText = formatCurrency(codBal);
-      document.getElementById("kpiPickupScanned").innerText = pickupCount;
-
-      renderGroupedTable(groupedOrdersMap);
-
-      if (triggerLiveSync) {
-        syncLiveStatusesInBackground(groupedOrdersMap);
-      }
-    }
-
-    function renderGroupedTable(groupedOrdersMap) {
-      const tbody = document.getElementById("salesTableBody");
-      if (groupedOrdersMap.size === 0) {
-        tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:20px; color:gray;">No records found.</td></tr>`;
-        return;
-      }
-
-      let html = "";
-      groupedOrdersMap.forEach((items, orderName) => {
-        const primary = items[0];
-        const isPrepaid = primary.payment_method && (primary.payment_method.toLowerCase().includes("prepaid") || primary.outstanding_balance === 0);
-
-        items.forEach((r, idx) => {
-          const isPrimary = (idx === 0);
-
-          let paymentBadge = "-";
-          if (isPrimary && r.payment_method) {
-            paymentBadge = `<span class="badge ${isPrepaid ? 'badge-prepaid' : 'badge-cod'}">${r.payment_method}</span>`;
-          }
-
-          let liveStatusBadge = "-";
-          let courierAwbCell = "-";
-          let pickupDateCell = "-";
-          let physicalScanCell = "-";
-
-          if (isPrimary) {
-            const status = primary.boxd_status || primary.dto_status || 'Pending';
-            let badgeClass = "badge";
-            if (status.toLowerCase().includes('created')) badgeClass = "badge badge-created";
-            else if (status.toLowerCase().includes('delivered')) badgeClass = "badge badge-del";
-            else if (status.toLowerCase().includes('rto') || status.toLowerCase().includes('return')) badgeClass = "badge badge-rto";
-            liveStatusBadge = `<span class="${badgeClass}">${status}</span>`;
-
-            courierAwbCell = primary.boxd_awb || primary.dto_awb ? `<b>${primary.courier}:</b> <code>${primary.boxd_awb || primary.dto_awb}</code>` : '-';
-            pickupDateCell = primary.pickup_scanned_at ? new Date(primary.pickup_scanned_at).toLocaleDateString('en-IN') : '-';
-
-            physicalScanCell = `
-              ${primary.physical_scanned_pickup ? '<span style="color:var(--success); font-weight:700;">✅ Pickup</span> ' : ''}
-              ${primary.physical_scanned_return ? '<span style="color:var(--danger); font-weight:700;">↩️ Returned</span>' : ''}
-              ${!primary.physical_scanned_pickup && !primary.physical_scanned_return ? '<span style="color:gray;">Pending</span>' : ''}
-            `;
-          }
-
-          html += `
-            <tr style="${isPrimary ? 'background:#fff;' : 'background:#fafafa; border-left:3px solid var(--amz-orange);'}">
-              <td>${paymentBadge}</td>
-              <td><b>${r.order_name}</b></td>
-              <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
-              <td><code>${r.lineitem_sku}</code></td>
-              <td>${r.lineitem_quantity}</td>
-              <td>${formatCurrency(r.lineitem_price)}</td>
-              <td>${isPrimary ? `<b>\${formatCurrency(r.total)}</b>` : '-'}</td>
-              <td>${isPrimary && r.prepaid_service_charges > 0 ? `<span style="color:var(--danger);">\${formatCurrency(r.prepaid_service_charges)}</span>` : '-'}</td>
-              <td>${isPrimary && r.prepaid_settle_amount > 0 ? `<span style="color:var(--success); font-weight:700;">\${formatCurrency(r.prepaid_settle_amount)}</span>` : '-'}</td>
-              <td>${isPrimary && r.outstanding_balance > 0 ? `<span style="color:var(--warning); font-weight:700;">\${formatCurrency(r.outstanding_balance)}</span>` : '-'}</td>
-              <td>${liveStatusBadge}</td>
-              <td>${courierAwbCell}</td>
-              <td>${pickupDateCell}</td>
-              <td>${physicalScanCell}</td>
-            </tr>
-          `;
-        });
-      });
-
-      tbody.innerHTML = html;
-    }
-
-    async function syncLiveStatusesInBackground(groupedOrdersMap) {
-      for (const [orderName, items] of groupedOrdersMap) {
-        const primary = items[0];
-        const awb = primary.boxd_awb || primary.dto_awb;
-        const currentStatus = String(primary.boxd_status || "").toLowerCase();
-
-        if (!awb || currentStatus.includes('delivered') || currentStatus.includes('rto')) continue;
-
-        try {
-          const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
-          if (res && res.success && res.status && res.status !== primary.boxd_status) {
-            await supabaseClient.from('shopify_sales').update({
-              boxd_status: res.status,
-              courier: res.courier || primary.courier
-            }).eq('clean_order_no', primary.clean_order_no).eq('vendor', primary.vendor);
-          }
-        } catch(e) {}
-      }
-    }
-
-    // ==========================================
-    // 4. SCAN CONSOLE (PREVIEW FIRST -> CONFIRM)
-    // ==========================================
-    function handleBarcodeEnter(e) {
-      if (e.key === "Enter") fetchScanPreview();
-    }
-
-    async function fetchScanPreview() {
-      const input = document.getElementById("barcodeScannerInput");
-      const awb = input.value.trim();
-      if (!awb) return;
-
-      const scanType = document.querySelector('input[name="scanType"]:checked').value;
-      const feedback = document.getElementById("scanFeedback");
-      const previewCard = document.getElementById("scanPreviewCard");
-      const previewBody = document.getElementById("previewCardBody");
-      const manualBox = document.getElementById("manualCourierBox");
-
-      feedback.innerHTML = `<span style="color:var(--blue);">🔍 Querying Gateway for AWB ${awb}...</span>`;
-      previewCard.style.display = "none";
-      manualBox.style.display = "none";
-
-      try {
-        const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
-
-        let courierName = "BOXD";
-        let liveStatus = "Shipment Created";
-        let refNo = "";
-
-        if (res && res.success) {
-          courierName = res.courier || "BOXD";
-          liveStatus = res.status || "Shipment Created";
-          refNo = res.refNo || "";
-        } else {
-          manualBox.style.display = "flex";
+        function extractDigits(str) {
+            const match = String(str || "").match(/\d{4,6}/);
+            return match ? match[0] : "";
         }
 
-        let autoVendor = "UC";
-        if (refNo.toUpperCase().includes("GS")) autoVendor = "GS";
-        const cleanDigits = extractDigits(refNo);
-
-        let findQuery = supabaseClient.from('shopify_sales').select('*');
-        if (cleanDigits) {
-          findQuery = findQuery.eq('clean_order_no', cleanDigits).eq('vendor', autoVendor);
-        } else {
-          findQuery = findQuery.or(`boxd_awb.eq.${awb},dto_awb.eq.${awb}`);
+        function toast(msg) {
+            const t = document.createElement("div"); t.className = "toast"; t.innerText = msg;
+            document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
         }
 
-        const { data: matchedRecords } = await findQuery;
-
-        if (!matchedRecords || matchedRecords.length === 0) {
-          feedback.innerHTML = `<span style="color:var(--danger); font-size:14px;">❌ ORDER NOT FOUND: AWB <b>${awb}</b> (${refNo || 'No Ref'}) database me exist nahi karta. Scan cancelled!</span>`;
-          return;
+        function showProgressLoader() {
+            document.getElementById("loaderContainer").style.display = "flex";
+            let p = 0;
+            const circle = document.getElementById("circleProgress");
+            const txt = document.getElementById("percentText");
+            const interval = setInterval(() => {
+                p += 20;
+                circle.style.strokeDashoffset = 200 - (200 * p) / 100;
+                txt.innerText = p + "%";
+                if (p >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => { document.getElementById("loaderContainer").style.display = "none"; }, 150);
+                }
+            }, 25);
         }
 
-        const existingRecord = matchedRecords[0];
+        function switchView(viewId, tabId) {
+            document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
 
-        let duplicateWarningHtml = "";
-        if (scanType === "Return" && existingRecord.physical_scanned_return && existingRecord.return_scanned_at) {
-          const lastScanDate = new Date(existingRecord.return_scanned_at);
-          const diffDays = (new Date() - lastScanDate) / (1000 * 60 * 60 * 24);
-
-          if (diffDays <= 10) {
-            const formattedDate = lastScanDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-            const formattedTime = lastScanDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-            duplicateWarningHtml = `
-              <div style="background:#fee2e2; border:1px solid #ef4444; color:#b91c1c; padding:8px; border-radius:6px; margin-bottom:8px;">
-                ⚠️ <b>DUPLICATE ALERT:</b> Yeh parcel pehle hi <b>${formattedDate} (${formattedTime})</b> ko Inbound ho chuka hai!
-              </div>
-            `;
-          }
+            if (viewId === 'salesView') loadSalesData(false);
+            if (viewId === 'rtoView') loadPendingRtoQueue();
+            if (viewId === 'searchView') document.getElementById('masterSearchInput').focus();
         }
 
-        pendingScanPayload = {
-          awb: awb,
-          scanType: scanType,
-          clean_order_no: existingRecord.clean_order_no,
-          vendor: existingRecord.vendor,
-          courier: courierName,
-          liveStatus: liveStatus
-        };
-
-        previewBody.innerHTML = `
-          ${duplicateWarningHtml}
-          <div><b>Order ID:</b> ${existingRecord.order_name} (${existingRecord.vendor})</div>
-          <div><b>Customer:</b> ${existingRecord.shipping_name || 'N/A'} | ${existingRecord.shipping_city || 'N/A'}</div>
-          <div><b>AWB:</b> <code>${awb}</code> | <b>Courier:</b> ${courierName}</div>
-          <div><b>Live 3PL Status:</b> <span class="badge badge-created">${liveStatus}</span></div>
-          <div><b>Action Mode:</b> <span style="color:${scanType === 'Pickup' ? 'var(--blue)' : 'var(--danger)'}; font-weight:700;">${scanType.toUpperCase()} SCAN</span></div>
-        `;
-
-        previewCard.style.display = "flex";
-        feedback.innerHTML = "";
-
-      } catch (err) {
-        feedback.innerHTML = `<span style="color:var(--danger);">Error: ${err.message}</span>`;
-      }
-    }
-
-    async function commitPhysicalScan() {
-      if (!pendingScanPayload) return;
-
-      const manualBox = document.getElementById("manualCourierBox");
-      if (manualBox.style.display === "flex") {
-        pendingScanPayload.courier = document.getElementById("manualCourierSelect").value;
-        pendingScanPayload.liveStatus = document.getElementById("manualStatusInput").value.trim() || "Manual Verified";
-      }
-
-      const updatePayload = {
-        boxd_awb: pendingScanPayload.awb,
-        boxd_status: pendingScanPayload.liveStatus,
-        courier: pendingScanPayload.courier
-      };
-
-      if (pendingScanPayload.scanType === "Pickup") {
-        updatePayload.physical_scanned_pickup = true;
-        updatePayload.pickup_scanned_at = new Date().toISOString();
-      } else {
-        updatePayload.physical_scanned_return = true;
-        updatePayload.return_scanned_at = new Date().toISOString();
-      }
-
-      const { error } = await supabaseClient
-        .from('shopify_sales')
-        .update(updatePayload)
-        .eq('clean_order_no', pendingScanPayload.clean_order_no)
-        .eq('vendor', pendingScanPayload.vendor);
-
-      if (error) {
-        alert("Save Error: " + error.message);
-      } else {
-        document.getElementById("scanFeedback").innerHTML = `<span style="color:var(--success); font-size:14px;">🎉 Reconciled & Saved Successfully! (${pendingScanPayload.scanType})</span>`;
-        cancelScanPreview();
-        loadSalesData(false);
-      }
-    }
-
-    function cancelScanPreview() {
-      pendingScanPayload = null;
-      document.getElementById("scanPreviewCard").style.display = "none";
-      document.getElementById("barcodeScannerInput").value = "";
-      document.getElementById("barcodeScannerInput").focus();
-    }
-
-    // ==========================================
-    // 5. BULK INWARD/OUTWARD RECONCILIATION ENGINE
-    // ==========================================
-    function processBulkCsvFile() {
-      const fileInput = document.getElementById("bulkCsvInput");
-      const file = fileInput.files[0];
-      if (!file) return alert("Select an AWB CSV file first!");
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const rows = parseCsvToArray(e.target.result);
-        if (rows.length <= 1) return alert("CSV appears empty!");
-
-        const awbList = [];
-        for (let i = 1; i < rows.length; i++) {
-          const val = String(rows[i][0] || "").trim();
-          if (val) awbList.push(val);
+        function onDateChanged() {
+            isShowingAllDates = false;
+            document.getElementById("btnToggleAllDates").innerText = "Show All Dates";
+            loadSalesData(false);
         }
 
-        executeBulkBatch(awbList);
-      };
-      reader.readAsText(file, "UTF-8");
-    }
+        function toggleAllDatesView() {
+            isShowingAllDates = !isShowingAllDates;
+            document.getElementById("btnToggleAllDates").innerText = isShowingAllDates ? "Filter Selected Date" : "Show All Dates";
+            loadSalesData(false);
+        }
 
-    function processBulkPasteList() {
-      const rawText = document.getElementById("bulkPasteInput").value.trim();
-      if (!rawText) return alert("Paste AWBs first!");
+        // ==========================================
+        // 2. SHOPIFY CSV INGESTION (PAYMENT IN LINE 1)
+        // ==========================================
+        function handleFileChosen(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                parsedRowsBuffer = parseCsvToArray(e.target.result);
+                if (parsedRowsBuffer.length > 1) {
+                    document.getElementById("btnUpload").disabled = false;
+                    toast(`CSV parsed: ${parsedRowsBuffer.length - 1} rows ready.`);
+                }
+            };
+            reader.readAsText(file, "UTF-8");
+        }
 
-      const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => Boolean(l));
-      executeBulkBatch(lines);
-    }
-
-    async function executeBulkBatch(awbList) {
-      if (awbList.length === 0) return alert("No valid AWBs found!");
-      if (awbList.length > 100) {
-        return alert(`⚠️ Limit Exceeded: Max 100 AWBs per batch allowed. You provided ${awbList.length}.`);
-      }
-
-      const bulkDate = document.getElementById("bulkScanDate").value;
-      const scanType = document.getElementById("bulkScanMode").value;
-      const reportBox = document.getElementById("bulkStatusReport");
-
-      reportBox.style.display = "block";
-      reportBox.style.background = "#eff6ff";
-      reportBox.style.color = "var(--blue)";
-      reportBox.innerHTML = `⏳ Processing bulk batch of ${awbList.length} AWBs... Please wait.`;
-
-      let successCount = 0;
-      let skippedDuplicates = 0;
-      let skippedNotFound = 0;
-      const skippedDetails = [];
-
-      for (let i = 0; i < awbList.length; i++) {
-        const awb = awbList[i];
-
-        try {
-          // Track 3PL details
-          const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
-          let refNo = res && res.success ? (res.refNo || "") : "";
-          let liveStatus = res && res.success ? (res.status || "Shipment Created") : "Manual Batch";
-          let courierName = res && res.success ? (res.courier || "BOXD") : "MANUAL";
-
-          let autoVendor = "UC";
-          if (refNo.toUpperCase().includes("GS")) autoVendor = "GS";
-          const cleanDigits = extractDigits(refNo);
-
-          let findQuery = supabaseClient.from('shopify_sales').select('*');
-          if (cleanDigits) {
-            findQuery = findQuery.eq('clean_order_no', cleanDigits).eq('vendor', autoVendor);
-          } else {
-            findQuery = findQuery.or(`boxd_awb.eq.${awb},dto_awb.eq.${awb}`);
-          }
-
-          const { data: matchedRecords } = await findQuery;
-
-          if (!matchedRecords || matchedRecords.length === 0) {
-            skippedNotFound++;
-            skippedDetails.push(`AWB ${awb}: Order Not Found in Database`);
-            continue;
-          }
-
-          const existingRecord = matchedRecords[0];
-
-          // 10-Days Duplicate Check
-          if (scanType === "Return" && existingRecord.physical_scanned_return && existingRecord.return_scanned_at) {
-            const diffDays = (new Date() - new Date(existingRecord.return_scanned_at)) / (1000 * 60 * 60 * 24);
-            if (diffDays <= 10) {
-              skippedDuplicates++;
-              skippedDetails.push(`AWB ${awb}: Already Returned in last 10 days`);
-              continue;
+        function parseCsvToArray(text) {
+            const lines = []; let row = []; let inQuotes = false; let currentCell = '';
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i]; const nextChar = text[i + 1];
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') { currentCell += '"'; i++; }
+                    else inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    row.push(currentCell.trim()); currentCell = '';
+                } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') i++;
+                    row.push(currentCell.trim());
+                    if (row.length > 1 || row[0] !== '') lines.push(row);
+                    row = []; currentCell = '';
+                } else currentCell += char;
             }
-          }
-
-          // Commit Update
-          const updatePayload = {
-            boxd_awb: awb,
-            boxd_status: liveStatus,
-            courier: courierName
-          };
-
-          const scanTimestamp = new Date(bulkDate + "T12:00:00").toISOString();
-          if (scanType === "Pickup") {
-            updatePayload.physical_scanned_pickup = true;
-            updatePayload.pickup_scanned_at = scanTimestamp;
-          } else {
-            updatePayload.physical_scanned_return = true;
-            updatePayload.return_scanned_at = scanTimestamp;
-          }
-
-          await supabaseClient
-            .from('shopify_sales')
-            .update(updatePayload)
-            .eq('clean_order_no', existingRecord.clean_order_no)
-            .eq('vendor', existingRecord.vendor);
-
-          successCount++;
-
-        } catch (e) {
-          skippedNotFound++;
-          skippedDetails.push(`AWB ${awb}: Processing Error`);
-        }
-      }
-
-      reportBox.style.background = "#f0fdf4";
-      reportBox.style.color = "var(--success)";
-      reportBox.innerHTML = `
-        🎉 <b>Bulk Processing Complete for Date: ${bulkDate}!</b><br>
-        ✅ Successfully Reconciled: <b>${successCount}</b><br>
-        ⚠️ Skipped (10-Day Duplicate): <b>${skippedDuplicates}</b><br>
-        ❌ Skipped (Order Not Found / Not Saved): <b>${skippedNotFound}</b><br>
-        ${skippedDetails.length > 0 ? `<div style="font-size:11px; color:#64748b; margin-top:6px;">${skippedDetails.slice(0, 5).join('<br>')}${skippedDetails.length > 5 ? '<br>...and more' : ''}</div>` : ''}
-      `;
-
-      loadSalesData(false);
-    }
-
-    // ==========================================
-    // 6. MASTER SEARCH ENGINE
-    // ==========================================
-    function debounceMasterSearch(val) {
-      clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = setTimeout(() => { executeMasterSearch(); }, 400);
-    }
-
-    async function executeMasterSearch() {
-      const keyword = document.getElementById("masterSearchInput").value.trim();
-      const tbody = document.getElementById("masterSearchTableBody");
-      const countEl = document.getElementById("searchResultCount");
-
-      if (!keyword || keyword.length < 2) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:gray;">Type at least 2 characters to search across master ledger.</td></tr>`;
-        countEl.innerText = "0";
-        return;
-      }
-
-      tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:var(--blue);">🔍 Searching master database for: <b>${keyword}</b>...</td></tr>`;
-
-      try {
-        const { data: results, error } = await supabaseClient
-          .from('shopify_sales')
-          .select('*')
-          .or(`order_name.ilike.%${keyword}%,clean_order_no.ilike.%${keyword}%,shipping_name.ilike.%${keyword}%,shipping_phone.ilike.%${keyword}%,shipping_city.ilike.%${keyword}%,lineitem_sku.ilike.%${keyword}%,boxd_awb.ilike.%${keyword}%,dto_awb.ilike.%${keyword}%,boxd_status.ilike.%${keyword}%`)
-          .order('id', { ascending: false })
-          .limit(100);
-
-        if (error) throw error;
-        countEl.innerText = results ? results.length : 0;
-
-        if (!results || results.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:var(--danger);">No records found matching "<b>${keyword}</b>"</td></tr>`;
-          return;
+            if (row.length > 0 || currentCell !== '') { row.push(currentCell.trim()); lines.push(row); }
+            return lines;
         }
 
-        tbody.innerHTML = results.map(r => {
-          const pickupStr = r.pickup_scanned_at ? new Date(r.pickup_scanned_at).toLocaleDateString('en-IN') : '-';
-          const returnStr = r.return_scanned_at ? new Date(r.return_scanned_at).toLocaleDateString('en-IN') : '-';
-          return `
-            <tr>
-              <td><span class="badge ${r.payment_method ? 'badge-prepaid' : ''}">${r.payment_method || '-'}</span></td>
-              <td><b>${r.order_name}</b></td>
-              <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
-              <td>${r.shipping_name || '-'}</td>
-              <td>${r.shipping_phone || '-'}</td>
-              <td>${r.shipping_city || '-'}</td>
-              <td><code>${r.lineitem_sku || '-'}</code></td>
-              <td><b>${formatCurrency(r.total)}</b></td>
-              <td>${r.courier}: <code>${r.boxd_awb || r.dto_awb || '-'}</code></td>
-              <td><span class="badge" style="background:#f1f5f9;">${r.boxd_status || 'Pending'}</span></td>
-              <td>${pickupStr}</td>
-              <td>${returnStr}</td>
-            </tr>
-          `;
-        }).join('');
+        async function processAndUploadSalesCsv() {
+            const filterDate = document.getElementById("filterDate").value;
+            const vendorName = document.getElementById("salesVendorSelect").value;
+            if (!parsedRowsBuffer.length) return alert("Select CSV File first!");
 
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color:var(--danger); padding:20px;">Error searching database: ${err.message}</td></tr>`;
-      }
-    }
+            showProgressLoader();
+            const headers = parsedRowsBuffer[0].map(h => h.trim().toLowerCase());
+            const col = (name) => headers.indexOf(name.toLowerCase());
 
-    // ==========================================
-    // 7. PENDING RTO QUEUE
-    // ==========================================
-    async function loadPendingRtoQueue() {
-      const { data: sales, error } = await supabaseClient
-        .from('shopify_sales')
-        .select('*')
-        .or('boxd_status.ilike.%rto%,boxd_status.ilike.%return%')
-        .eq('physical_scanned_return', false);
+            const idxName = col("Name");
+            const idxEmail = col("Email");
+            const idxPrice = col("Lineitem price");
+            const idxDiscount = col("Discount Amount");
+            const idxTotal = col("Total");
+            const idxBalance = col("Outstanding Balance");
+            const idxQty = col("Lineitem quantity");
+            const idxSku = col("Lineitem sku");
+            const idxCreatedAt = col("Created at");
+            const idxShipName = col("Shipping Name");
+            const idxShipCity = col("Shipping City");
+            const idxShipPhone = col("Shipping Phone");
+            const idxPaymentMethod = col("Payment Method");
 
-      if (error) return console.error(error);
+            const ordersMap = new Map();
+            for (let i = 1; i < parsedRowsBuffer.length; i++) {
+                const row = parsedRowsBuffer[i];
+                const orderName = String(row[idxName] || "").trim();
+                if (!orderName) continue;
+                if (!ordersMap.has(orderName)) ordersMap.set(orderName, []);
+                ordersMap.get(orderName).push(row);
+            }
 
-      document.getElementById("kpiPendingRto").innerText = sales ? sales.length : 0;
-      const tbody = document.getElementById("rtoTableBody");
+            const rowsToInsert = [];
+            ordersMap.forEach((rows, orderName) => {
+                const primaryRow = rows[0];
+                const total = idxTotal !== -1 ? parseFloat(primaryRow[idxTotal]) || 0 : 0;
+                const outstanding = idxBalance !== -1 ? parseFloat(primaryRow[idxBalance]) || 0 : 0;
+                const paymentMethod = idxPaymentMethod !== -1 ? String(primaryRow[idxPaymentMethod] || "").trim() : "";
+                const isPrepaid = !paymentMethod.toLowerCase().includes("cash on delivery") && !paymentMethod.toLowerCase().includes("cod") && outstanding === 0;
 
-      if (!sales || !sales.length) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--success); font-weight:700;">🎉 No pending RTOs! All returned parcels are accounted for.</td></tr>`;
-        return;
-      }
+                let serviceCharges = 0;
+                let settleAmount = total;
+                if (isPrepaid && total > 0) {
+                    serviceCharges = parseFloat((total * 0.0295).toFixed(2));
+                    settleAmount = parseFloat((total - serviceCharges).toFixed(2));
+                }
 
-      tbody.innerHTML = sales.map(r => `
-        <tr>
-          <td><b>${r.order_name}</b></td>
-          <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
-          <td><code>${r.boxd_awb || '-'}</code></td>
-          <td><span class="badge badge-rto">${r.boxd_status}</span></td>
-          <td>${r.shipping_name} (${r.shipping_city})</td>
-          <td><b>${formatCurrency(r.total)}</b></td>
-          <td style="color:var(--danger); font-weight:700;">❌ Pending Warehouse Scan</td>
-        </tr>
-      `).join('');
-    }
+                const resolvedPaymentMethod = paymentMethod || (outstanding > 0 ? "Cash on Delivery" : "Prepaid");
 
-    function exportGstrDeliveredCsv() {
-      const delivered = currentLoadedRecords.filter(r => String(r.boxd_status).toLowerCase() === "delivered");
-      if (!delivered.length) return alert("No delivered orders found to export!");
+                rows.forEach((row, index) => {
+                    const isPrimary = (index === 0);
+                    const sku = idxSku !== -1 ? String(row[idxSku] || "").trim() : "";
 
-      let csv = "Order,Vendor,Payment,Amount,PrepaidFee,NetSettle,AWB,Status\n";
-      delivered.forEach(r => {
-        csv += `"${r.order_name}","${r.vendor}","${r.payment_method}",${r.total},${r.prepaid_service_charges},${r.prepaid_settle_amount},"${r.boxd_awb}","Delivered"\n`;
-      });
+                    rowsToInsert.push({
+                        payment_method: isPrimary ? resolvedPaymentMethod : "",
+                        order_name: orderName,
+                        clean_order_no: extractDigits(orderName),
+                        vendor: vendorName,
+                        email: idxEmail !== -1 ? String(row[idxEmail] || "").trim() : "",
+                        lineitem_sku: sku,
+                        lineitem_quantity: idxQty !== -1 ? parseInt(row[idxQty], 10) || 1 : 1,
+                        lineitem_price: idxPrice !== -1 ? parseFloat(row[idxPrice]) || 0 : 0,
+                        discount_amount: isPrimary && idxDiscount !== -1 ? parseFloat(row[idxDiscount]) || 0 : 0,
+                        total: isPrimary ? total : 0,
+                        outstanding_balance: isPrimary ? outstanding : 0,
+                        prepaid_service_charges: isPrimary ? serviceCharges : 0,
+                        prepaid_settle_amount: isPrimary ? settleAmount : 0,
+                        shipping_name: idxShipName !== -1 ? String(row[idxShipName] || "").trim() : "",
+                        shipping_city: idxShipCity !== -1 ? String(row[idxShipCity] || "").trim() : "",
+                        shipping_phone: idxShipPhone !== -1 ? String(row[idxShipPhone] || "").trim() : "",
+                        created_at_shopify: idxCreatedAt !== -1 ? String(row[idxCreatedAt] || "").trim() : "",
+                        filter_date: filterDate
+                    });
+                });
+            });
 
-      const uri = "data:text/csv;charset=utf-8," + encodeURI(csv);
-      const link = document.createElement("a");
-      link.href = uri;
-      link.download = `GSTR_Delivered_${document.getElementById("filterDate").value}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+            const { error } = await supabaseClient.from('shopify_sales').upsert(rowsToInsert, { onConflict: 'order_name,lineitem_sku,vendor' });
+            if (error) {
+                alert("Upload Error: " + error.message);
+            } else {
+                toast(`🎉 Uploaded ${rowsToInsert.length} items across ${ordersMap.size} orders for ${vendorName}!`);
+                loadSalesData(false);
+            }
+        }
 
-    window.onload = function() {
-      loadSalesData(false);
-    };
-  </script>
+        // ==========================================
+        // 3. LOAD SALES AUDIT (GROUPED & LIVE SYNC)
+        // ==========================================
+        async function loadSalesData(triggerLiveSync = false) {
+            const filterDate = document.getElementById("filterDate").value;
+            const dateLabels = document.querySelectorAll(".kpi-date-label");
+            dateLabels.forEach(el => el.innerText = isShowingAllDates ? "All Dates" : filterDate);
+
+            let query = supabaseClient.from('shopify_sales').select('*');
+            if (!isShowingAllDates) query = query.eq('filter_date', filterDate);
+
+            const { data: sales, error } = await query.order('id', { ascending: false });
+            if (error) return console.error(error);
+            currentLoadedRecords = sales || [];
+
+            const groupedOrdersMap = new Map();
+            currentLoadedRecords.forEach(r => {
+                if (!groupedOrdersMap.has(r.order_name)) groupedOrdersMap.set(r.order_name, []);
+                groupedOrdersMap.get(r.order_name).push(r);
+            });
+
+            let gross = 0, settle = 0, codBal = 0, pickupCount = 0;
+            groupedOrdersMap.forEach((items) => {
+                const primary = items[0];
+                gross += Number(primary.total || 0);
+                settle += Number(primary.prepaid_settle_amount || 0);
+                codBal += Number(primary.outstanding_balance || 0);
+                if (primary.physical_scanned_pickup) pickupCount++;
+            });
+
+            document.getElementById("cntGrossSales").innerText = fmt(gross);
+            document.getElementById("cntNetSettle").innerText = fmt(settle);
+            document.getElementById("cntCodPending").innerText = fmt(codBal);
+            document.getElementById("cntPickupScanned").innerText = pickupCount;
+
+            renderGroupedTable(groupedOrdersMap);
+
+            if (triggerLiveSync) syncLiveStatusesInBackground(groupedOrdersMap);
+        }
+
+        function renderGroupedTable(groupedOrdersMap) {
+            const tbody = document.getElementById("salesTableBody");
+            if (groupedOrdersMap.size === 0) {
+                tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:20px; color:gray;">No records found.</td></tr>`;
+                return;
+            }
+
+            let html = "";
+            groupedOrdersMap.forEach((items, orderName) => {
+                const primary = items[0];
+                const isPrepaid = primary.payment_method && (primary.payment_method.toLowerCase().includes("prepaid") || primary.outstanding_balance === 0);
+
+                items.forEach((r, idx) => {
+                    const isPrimary = (idx === 0);
+
+                    let paymentBadge = "-";
+                    if (isPrimary && r.payment_method) {
+                        paymentBadge = `<span class="badge ${isPrepaid ? 'badge-prepaid' : 'badge-cod'}">${r.payment_method}</span>`;
+                    }
+
+                    let liveStatusBadge = "-";
+                    let courierAwbCell = "-";
+                    let physicalScanCell = "-";
+
+                    if (isPrimary) {
+                        const status = primary.boxd_status || primary.dto_status || 'Pending';
+                        let badgeClass = "badge badge-created";
+                        if (status.toLowerCase().includes('delivered')) badgeClass = "badge badge-del";
+                        else if (status.toLowerCase().includes('rto') || status.toLowerCase().includes('return')) badgeClass = "badge badge-rto";
+                        liveStatusBadge = `<span class="${badgeClass}">${status}</span>`;
+
+                        courierAwbCell = primary.boxd_awb || primary.dto_awb ? `<b>${primary.courier}:</b> <code>${primary.boxd_awb || primary.dto_awb}</code>` : '-';
+                        physicalScanCell = `
+                            ${primary.physical_scanned_pickup ? '<span style="color:var(--primary); font-weight:700;">✅ Pickup</span> ' : ''}
+                            ${primary.physical_scanned_return ? '<span style="color:var(--danger); font-weight:700;">↩️ Returned</span>' : ''}
+                            ${!primary.physical_scanned_pickup && !primary.physical_scanned_return ? '<span style="color:gray;">Pending</span>' : ''}
+                        `;
+                    }
+
+                    html += `
+                        <tr style="${isPrimary ? 'background:#fff;' : 'background:#f8fafc; border-left:3px solid var(--primary);'}">
+                            <td>${paymentBadge}</td>
+                            <td><b>${r.order_name}</b></td>
+                            <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
+                            <td><code>${r.lineitem_sku}</code></td>
+                            <td>${r.lineitem_quantity}</td>
+                            <td>${fmt(r.lineitem_price)}</td>
+                            <td>${isPrimary ? `<b>\${fmt(r.total)}</b>` : '-'}</td>
+                            <td>${isPrimary && r.prepaid_service_charges > 0 ? `<span style="color:var(--danger);">\${fmt(r.prepaid_service_charges)}</span>` : '-'}</td>
+                            <td>${isPrimary && r.prepaid_settle_amount > 0 ? `<span style="color:var(--success); font-weight:700;">\${fmt(r.prepaid_settle_amount)}</span>` : '-'}</td>
+                            <td>${isPrimary && r.outstanding_balance > 0 ? `<span style="color:var(--warning); font-weight:700;">\${fmt(r.outstanding_balance)}</span>` : '-'}</td>
+                            <td>${liveStatusBadge}</td>
+                            <td>${courierAwbCell}</td>
+                            <td>${physicalScanCell}</td>
+                        </tr>
+                    `;
+                });
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        async function syncLiveStatusesInBackground(groupedOrdersMap) {
+            showProgressLoader();
+            for (const [orderName, items] of groupedOrdersMap) {
+                const primary = items[0];
+                const awb = primary.boxd_awb || primary.dto_awb;
+                const currentStatus = String(primary.boxd_status || "").toLowerCase();
+
+                if (!awb || currentStatus.includes('delivered') || currentStatus.includes('rto')) continue;
+
+                try {
+                    const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
+                    if (res && res.success && res.status && res.status !== primary.boxd_status) {
+                        await supabaseClient.from('shopify_sales').update({
+                            boxd_status: res.status,
+                            courier: res.courier || primary.courier
+                        }).eq('clean_order_no', primary.clean_order_no).eq('vendor', primary.vendor);
+                    }
+                } catch(e) {}
+            }
+            loadSalesData(false);
+        }
+
+        // ==========================================
+        // 4. SCAN CONSOLE (PREVIEW FIRST -> COMMIT)
+        // ==========================================
+        function setScanMode(mode) {
+            currentScanMode = mode;
+            document.getElementById("btnPickupMode").classList.remove("active");
+            document.getElementById("btnReturnMode").classList.remove("active");
+            if (mode === "Pickup") document.getElementById("btnPickupMode").classList.add("active");
+            else document.getElementById("btnReturnMode").classList.add("active");
+        }
+
+        function handleBarcodeEnter(e) {
+            if (e.key === "Enter") fetchScanPreview();
+        }
+
+        async function fetchScanPreview() {
+            const input = document.getElementById("barcodeScannerInput");
+            const awb = input.value.trim();
+            if (!awb) return;
+
+            const feedback = document.getElementById("scanFeedback");
+            const previewBox = document.getElementById("scanPreviewBox");
+            const previewContent = document.getElementById("previewContent");
+
+            feedback.innerHTML = `<span style="color:var(--primary);">🔍 Querying 3PL details for AWB ${awb}...</span>`;
+            previewBox.style.display = "none";
+
+            try {
+                const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
+                let courierName = res && res.success ? (res.courier || "BOXD") : "MANUAL";
+                let liveStatus = res && res.success ? (res.status || "Shipment Created") : "Manual Mode";
+                let refNo = res && res.success ? (res.refNo || "") : "";
+
+                let autoVendor = "UC";
+                if (refNo.toUpperCase().includes("GS")) autoVendor = "GS";
+                const cleanDigits = extractDigits(refNo);
+
+                let findQuery = supabaseClient.from('shopify_sales').select('*');
+                if (cleanDigits) findQuery = findQuery.eq('clean_order_no', cleanDigits).eq('vendor', autoVendor);
+                else findQuery = findQuery.or(`boxd_awb.eq.${awb},dto_awb.eq.${awb}`);
+
+                const { data: matchedRecords } = await findQuery;
+
+                if (!matchedRecords || matchedRecords.length === 0) {
+                    feedback.innerHTML = `<span style="color:var(--danger); font-size:13px;">❌ ORDER NOT FOUND: AWB <b>${awb}</b> (${refNo || 'No Ref'}) database me nahi mila. Scan discard kiya gaya!</span>`;
+                    return;
+                }
+
+                const existingRecord = matchedRecords[0];
+
+                let duplicateWarningHtml = "";
+                if (currentScanMode === "Return" && existingRecord.physical_scanned_return && existingRecord.return_scanned_at) {
+                    const lastScanDate = new Date(existingRecord.return_scanned_at);
+                    const diffDays = (new Date() - lastScanDate) / (1000 * 60 * 60 * 24);
+
+                    if (diffDays <= 10) {
+                        const formattedDate = lastScanDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                        duplicateWarningHtml = `
+                            <div style="background:#fee2e2; border:1px solid #ef4444; color:#b91c1c; padding:8px; border-radius:6px; margin-bottom:8px;">
+                                ⚠️ <b>DUPLICATE INBOUND GUARD:</b> Yeh parcel pehle hi <b>${formattedDate}</b> ko Inbound ho chuka hai!
+                            </div>
+                        `;
+                    }
+                }
+
+                pendingScanPayload = {
+                    awb: awb,
+                    scanType: currentScanMode,
+                    clean_order_no: existingRecord.clean_order_no,
+                    vendor: existingRecord.vendor,
+                    courier: courierName,
+                    liveStatus: liveStatus
+                };
+
+                previewContent.innerHTML = `
+                    ${duplicateWarningHtml}
+                    <div><b>Order:</b> ${existingRecord.order_name} (${existingRecord.vendor})</div>
+                    <div><b>Customer:</b> ${existingRecord.shipping_name || 'N/A'} | City: ${existingRecord.shipping_city || 'N/A'}</div>
+                    <div><b>Courier & AWB:</b> ${courierName} - <code>${awb}</code></div>
+                    <div><b>Live Status:</b> <span class="badge badge-created">${liveStatus}</span></div>
+                    <div><b>Target Mode:</b> <span style="color:${currentScanMode === 'Pickup' ? 'var(--primary)' : 'var(--danger)'}; font-weight:800;">${currentScanMode.toUpperCase()} SCAN</span></div>
+                `;
+
+                previewBox.style.display = "flex";
+                feedback.innerHTML = "";
+
+            } catch (err) {
+                feedback.innerHTML = `<span style="color:var(--danger);">Error: ${err.message}</span>`;
+            }
+        }
+
+        async function commitPhysicalScan() {
+            if (!pendingScanPayload) return;
+
+            const updatePayload = {
+                boxd_awb: pendingScanPayload.awb,
+                boxd_status: pendingScanPayload.liveStatus,
+                courier: pendingScanPayload.courier
+            };
+
+            if (pendingScanPayload.scanType === "Pickup") {
+                updatePayload.physical_scanned_pickup = true;
+                updatePayload.pickup_scanned_at = new Date().toISOString();
+            } else {
+                updatePayload.physical_scanned_return = true;
+                updatePayload.return_scanned_at = new Date().toISOString();
+            }
+
+            const { error } = await supabaseClient
+                .from('shopify_sales')
+                .update(updatePayload)
+                .eq('clean_order_no', pendingScanPayload.clean_order_no)
+                .eq('vendor', pendingScanPayload.vendor);
+
+            if (error) {
+                alert("Save Error: " + error.message);
+            } else {
+                toast(`🎉 Reconciled & Saved Successfully! (${pendingScanPayload.scanType})`);
+                cancelScanPreview();
+                loadSalesData(false);
+            }
+        }
+
+        function cancelScanPreview() {
+            pendingScanPayload = null;
+            document.getElementById("scanPreviewBox").style.display = "none";
+            document.getElementById("barcodeScannerInput").value = "";
+            document.getElementById("barcodeScannerInput").focus();
+        }
+
+        // ==========================================
+        // 5. BULK INWARD/OUTWARD RECONCILIATION
+        // ==========================================
+        function processBulkCsvFile() {
+            const fileInput = document.getElementById("bulkCsvInput");
+            const file = fileInput.files[0];
+            if (!file) return alert("Select an AWB CSV file first!");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const rows = parseCsvToArray(e.target.result);
+                if (rows.length <= 1) return alert("CSV appears empty!");
+                const awbList = [];
+                for (let i = 1; i < rows.length; i++) {
+                    const val = String(rows[i][0] || "").trim();
+                    if (val) awbList.push(val);
+                }
+                executeBulkBatch(awbList);
+            };
+            reader.readAsText(file, "UTF-8");
+        }
+
+        function processBulkPasteList() {
+            const rawText = document.getElementById("bulkPasteInput").value.trim();
+            if (!rawText) return alert("Paste AWBs first!");
+            const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => Boolean(l));
+            executeBulkBatch(lines);
+        }
+
+        async function executeBulkBatch(awbList) {
+            if (awbList.length === 0) return alert("No valid AWBs found!");
+            if (awbList.length > 100) return alert(`⚠️ Limit Exceeded: Max 100 AWBs per batch allowed. You provided ${awbList.length}.`);
+
+            const bulkDate = document.getElementById("bulkScanDate").value;
+            const scanType = document.getElementById("bulkScanMode").value;
+            const reportBox = document.getElementById("bulkStatusReport");
+
+            reportBox.style.display = "block";
+            reportBox.style.background = "#eff6ff";
+            reportBox.style.color = "var(--primary)";
+            reportBox.innerHTML = `⏳ Processing bulk batch of ${awbList.length} AWBs... Please wait.`;
+
+            let successCount = 0;
+            let skippedDuplicates = 0;
+            let skippedNotFound = 0;
+
+            for (let i = 0; i < awbList.length; i++) {
+                const awb = awbList[i];
+                try {
+                    const res = await fetch(`${APPS_SCRIPT_URL}?action=trackAuto&awb=${encodeURIComponent(awb)}`).then(r => r.json());
+                    let refNo = res && res.success ? (res.refNo || "") : "";
+                    let liveStatus = res && res.success ? (res.status || "Shipment Created") : "Manual Batch";
+                    let courierName = res && res.success ? (res.courier || "BOXD") : "MANUAL";
+
+                    let autoVendor = "UC";
+                    if (refNo.toUpperCase().includes("GS")) autoVendor = "GS";
+                    const cleanDigits = extractDigits(refNo);
+
+                    let findQuery = supabaseClient.from('shopify_sales').select('*');
+                    if (cleanDigits) findQuery = findQuery.eq('clean_order_no', cleanDigits).eq('vendor', autoVendor);
+                    else findQuery = findQuery.or(`boxd_awb.eq.${awb},dto_awb.eq.${awb}`);
+
+                    const { data: matchedRecords } = await findQuery;
+                    if (!matchedRecords || matchedRecords.length === 0) {
+                        skippedNotFound++;
+                        continue;
+                    }
+
+                    const existingRecord = matchedRecords[0];
+                    if (scanType === "Return" && existingRecord.physical_scanned_return && existingRecord.return_scanned_at) {
+                        const diffDays = (new Date() - new Date(existingRecord.return_scanned_at)) / (1000 * 60 * 60 * 24);
+                        if (diffDays <= 10) {
+                            skippedDuplicates++;
+                            continue;
+                        }
+                    }
+
+                    const updatePayload = {
+                        boxd_awb: awb,
+                        boxd_status: liveStatus,
+                        courier: courierName
+                    };
+
+                    const scanTimestamp = new Date(bulkDate + "T12:00:00").toISOString();
+                    if (scanType === "Pickup") {
+                        updatePayload.physical_scanned_pickup = true;
+                        updatePayload.pickup_scanned_at = scanTimestamp;
+                    } else {
+                        updatePayload.physical_scanned_return = true;
+                        updatePayload.return_scanned_at = scanTimestamp;
+                    }
+
+                    await supabaseClient
+                        .from('shopify_sales')
+                        .update(updatePayload)
+                        .eq('clean_order_no', existingRecord.clean_order_no)
+                        .eq('vendor', existingRecord.vendor);
+
+                    successCount++;
+                } catch(e) {
+                    skippedNotFound++;
+                }
+            }
+
+            reportBox.style.background = "#dcfce7";
+            reportBox.style.color = "var(--success)";
+            reportBox.innerHTML = `
+                🎉 <b>Bulk Processing Complete (${bulkDate})!</b><br>
+                ✅ Successfully Reconciled: <b>${successCount}</b><br>
+                ⚠️ Skipped (10-Day Return Duplicate): <b>${skippedDuplicates}</b><br>
+                ❌ Skipped (Order Not Found / Not Saved): <b>${skippedNotFound}</b>
+            `;
+
+            loadSalesData(false);
+        }
+
+        // ==========================================
+        // 6. MASTER GLOBAL SEARCH
+        // ==========================================
+        function debounceMasterSearch(val) {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => { executeMasterSearch(); }, 400);
+        }
+
+        async function executeMasterSearch() {
+            const keyword = document.getElementById("masterSearchInput").value.trim();
+            const tbody = document.getElementById("masterSearchTableBody");
+            const countEl = document.getElementById("searchResultCount");
+
+            if (!keyword || keyword.length < 2) {
+                tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:gray;">Type at least 2 characters to search.</td></tr>`;
+                countEl.innerText = "0";
+                return;
+            }
+
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:var(--primary);">🔍 Searching master database...</td></tr>`;
+
+            try {
+                const { data: results, error } = await supabaseClient
+                    .from('shopify_sales')
+                    .select('*')
+                    .or(`order_name.ilike.%${keyword}%,clean_order_no.ilike.%${keyword}%,shipping_name.ilike.%${keyword}%,shipping_phone.ilike.%${keyword}%,shipping_city.ilike.%${keyword}%,lineitem_sku.ilike.%${keyword}%,boxd_awb.ilike.%${keyword}%,dto_awb.ilike.%${keyword}%,boxd_status.ilike.%${keyword}%`)
+                    .order('id', { ascending: false })
+                    .limit(100);
+
+                if (error) throw error;
+                countEl.innerText = results ? results.length : 0;
+
+                if (!results || results.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:20px; color:var(--danger);">No records found matching "${keyword}"</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = results.map(r => {
+                    const pickupStr = r.pickup_scanned_at ? new Date(r.pickup_scanned_at).toLocaleDateString('en-IN') : '-';
+                    const returnStr = r.return_scanned_at ? new Date(r.return_scanned_at).toLocaleDateString('en-IN') : '-';
+                    return `
+                        <tr>
+                            <td><span class="badge ${r.payment_method ? 'badge-prepaid' : ''}">${r.payment_method || '-'}</span></td>
+                            <td><b>${r.order_name}</b></td>
+                            <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
+                            <td>${r.shipping_name || '-'}</td>
+                            <td>${r.shipping_phone || '-'}</td>
+                            <td>${r.shipping_city || '-'}</td>
+                            <td><code>${r.lineitem_sku || '-'}</code></td>
+                            <td><b>${fmt(r.total)}</b></td>
+                            <td>${r.courier}: <code>${r.boxd_awb || r.dto_awb || '-'}</code></td>
+                            <td><span class="badge" style="background:#f1f5f9;">${r.boxd_status || 'Pending'}</span></td>
+                            <td>${pickupStr}</td>
+                            <td>${returnStr}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch(err) {
+                tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color:var(--danger); padding:20px;">Search Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        // ==========================================
+        // 7. PENDING RTO QUEUE & GSTR EXPORT
+        // ==========================================
+        async function loadPendingRtoQueue() {
+            const { data: sales, error } = await supabaseClient
+                .from('shopify_sales')
+                .select('*')
+                .or('boxd_status.ilike.%rto%,boxd_status.ilike.%return%')
+                .eq('physical_scanned_return', false);
+
+            if (error) return console.error(error);
+            document.getElementById("cntPendingRto").innerText = sales ? sales.length : 0;
+            const tbody = document.getElementById("rtoTableBody");
+
+            if (!sales || !sales.length) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--success); font-weight:700;">🎉 No pending RTOs! All returned parcels accounted for.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = sales.map(r => `
+                <tr>
+                    <td><b>${r.order_name}</b></td>
+                    <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
+                    <td><code>${r.boxd_awb || '-'}</code></td>
+                    <td><span class="badge badge-rto">${r.boxd_status}</span></td>
+                    <td>${r.shipping_name} (${r.shipping_city})</td>
+                    <td><b>${fmt(r.total)}</b></td>
+                    <td style="color:var(--danger); font-weight:700;">❌ Pending Warehouse Scan</td>
+                </tr>
+            `).join('');
+        }
+
+        function exportGstrDeliveredCsv() {
+            const delivered = currentLoadedRecords.filter(r => String(r.boxd_status).toLowerCase() === "delivered");
+            if (!delivered.length) return alert("No delivered orders found to export!");
+
+            let csv = "Order,Vendor,Payment,Amount,PrepaidFee,NetSettle,AWB,Status\n";
+            delivered.forEach(r => {
+                csv += `"${r.order_name}","${r.vendor}","${r.payment_method}",${r.total},${r.prepaid_service_charges},${r.prepaid_settle_amount},"${r.boxd_awb}","Delivered"\n`;
+            });
+
+            const uri = "data:text/csv;charset=utf-8," + encodeURI(csv);
+            const link = document.createElement("a");
+            link.href = uri;
+            link.download = `GSTR_Delivered_${document.getElementById("filterDate").value}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.onload = function() {
+            loadSalesData(false);
+        };
+    </script>
 </body>
 </html>
