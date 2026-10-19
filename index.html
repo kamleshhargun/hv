@@ -30,7 +30,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         html, body { height: 100%; width: 100vw; background: var(--bg-body); color: var(--text-main); overflow: hidden; }
 
-        .app-shell { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 1440px; margin: 0 auto; background: #fff; }
+        .app-shell { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 1460px; margin: 0 auto; background: #fff; }
 
         .header-bar { background: #fff; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
         .brand-text { font-weight: 800; font-size: 16px; color: var(--primary); letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
@@ -88,7 +88,6 @@
 
         .preview-box { background: #f8fafc; border: 2px solid var(--primary); border-radius: 10px; padding: 14px; display: none; flex-direction: column; gap: 8px; font-size: 13px; }
 
-        /* CIRCULAR LOADER */
         #loaderContainer { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.35); z-index: 99999; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
         .circle-loader-box { background: #fff; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .circle-svg { width: 60px; height: 60px; transform: rotate(-90deg); }
@@ -120,9 +119,9 @@
 
         <!-- Metrics Strip Bar -->
         <div class="metrics-strip">
-            <div class="m-card"><span class="m-val" id="cntGrossSales">₹0</span><span class="m-lbl">Gross Sales (<span class="kpi-date-label">Today</span>)</span></div>
-            <div class="m-card"><span class="m-val" id="cntNetSettle" style="color:var(--success);">₹0</span><span class="m-lbl">Net Settled Amount</span></div>
-            <div class="m-card"><span class="m-val" id="cntCodPending" style="color:var(--warning);">₹0</span><span class="m-lbl">COD Pending</span></div>
+            <div class="m-card"><span class="m-val" id="cntGrossSales">₹0.00</span><span class="m-lbl">Gross Sales (<span class="kpi-date-label">Today</span>)</span></div>
+            <div class="m-card"><span class="m-val" id="cntNetSettle" style="color:var(--success);">₹0.00</span><span class="m-lbl">Net Settled Amount</span></div>
+            <div class="m-card"><span class="m-val" id="cntCodPending" style="color:var(--warning);">₹0.00</span><span class="m-lbl">COD Pending</span></div>
             <div class="m-card"><span class="m-val" id="cntPickupScanned" style="color:var(--primary);">0</span><span class="m-lbl">Outbound Picked</span></div>
             <div class="m-card"><span class="m-val" id="cntPendingRto" style="color:var(--danger);">0</span><span class="m-lbl">Pending RTO Returns</span></div>
         </div>
@@ -134,10 +133,11 @@
             <div id="salesView" class="view-page active">
                 <div class="card-panel">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-weight:800; font-size:14px; color:var(--primary);">📥 DAILY SHOPIFY CSV INGESTION</span>
+                        <span style="font-weight:800; font-size:14px; color:var(--primary);">📥 DAILY SHOPIFY CSV INGESTION (AUTO CREATED-AT DATE)</span>
                         <button class="btn-act btn-save" style="height:34px; font-size:11px;" onclick="exportGstrDeliveredCsv()">📑 Export GSTR Delivered CSV</button>
                     </div>
 
+                    <!-- BINA DATE INPUT WALA UPLOAD FORM -->
                     <div class="grid-form">
                         <div class="form-group">
                             <label>Vendor Brand</label>
@@ -146,12 +146,8 @@
                                 <option value="GS">GS (Gulabi Shehar)</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Sales Date</label>
-                            <input type="date" id="filterDate" class="input-box" onchange="onDateChanged()">
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Shopify CSV File</label>
+                        <div class="form-group" style="grid-column: span 3;">
+                            <label>Shopify CSV File (Date will be auto-picked from 'Created at')</label>
                             <input type="file" id="csvFileInput" accept=".csv" class="input-box" style="padding-top:6px;" onchange="handleFileChosen(this)">
                         </div>
                         <button id="btnUpload" class="btn-act btn-primary" onclick="processAndUploadSalesCsv()" disabled>Upload to Master Table</button>
@@ -159,9 +155,11 @@
                 </div>
 
                 <div class="card-panel" style="flex:1;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                         <span style="font-weight:800; font-size:14px;">📋 MASTER SALES LEDGER (PAYMENT MODE FIRST)</span>
-                        <div style="display:flex; gap:8px;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <label style="font-size:11px; font-weight:700; color:var(--text-sub);">View Filter:</label>
+                            <input type="date" id="filterDateView" class="input-box" style="height:32px; width:150px; font-size:11px;" onchange="onDateChanged()">
                             <button id="btnToggleAllDates" class="btn-act" style="background:#f1f5f9; color:var(--text-main); height:32px; font-size:11px;" onclick="toggleAllDatesView()">Show All Dates</button>
                             <button class="btn-act btn-primary" style="height:32px; font-size:11px;" onclick="loadSalesData(true)">🔄 Sync Live Status</button>
                         </div>
@@ -173,11 +171,12 @@
                                 <tr>
                                     <th>Payment Mode</th>
                                     <th>Order #</th>
+                                    <th>Created Date</th>
                                     <th>Vendor</th>
                                     <th>SKU</th>
                                     <th>Qty</th>
                                     <th>Item Price</th>
-                                    <th>Total Amount</th>
+                                    <th>Order Total</th>
                                     <th>Fee (2.95%)</th>
                                     <th>Net Settle</th>
                                     <th>COD Balance</th>
@@ -187,7 +186,7 @@
                                 </tr>
                             </thead>
                             <tbody id="salesTableBody">
-                                <tr><td colspan="13" style="text-align:center; padding:20px; color:gray;">Loading records...</td></tr>
+                                <tr><td colspan="14" style="text-align:center; padding:20px; color:gray;">Loading records...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -209,7 +208,6 @@
                         <button class="btn-act btn-primary" onclick="fetchScanPreview()">Fetch Preview</button>
                     </div>
 
-                    <!-- PREVIEW BOX -->
                     <div id="scanPreviewBox" class="preview-box">
                         <div style="font-weight:800; color:var(--primary); border-bottom:1px solid #cbd5e1; padding-bottom:6px;">
                             🔍 SCAN VERIFICATION PREVIEW
@@ -225,7 +223,7 @@
                 </div>
             </div>
 
-            <!-- TAB 3: BULK INWARD/OUTWARD (MAX 100) -->
+            <!-- TAB 3: BULK INWARD/OUTWARD -->
             <div id="bulkView" class="view-page">
                 <div class="card-panel">
                     <span style="font-weight:800; font-size:14px; color:var(--primary);">🚚 BULK AWB INWARD / OUTWARD MODULE (LIMIT: 100 AWBs)</span>
@@ -340,7 +338,7 @@
 
     <script>
         // ==========================================
-        // 1. CONFIGURATIONS & INITIALIZATION
+        // 1. CONFIGURATIONS
         // ==========================================
         const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbXluamlveWp0enpqdHdsb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDI5MzIsImV4cCI6MjEwNzgxODkzMn0.L34UB_G55TSP9EAW9Xox-obUUe8XsVIwDTJ8XwfQ85A";          
@@ -355,19 +353,43 @@
         let pendingScanPayload = null;
 
         const todayStr = new Date().toISOString().split("T")[0];
-        document.getElementById("filterDate").value = todayStr;
+        document.getElementById("filterDateView").value = todayStr;
         document.getElementById("bulkScanDate").value = todayStr;
 
-        // SAFE STRICT CURRENCY HELPER (Fixes raw text print error)
+        // STRICT SANITIZER & CURRENCY FORMATTER
+        function cleanNumber(val) {
+            if (val === undefined || val === null || val === '') return 0;
+            if (typeof val === 'number') return isNaN(val) ? 0 : val;
+            let str = String(val).replace(/[^0-9.-]/g, '');
+            let parsed = parseFloat(str);
+            return isNaN(parsed) ? 0 : parsed;
+        }
+
         function fmt(val) {
-            const num = Number(val);
-            if (isNaN(num) || num === 0) return "-";
-            return "₹" + num.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+            const num = cleanNumber(val);
+            if (num === 0) return "-";
+            return "₹" + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function extractDigits(str) {
             const match = String(str || "").match(/\d{4,6}/);
             return match ? match[0] : "";
+        }
+
+        // Helper: Extract clean YYYY-MM-DD from any date format
+        function extractDateOnly(dateString) {
+            if (!dateString) return new Date().toISOString().split("T")[0];
+            let clean = String(dateString).trim();
+            if (clean.includes("T")) return clean.split("T")[0];
+            if (clean.includes(" ")) return clean.split(" ")[0];
+            if (clean.includes("/")) {
+                let parts = clean.split("/");
+                if (parts.length === 3) {
+                    if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                }
+            }
+            return clean.substring(0, 10);
         }
 
         function toast(msg) {
@@ -415,7 +437,7 @@
         }
 
         // ==========================================
-        // 2. SHOPIFY CSV INGESTION (PAYMENT IN LINE 1)
+        // 2. CSV UPLOAD (DATE FROM 'Created at')
         // ==========================================
         function handleFileChosen(input) {
             const file = input.files[0];
@@ -452,7 +474,6 @@
         }
 
         async function processAndUploadSalesCsv() {
-            const filterDate = document.getElementById("filterDate").value;
             const vendorName = document.getElementById("salesVendorSelect").value;
             if (!parsedRowsBuffer.length) return alert("Select CSV File first!");
 
@@ -485,24 +506,50 @@
 
             const rowsToInsert = [];
             ordersMap.forEach((rows, orderName) => {
-                const primaryRow = rows[0];
-                const total = idxTotal !== -1 ? parseFloat(primaryRow[idxTotal]) || 0 : 0;
-                const outstanding = idxBalance !== -1 ? parseFloat(primaryRow[idxBalance]) || 0 : 0;
-                const paymentMethod = idxPaymentMethod !== -1 ? String(primaryRow[idxPaymentMethod] || "").trim() : "";
-                const isPrepaid = !paymentMethod.toLowerCase().includes("cash on delivery") && !paymentMethod.toLowerCase().includes("cod") && outstanding === 0;
+                // Find order financial details across rows
+                let foundTotal = 0;
+                let foundBalance = 0;
+                let foundPaymentMethod = "";
+                let foundCreatedAt = "";
 
-                let serviceCharges = 0;
-                let settleAmount = total;
-                if (isPrepaid && total > 0) {
-                    serviceCharges = parseFloat((total * 0.0295).toFixed(2));
-                    settleAmount = parseFloat((total - serviceCharges).toFixed(2));
+                rows.forEach(r => {
+                    const t = cleanNumber(r[idxTotal]);
+                    const b = cleanNumber(r[idxBalance]);
+                    const pm = idxPaymentMethod !== -1 ? String(r[idxPaymentMethod] || "").trim() : "";
+                    const ca = idxCreatedAt !== -1 ? String(r[idxCreatedAt] || "").trim() : "";
+
+                    if (t > 0 && foundTotal === 0) foundTotal = t;
+                    if (b > 0 && foundBalance === 0) foundBalance = b;
+                    if (pm && !foundPaymentMethod) foundPaymentMethod = pm;
+                    if (ca && !foundCreatedAt) foundCreatedAt = ca;
+                });
+
+                // Auto extract date from 'Created at'
+                const autoExtractedDate = extractDateOnly(foundCreatedAt);
+
+                // Payment mode resolver
+                let isCod = false;
+                if (foundPaymentMethod.toLowerCase().includes("cash on delivery") || 
+                    foundPaymentMethod.toLowerCase().includes("cod") || 
+                    foundBalance > 0) {
+                    isCod = true;
                 }
 
-                const resolvedPaymentMethod = paymentMethod || (outstanding > 0 ? "Cash on Delivery" : "Prepaid");
+                const resolvedPaymentMethod = isCod ? "Cash on Delivery" : (foundPaymentMethod || "Prepaid");
+
+                let serviceCharges = 0;
+                let settleAmount = foundTotal;
+                if (!isCod && foundTotal > 0) {
+                    serviceCharges = parseFloat((foundTotal * 0.0295).toFixed(2));
+                    settleAmount = parseFloat((foundTotal - serviceCharges).toFixed(2));
+                }
 
                 rows.forEach((row, index) => {
                     const isPrimary = (index === 0);
                     const sku = idxSku !== -1 ? String(row[idxSku] || "").trim() : "";
+                    const itemPrice = cleanNumber(row[idxPrice]);
+                    const itemQty = parseInt(row[idxQty], 10) || 1;
+                    const itemDiscount = isPrimary ? cleanNumber(row[idxDiscount]) : 0;
 
                     rowsToInsert.push({
                         payment_method: isPrimary ? resolvedPaymentMethod : "",
@@ -511,18 +558,18 @@
                         vendor: vendorName,
                         email: idxEmail !== -1 ? String(row[idxEmail] || "").trim() : "",
                         lineitem_sku: sku,
-                        lineitem_quantity: idxQty !== -1 ? parseInt(row[idxQty], 10) || 1 : 1,
-                        lineitem_price: idxPrice !== -1 ? parseFloat(row[idxPrice]) || 0 : 0,
-                        discount_amount: isPrimary && idxDiscount !== -1 ? parseFloat(row[idxDiscount]) || 0 : 0,
-                        total: isPrimary ? total : 0,
-                        outstanding_balance: isPrimary ? outstanding : 0,
+                        lineitem_quantity: itemQty,
+                        lineitem_price: itemPrice,
+                        discount_amount: itemDiscount,
+                        total: isPrimary ? foundTotal : 0,
+                        outstanding_balance: isPrimary ? foundBalance : 0,
                         prepaid_service_charges: isPrimary ? serviceCharges : 0,
                         prepaid_settle_amount: isPrimary ? settleAmount : 0,
                         shipping_name: idxShipName !== -1 ? String(row[idxShipName] || "").trim() : "",
                         shipping_city: idxShipCity !== -1 ? String(row[idxShipCity] || "").trim() : "",
                         shipping_phone: idxShipPhone !== -1 ? String(row[idxShipPhone] || "").trim() : "",
-                        created_at_shopify: idxCreatedAt !== -1 ? String(row[idxCreatedAt] || "").trim() : "",
-                        filter_date: filterDate
+                        created_at_shopify: foundCreatedAt || String(row[idxCreatedAt] || ""),
+                        filter_date: autoExtractedDate
                     });
                 });
             });
@@ -531,16 +578,18 @@
             if (error) {
                 alert("Upload Error: " + error.message);
             } else {
-                toast(`🎉 Uploaded ${rowsToInsert.length} items across ${ordersMap.size} orders for ${vendorName}!`);
+                toast(`🎉 Uploaded ${rowsToInsert.length} items across ${ordersMap.size} orders! Dates auto-detected.`);
+                document.getElementById("btnUpload").disabled = true;
+                document.getElementById("csvFileInput").value = "";
                 loadSalesData(false);
             }
         }
 
         // ==========================================
-        // 3. LOAD SALES AUDIT (GROUPED & LIVE SYNC)
+        // 3. LOAD SALES AUDIT
         // ==========================================
         async function loadSalesData(triggerLiveSync = false) {
-            const filterDate = document.getElementById("filterDate").value;
+            const filterDate = document.getElementById("filterDateView").value;
             const dateLabels = document.querySelectorAll(".kpi-date-label");
             dateLabels.forEach(el => el.innerText = isShowingAllDates ? "All Dates" : filterDate);
 
@@ -560,9 +609,9 @@
             let gross = 0, settle = 0, codBal = 0, pickupCount = 0;
             groupedOrdersMap.forEach((items) => {
                 const primary = items[0];
-                gross += Number(primary.total || 0);
-                settle += Number(primary.prepaid_settle_amount || 0);
-                codBal += Number(primary.outstanding_balance || 0);
+                gross += cleanNumber(primary.total);
+                settle += cleanNumber(primary.prepaid_settle_amount);
+                codBal += cleanNumber(primary.outstanding_balance);
                 if (primary.physical_scanned_pickup) pickupCount++;
             });
 
@@ -579,21 +628,22 @@
         function renderGroupedTable(groupedOrdersMap) {
             const tbody = document.getElementById("salesTableBody");
             if (groupedOrdersMap.size === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:20px; color:gray;">No records found.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:20px; color:gray;">No records found for selected filter.</td></tr>`;
                 return;
             }
 
             let html = "";
             groupedOrdersMap.forEach((items, orderName) => {
                 const primary = items[0];
-                const isPrepaid = primary.payment_method && (primary.payment_method.toLowerCase().includes("prepaid") || primary.outstanding_balance === 0);
+                const hasPayment = Boolean(primary.payment_method);
+                const isCod = hasPayment && (primary.payment_method.toLowerCase().includes("cod") || primary.payment_method.toLowerCase().includes("cash on delivery"));
 
                 items.forEach((r, idx) => {
                     const isPrimary = (idx === 0);
 
                     let paymentBadge = "-";
-                    if (isPrimary && r.payment_method) {
-                        paymentBadge = `<span class="badge ${isPrepaid ? 'badge-prepaid' : 'badge-cod'}">${r.payment_method}</span>`;
+                    if (isPrimary && hasPayment) {
+                        paymentBadge = `<span class="badge ${isCod ? 'badge-cod' : 'badge-prepaid'}">${primary.payment_method}</span>`;
                     }
 
                     let liveStatusBadge = "-";
@@ -615,18 +665,21 @@
                         `;
                     }
 
+                    const formattedDate = extractDateOnly(r.created_at_shopify || r.filter_date);
+
                     html += `
                         <tr style="${isPrimary ? 'background:#fff;' : 'background:#f8fafc; border-left:3px solid var(--primary);'}">
                             <td>${paymentBadge}</td>
                             <td><b>${r.order_name}</b></td>
+                            <td>${formattedDate}</td>
                             <td><span class="badge" style="background:#e2e8f0;">${r.vendor}</span></td>
                             <td><code>${r.lineitem_sku}</code></td>
                             <td>${r.lineitem_quantity}</td>
                             <td>${fmt(r.lineitem_price)}</td>
                             <td>${isPrimary ? `<b>\${fmt(r.total)}</b>` : '-'}</td>
-                            <td>${isPrimary && r.prepaid_service_charges > 0 ? `<span style="color:var(--danger);">\${fmt(r.prepaid_service_charges)}</span>` : '-'}</td>
-                            <td>${isPrimary && r.prepaid_settle_amount > 0 ? `<span style="color:var(--success); font-weight:700;">\${fmt(r.prepaid_settle_amount)}</span>` : '-'}</td>
-                            <td>${isPrimary && r.outstanding_balance > 0 ? `<span style="color:var(--warning); font-weight:700;">\${fmt(r.outstanding_balance)}</span>` : '-'}</td>
+                            <td>${isPrimary && cleanNumber(r.prepaid_service_charges) > 0 ? `<span style="color:var(--danger);">\${fmt(r.prepaid_service_charges)}</span>` : '-'}</td>
+                            <td>${isPrimary && cleanNumber(r.prepaid_settle_amount) > 0 ? `<span style="color:var(--success); font-weight:700;">\${fmt(r.prepaid_settle_amount)}</span>` : '-'}</td>
+                            <td>${isPrimary && cleanNumber(r.outstanding_balance) > 0 ? `<span style="color:var(--warning); font-weight:700;">\${fmt(r.outstanding_balance)}</span>` : '-'}</td>
                             <td>${liveStatusBadge}</td>
                             <td>${courierAwbCell}</td>
                             <td>${physicalScanCell}</td>
@@ -1006,13 +1059,13 @@
 
             let csv = "Order,Vendor,Payment,Amount,PrepaidFee,NetSettle,AWB,Status\n";
             delivered.forEach(r => {
-                csv += `"${r.order_name}","${r.vendor}","${r.payment_method}",${r.total},${r.prepaid_service_charges},${r.prepaid_settle_amount},"${r.boxd_awb}","Delivered"\n`;
+                csv += `"${r.order_name}","${r.vendor}","${r.payment_method}",${cleanNumber(r.total)},${cleanNumber(r.prepaid_service_charges)},${cleanNumber(r.prepaid_settle_amount)},"${r.boxd_awb}","Delivered"\n`;
             });
 
             const uri = "data:text/csv;charset=utf-8," + encodeURI(csv);
             const link = document.createElement("a");
             link.href = uri;
-            link.download = `GSTR_Delivered_${document.getElementById("filterDate").value}.csv`;
+            link.download = `GSTR_Delivered_${document.getElementById("filterDateView").value}.csv`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1023,4 +1076,5 @@
         };
     </script>
 </body>
+
 </html>
