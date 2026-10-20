@@ -326,8 +326,6 @@
       const products = o.products || o.order_items || [];
       const st = (o.status || "").toLowerCase();
       const isPacked = packedToday.includes(awb);
-      const isRtoRec = rtoReceived.includes(awb);
-      const isRto = st.includes("rto") || o.is_rto;
 
       // SKU Chip representation
       let itemsHtml = "";
@@ -342,25 +340,24 @@
         itemsHtml = '<span style="color:#94a3b8;">No items</span>';
       }
 
-      // Status Pill
-      let badgeHtml = '<span class="badge-status st-not-picked">To Pack</span>';
-      if (isRtoRec) badgeHtml = '<span class="badge-status st-rto-rec">RTO Received</span>';
-      else if (isRto) badgeHtml = '<span class="badge-status st-rto">RTO in Transit</span>';
-      else if (st === "delivered") badgeHtml = '<span class="badge-status st-delivered">Delivered</span>';
-      else if (isPacked) badgeHtml = '<span class="badge-status st-packed">Packed Today</span>';
-      else if (st === "in_transit") badgeHtml = '<span class="badge-status st-transit">In Transit</span>';
-
-      // Action Button
-      let actionBtn = "";
-      if (isRto && !isRtoRec) {
-        actionBtn = `<button class="btn-act btn-rto-rec" onclick="markRtoReceived('${awb}')">📦 Mark RTO Received</button>`;
+      // Status Pill (manifested / pickup_failed / packed)
+      let badgeHtml = '';
+      if (isPacked) {
+        badgeHtml = '<span class="badge-status st-packed">Packed Today</span>';
+      } else if (st === "pickup_failed") {
+        badgeHtml = '<span class="badge-status" style="background:#fee2e2; color:#b91c1c;">Pickup Failed</span>';
+      } else {
+        badgeHtml = '<span class="badge-status" style="background:#fef3c7; color:#b45309;">Manifested</span>';
       }
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>
-          <span class="order-pill">#${o.customer_order_number || o.order_number || "-"}</span><br>
-          <span class="store-tag">${o.store_name || "Shopify"}</span>
+          <div style="font-size:14px; font-weight:800; color:#0f172a;">${o.order_number || "-"}</div>
+          <div style="margin-top:2px; font-size:12px; color:#0284c7; font-weight:700;">
+            Cust #: <b>${o.customer_order_number || "-"}</b>
+          </div>
+          <span class="store-tag" style="margin-top:4px; display:inline-block;">${o.store_name || "Shopify"}</span>
         </td>
         <td><span class="awb-code">${awb}</span></td>
         <td>${itemsHtml}</td>
@@ -369,7 +366,9 @@
           <span style="font-size:12px; color:#64748b;">${o.shipping_city || ""}, ${o.shipping_pincode || ""}</span>
         </td>
         <td>${badgeHtml}</td>
-        <td>${actionBtn}</td>
+        <td>
+          <button class="btn-act" style="background:#0d9488; color:#fff;" onclick="handleBarcodeScanned('${awb}')">✓ Shift Packed</button>
+        </td>
       `;
       tbody.appendChild(tr);
     });
