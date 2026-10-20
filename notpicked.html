@@ -255,7 +255,7 @@
         ? ('<button class="btn btn-shift" onclick="shiftOrder(\'' + awb + '\', true)">✓ Mark Packed</button>')
         : ('<button class="btn btn-undo" onclick="shiftOrder(\'' + awb + '\', false)">↺ Move Back</button>');
 
-      const orderNumber = o.order_number || o.customer_order_number || o.channel_order_id || "-";
+      const orderNumber = o.customer_order_number || o.channel_order_id || "-";
       const storeName = o.store_name || "Shopify";
       const custName = o.shipping_name || o.customer_name || "-";
       const custPhone = o.shipping_phone_number || o.customer_phone_number || "";
