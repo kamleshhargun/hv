@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boxd Logistics - Not Picked Orders</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f1f3f5; padding: 24px; color: #212529; }
+    .wrapper { max-width: 1300px; margin: 0 auto; background: #ffffff; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); padding: 24px; }
+    
+    .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid #e9ecef; padding-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+    .badge { background: #fee2e2; color: #b91c1c; font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+    
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    input[type="text"] { padding: 9px 14px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; width: 260px; outline: none; }
+    input[type="text"]:focus { border-color: #0d9488; }
+    select { padding: 9px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; background: #fff; cursor: pointer; }
+    button { background: #0f766e; color: #fff; border: none; padding: 9px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background 0.2s; }
+    button:hover { background: #115e59; }
+
+    .table-container { overflow-x: auto; margin-top: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left; }
+    th { background: #f8fafc; color: #475569; font-weight: 600; padding: 12px 14px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+    td { padding: 13px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    tr:hover { background: #f8fafc; }
+
+    .tag-store { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .tag-awb { font-family: monospace; font-size: 13px; font-weight: 600; color: #334155; }
+    .tag-status { background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+    .status-empty { color: #94a3b8; font-style: italic; }
+    .loading { text-align: center; padding: 40px; color: #64748b; font-size: 15px; }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="top-bar">
+    <div>
+      <h1>Not Picked Shipments <span id="count" class="badge">0</span></h1>
+      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">Real-time sync from Boxd Logistics panel</p>
+    </div>
+    <div class="actions">
+      <select id="storeFilter" onchange="filterList()">
+        <option value="">All Stores</option>
+      </select>
+      <input type="text" id="searchBox" placeholder="Search Order #, AWB, Customer..." onkeyup="filterList()" />
+      <button onclick="loadOrders()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div id="loader" class="loading">Fetching orders from Boxd Logistics...</div>
+
+  <div class="table-container">
+    <table id="ordersTable" style="display: none;">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Store</th>
+          <th>AWB Number</th>
+          <th>Customer Name</th>
+          <th>Phone</th>
+          <th>Pickup Location</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Step 1 me deploy kiya hua Google Apps Script Web App URL yahan paste karein:
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-fZjDPTbXRAQ01qxbqpZgai2szI5cpCKG_v7KLHQYVE0Zr8Pj-RU70VHZ4WiPrMIq/exec";
+
+  let allOrders = [];
+
+  async function loadOrders() {
+    const loader = document.getElementById("loader");
+    const table = document.getElementById("ordersTable");
+    loader.style.display = "block";
+    loader.innerText = "Fetching orders from Boxd Logistics...";
+    table.style.display = "none";
+
+    try {
+      const res = await fetch(SCRIPT_URL);
+      const data = await res.json();
+
+      if (!data.success) {
+        loader.innerText = "Error fetching data: " + (data.error || "Unknown error");
+        return;
+      }
+
+      allOrders = data.orders || [];
+      populateStoreFilter(allOrders);
+      renderTable(allOrders);
+
+      loader.style.display = "none";
+      table.style.display = "table";
+    } catch (e) {
+      loader.innerText = "Network / Script Error: " + e.message;
+    }
+  }
+
+  function populateStoreFilter(orders) {
+    const select = document.getElementById("storeFilter");
+    const current = select.value;
+    const stores = [...new Set(orders.map(o => o.store_name).filter(Boolean))];
+    
+    select.innerHTML = '<option value="">All Stores</option>';
+    stores.forEach(st => {
+      const opt = document.createElement("option");
+      opt.value = st;
+      opt.innerText = st;
+      select.appendChild(opt);
+    });
+    select.value = current;
+  }
+
+  function renderTable(orders) {
+    const tbody = document.getElementById("tableBody");
+    const countBadge = document.getElementById("count");
+    tbody.innerHTML = "";
+    countBadge.innerText = orders.length;
+
+    if (orders.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color:#94a3b8;">Koi pending / not-picked shipment nahi mili.</td></tr>`;
+      return;
+    }
+
+    orders.forEach(o => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>#${o.order_number || o.channel_order_id || "-"}</strong></td>
+        <td><span class="tag-store">${o.store_name || "Shopify"}</span></td>
+        <td>${o.awb_number ? `<span class="tag-awb">\${o.awb_number}</span>` : '<span class="status-empty">Not Assigned</span>'}</td>
+        <td>${o.customer_name || "-"}</td>
+        <td>${o.customer_phone_number ? `${o.customer_isd_code \vert{}\vert{} "+91"} ${o.customer_phone_number}` : "-"}</td>
+        <td>${o.pickup_name || "-"}</td>
+        <td><span class="tag-status">Not Picked</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function filterList() {
+    const query = document.getElementById("searchBox").value.toLowerCase();
+    const selectedStore = document.getElementById("storeFilter").value;
+
+    const filtered = allOrders.filter(o => {
+      const matchStore = !selectedStore || o.store_name === selectedStore;
+      const combinedText = [
+        o.order_number,
+        o.channel_order_id,
+        o.awb_number,
+        o.customer_name,
+        o.customer_phone_number,
+        o.pickup_name
+      ].join(" ").toLowerCase();
+
+      const matchSearch = combinedText.includes(query);
+      return matchStore && matchSearch;
+    });
+
+    renderTable(filtered);
+  }
+
+  window.onload = loadOrders;
+</script>
+
+</body>
+</html>
