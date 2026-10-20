@@ -3,65 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Boxd Logistics - Not Picked Orders</title>
+  <title>Boxd Not Picked - Supabase Powered</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f1f3f5; padding: 24px; color: #212529; }
-    .wrapper { max-width: 1300px; margin: 0 auto; background: #ffffff; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); padding: 24px; }
+    body { background-color: #0f172a; padding: 24px; color: #f8fafc; }
+    .container { max-width: 1300px; margin: 0 auto; background: #1e293b; border-radius: 12px; border: 1px solid #334155; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
     
-    .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid #e9ecef; padding-bottom: 16px; }
-    h1 { font-size: 22px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 10px; }
-    .badge { background: #fee2e2; color: #b91c1c; font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+    .badge { background: #ef4444; color: #fff; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
     
-    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    input[type="text"] { padding: 9px 14px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; width: 260px; outline: none; }
-    input[type="text"]:focus { border-color: #0d9488; }
-    select { padding: 9px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; background: #fff; cursor: pointer; }
-    button { background: #0f766e; color: #fff; border: none; padding: 9px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background 0.2s; }
-    button:hover { background: #115e59; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+    input[type="text"], select { background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 9px 14px; border-radius: 6px; font-size: 14px; outline: none; }
+    input[type="text"]:focus, select:focus { border-color: #38bdf8; }
+    
+    button { background: #22c55e; color: #052e16; font-weight: 700; border: none; padding: 9px 18px; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+    button:hover { background: #16a34a; color: #fff; }
 
-    .table-container { overflow-x: auto; margin-top: 10px; }
+    .table-responsive { overflow-x: auto; margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left; }
-    th { background: #f8fafc; color: #475569; font-weight: 600; padding: 12px 14px; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
-    td { padding: 13px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-    tr:hover { background: #f8fafc; }
+    th { background: #0f172a; color: #94a3b8; font-weight: 600; padding: 12px 14px; border-bottom: 1px solid #334155; }
+    td { padding: 14px; border-bottom: 1px solid #334155; }
+    tr:hover { background: #263349; }
 
-    .tag-store { background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
-    .tag-awb { font-family: monospace; font-size: 13px; font-weight: 600; color: #334155; }
-    .tag-status { background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
-    .status-empty { color: #94a3b8; font-style: italic; }
-    .loading { text-align: center; padding: 40px; color: #64748b; font-size: 15px; }
+    .store-tag { background: #0284c7; color: #e0f2fe; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .awb-code { font-family: monospace; font-size: 13px; color: #38bdf8; font-weight: 600; }
+    .status-pill { background: #854d0e; color: #fef08a; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    .loader { text-align: center; padding: 40px; color: #94a3b8; font-size: 15px; }
   </style>
 </head>
 <body>
 
-<div class="wrapper">
-  <div class="top-bar">
+<div class="container">
+  <div class="header">
     <div>
-      <h1>Not Picked Shipments <span id="count" class="badge">0</span></h1>
-      <p style="font-size: 13px; color: #64748b; margin-top: 4px;">Real-time sync from Boxd Logistics panel</p>
+      <h1>Not Picked Shipments <span id="countBadge" class="badge">0</span></h1>
+      <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">Direct Boxd Logistics Sync via Supabase Edge Function</p>
     </div>
-    <div class="actions">
-      <select id="storeFilter" onchange="filterList()">
+    <div class="controls">
+      <select id="storeSelect" onchange="filterData()">
         <option value="">All Stores</option>
       </select>
-      <input type="text" id="searchBox" placeholder="Search Order #, AWB, Customer..." onkeyup="filterList()" />
-      <button onclick="loadOrders()">↻ Refresh</button>
+      <input type="text" id="searchBox" placeholder="Search Order #, AWB, Customer..." onkeyup="filterData()" />
+      <button onclick="fetchNotPicked()">↻ Refresh</button>
     </div>
   </div>
 
-  <div id="loader" class="loading">Fetching orders from Boxd Logistics...</div>
+  <div id="loadingText" class="loader">Loading from Supabase...</div>
 
-  <div class="table-container">
-    <table id="ordersTable" style="display: none;">
+  <div class="table-responsive">
+    <table id="dataTable" style="display: none;">
       <thead>
         <tr>
           <th>Order #</th>
           <th>Store</th>
           <th>AWB Number</th>
-          <th>Customer Name</th>
+          <th>Customer</th>
           <th>Phone</th>
-          <th>Pickup Location</th>
+          <th>Pickup Warehouse</th>
           <th>Status</th>
         </tr>
       </thead>
@@ -71,61 +70,68 @@
 </div>
 
 <script>
-  // Step 1 me deploy kiya hua Google Apps Script Web App URL yahan paste karein:
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-fZjDPTbXRAQ01qxbqpZgai2szI5cpCKG_v7KLHQYVE0Zr8Pj-RU70VHZ4WiPrMIq/exec";
+  // Apne Supabase Project ke credentials yahan daalein:
+  const SUPABASE_FUNCTION_URL = "https://yyzvpjmejzbblunkyadp.supabase.co/functions/v1/bright-responder";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5enZwam1lanpiYmx1bmt5YWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMTU5NjcsImV4cCI6MjEwMDc5MTk2N30.S5XXzQBQQp6bo0jGGe0KBxdGoSdjzGjRFUqjK3y8KCM";
 
-  let allOrders = [];
+  let ordersList = [];
 
-  async function loadOrders() {
-    const loader = document.getElementById("loader");
-    const table = document.getElementById("ordersTable");
+  async function fetchNotPicked() {
+    const loader = document.getElementById("loadingText");
+    const table = document.getElementById("dataTable");
     loader.style.display = "block";
-    loader.innerText = "Fetching orders from Boxd Logistics...";
+    loader.innerText = "Syncing live orders...";
     table.style.display = "none";
 
     try {
-      const res = await fetch(SCRIPT_URL);
-      const data = await res.json();
+      const res = await fetch(SUPABASE_FUNCTION_URL, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json"
+        }
+      });
 
+      const data = await res.json();
       if (!data.success) {
-        loader.innerText = "Error fetching data: " + (data.error || "Unknown error");
+        loader.innerText = "Error: " + (data.error || "Failed to load");
         return;
       }
 
-      allOrders = data.orders || [];
-      populateStoreFilter(allOrders);
-      renderTable(allOrders);
+      ordersList = data.orders || [];
+      populateStores(ordersList);
+      renderTable(ordersList);
 
       loader.style.display = "none";
       table.style.display = "table";
     } catch (e) {
-      loader.innerText = "Network / Script Error: " + e.message;
+      loader.innerText = "Fetch Error: " + e.message;
     }
   }
 
-  function populateStoreFilter(orders) {
-    const select = document.getElementById("storeFilter");
-    const current = select.value;
+  function populateStores(orders) {
+    const select = document.getElementById("storeSelect");
+    const curr = select.value;
     const stores = [...new Set(orders.map(o => o.store_name).filter(Boolean))];
     
     select.innerHTML = '<option value="">All Stores</option>';
-    stores.forEach(st => {
+    stores.forEach(s => {
       const opt = document.createElement("option");
-      opt.value = st;
-      opt.innerText = st;
+      opt.value = s;
+      opt.innerText = s;
       select.appendChild(opt);
     });
-    select.value = current;
+    select.value = curr;
   }
 
   function renderTable(orders) {
     const tbody = document.getElementById("tableBody");
-    const countBadge = document.getElementById("count");
+    const badge = document.getElementById("countBadge");
     tbody.innerHTML = "";
-    countBadge.innerText = orders.length;
+    badge.innerText = orders.length;
 
     if (orders.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 24px; color:#94a3b8;">Koi pending / not-picked shipment nahi mili.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 25px; color:#64748b;">No pending pickups found.</td></tr>`;
       return;
     }
 
@@ -133,24 +139,24 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><strong>#${o.order_number || o.channel_order_id || "-"}</strong></td>
-        <td><span class="tag-store">${o.store_name || "Shopify"}</span></td>
-        <td>${o.awb_number ? `<span class="tag-awb">\${o.awb_number}</span>` : '<span class="status-empty">Not Assigned</span>'}</td>
+        <td><span class="store-tag">${o.store_name || "Shopify"}</span></td>
+        <td>${o.awb_number ? `<span class="awb-code">\${o.awb_number}</span>` : '<span style="color:#64748b;">Pending AWB</span>'}</td>
         <td>${o.customer_name || "-"}</td>
         <td>${o.customer_phone_number ? `${o.customer_isd_code \vert{}\vert{} "+91"} ${o.customer_phone_number}` : "-"}</td>
         <td>${o.pickup_name || "-"}</td>
-        <td><span class="tag-status">Not Picked</span></td>
+        <td><span class="status-pill">NOT PICKED</span></td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  function filterList() {
+  function filterData() {
     const query = document.getElementById("searchBox").value.toLowerCase();
-    const selectedStore = document.getElementById("storeFilter").value;
+    const store = document.getElementById("storeSelect").value;
 
-    const filtered = allOrders.filter(o => {
-      const matchStore = !selectedStore || o.store_name === selectedStore;
-      const combinedText = [
+    const filtered = ordersList.filter(o => {
+      const matchStore = !store || o.store_name === store;
+      const hay = [
         o.order_number,
         o.channel_order_id,
         o.awb_number,
@@ -159,14 +165,13 @@
         o.pickup_name
       ].join(" ").toLowerCase();
 
-      const matchSearch = combinedText.includes(query);
-      return matchStore && matchSearch;
+      return matchStore && hay.includes(query);
     });
 
     renderTable(filtered);
   }
 
-  window.onload = loadOrders;
+  window.onload = fetchNotPicked;
 </script>
 
 </body>
