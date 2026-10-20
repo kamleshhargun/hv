@@ -3,35 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Boxd Logistics - Not Picked Orders</title>
+  <title>Boxd Logistics - Packing & Dispatch Station</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f4f6f8; padding: 24px; color: #202223; }
-    .container { max-width: 1300px; margin: 0 auto; background: #ffffff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 24px; }
-    
-    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid #e1e3e5; padding-bottom: 16px; }
-    h1 { font-size: 20px; font-weight: 600; color: #202223; display: flex; align-items: center; gap: 10px; }
-    .badge { background: #ffe8d7; color: #b94a00; font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
-    
-    .controls { display: flex; gap: 10px; flex-wrap: wrap; }
-    input[type="text"], select { padding: 8px 12px; border: 1px solid #c9cccf; border-radius: 6px; font-size: 14px; outline: none; background: #fff; }
-    input[type="text"]:focus, select:focus { border-color: #008060; }
-    input[type="text"] { width: 260px; }
-    
-    button { background: #008060; color: #ffffff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background 0.2s; }
-    button:hover { background: #006e52; }
+    body { background-color: #f1f5f9; padding: 20px; color: #1e293b; }
+    .container { max-width: 1450px; margin: 0 auto; background: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); padding: 24px; }
 
-    .table-container { overflow-x: auto; margin-top: 15px; }
+    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; }
+    h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+    
+    .scanner-box { display: flex; align-items: center; gap: 10px; background: #f8fafc; border: 2px dashed #0d9488; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; }
+    .scanner-box input { border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 6px; font-size: 14px; width: 340px; outline: none; }
+    .scanner-box input:focus { border-color: #0d9488; }
+
+    .tabs { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+    .tab-btn { background: none; border: none; padding: 10px 18px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+    .tab-btn.active { color: #0d9488; border-color: #0d9488; }
+    .badge-count { font-size: 12px; padding: 2px 8px; border-radius: 12px; margin-left: 6px; }
+    .badge-pending { background: #fee2e2; color: #991b1b; }
+    .badge-packed { background: #dcfce7; color: #166534; }
+
+    .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .controls input, .controls select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; outline: none; background: #fff; }
+    
+    .btn { padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+    .btn-shift { background: #0d9488; color: #fff; }
+    .btn-shift:hover { background: #0f766e; }
+    .btn-undo { background: #e2e8f0; color: #475569; }
+    .btn-undo:hover { background: #cbd5e1; }
+    .btn-refresh { background: #334155; color: #fff; }
+    .btn-clear { background: #fee2e2; color: #991b1b; }
+
     table { width: 100%; border-collapse: collapse; font-size: 13.5px; text-align: left; }
-    th { background: #f9fafb; color: #5c5f62; font-weight: 600; padding: 12px 14px; border-bottom: 2px solid #e1e3e5; white-space: nowrap; }
-    td { padding: 12px 14px; border-bottom: 1px solid #f1f2f3; vertical-align: middle; }
-    tr:hover { background: #f9fafb; }
+    th { background: #f8fafc; color: #475569; font-weight: 600; padding: 12px 14px; border-bottom: 1px solid #cbd5e1; white-space: nowrap; }
+    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    tr:hover { background: #f8fafc; }
 
-    .tag-store { background: #e4f8f0; color: #007a5c; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
-    .tag-awb { font-family: monospace; font-size: 13px; font-weight: 600; color: #202223; }
-    .tag-status { background: #fbeae5; color: #bf0711; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-    .pending-text { color: #8c9196; font-style: italic; }
-    .loader { text-align: center; padding: 40px; color: #6d7175; font-size: 15px; }
+    .awb-tag { font-family: monospace; font-size: 13px; font-weight: 700; color: #0284c7; }
+    .item-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; margin-bottom: 4px; font-size: 12.5px; }
+    .item-title { font-weight: 600; color: #1e293b; }
+    .item-meta { display: flex; gap: 12px; color: #64748b; font-size: 12px; margin-top: 2px; }
+    .store-tag { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; }
+    .badge-cod { background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; }
+    .badge-prepaid { background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; }
   </style>
 </head>
 <body>
@@ -39,31 +53,52 @@
 <div class="container">
   <div class="header">
     <div>
-      <h1>Not Picked Orders <span id="countBadge" class="badge">0</span></h1>
-      <p style="font-size: 13px; color: #6d7175; margin-top: 4px;">Live pending pickups synced from Boxd Logistics</p>
+      <h1>Boxd Physical Packing Dispatch</h1>
+      <p style="font-size: 13px; color: #64748b; margin-top: 2px;">Labelled orders reconciliation: Verify SKU & shift to Ready-for-Pickup</p>
     </div>
-    <div class="controls">
-      <select id="storeFilter" onchange="filterList()">
-        <option value="">All Stores</option>
-      </select>
-      <input type="text" id="searchBox" placeholder="Search Order #, AWB, Customer..." onkeyup="filterList()" />
-      <button onclick="loadOrders()">↻ Refresh</button>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn btn-refresh" onclick="loadOrders()">↻ Sync Boxd</button>
+      <button class="btn btn-clear" onclick="clearPackedHistory()">Clear Packed List</button>
     </div>
   </div>
 
-  <div id="loader" class="loader">Loading orders from Google Apps Script...</div>
+  <!-- Barcode Scanner Quick Shift -->
+  <div class="scanner-box">
+    <strong>⚡ Scan to Shift:</strong>
+    <input type="text" id="barcodeInput" placeholder="Scan Barcode / Paste AWB number..." onkeydown="handleBarcode(event)" autofocus />
+    <span style="font-size: 12px; color: #64748b;">(Press Enter after scan to shift into Packed)</span>
+  </div>
 
-  <div class="table-container">
-    <table id="ordersTable" style="display: none;">
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tabPendingBtn" onclick="switchTab('pending')">
+      To Pack (Pending) <span id="pendingCount" class="badge-count badge-pending">0</span>
+    </button>
+    <button class="tab-btn" id="tabPackedBtn" onclick="switchTab('packed')">
+      Packed (Ready for Pickup) <span id="packedCount" class="badge-count badge-packed">0</span>
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="controls">
+    <select id="storeFilter" onchange="renderCurrentTab()">
+      <option value="">All Stores</option>
+    </select>
+    <input type="text" id="searchFilter" placeholder="Search Order #, AWB, SKU, Customer..." onkeyup="renderCurrentTab()" style="width: 280px;" />
+  </div>
+
+  <div id="loader" style="text-align:center; padding: 30px; color: #64748b;">Loading active orders...</div>
+
+  <div style="overflow-x: auto;">
+    <table id="mainTable" style="display: none;">
       <thead>
         <tr>
-          <th>Order #</th>
-          <th>Store</th>
+          <th>Order # & Store</th>
           <th>AWB Number</th>
-          <th>Customer Name</th>
-          <th>Phone</th>
-          <th>Pickup Warehouse</th>
-          <th>Status</th>
+          <th style="min-width: 320px;">Products (SKU, Qty, Price)</th>
+          <th>Customer</th>
+          <th>Location</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -75,34 +110,37 @@
   // ==========================================
   // APNA DEPLOYED APPS SCRIPT URL YAHAN DALEIN:
   // ==========================================
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylXi-_UTMmrQlj-i9hWAkfJwzlo2m0K_kyzRY8vlNGxW-LtZQJiSdf6HkRVHWKwtA0/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-DulRKzeq38SqVoV3kCBnLS3Ramslum02-3XJvhI5lPArViog3LHzJEuxKSs6eUii/exec";
 
-  let ordersList = [];
+  let allOrders = [];
+  let currentTab = "pending";
+
+  function getPackedAwbs() {
+    return JSON.parse(localStorage.getItem("boxd_packed_awbs") || "[]");
+  }
+
+  function setPackedAwbs(list) {
+    localStorage.setItem("boxd_packed_awbs", JSON.stringify(list));
+  }
 
   async function loadOrders() {
     const loader = document.getElementById("loader");
-    const table = document.getElementById("ordersTable");
+    const table = document.getElementById("mainTable");
     loader.style.display = "block";
-    loader.innerText = "Syncing orders from Boxd...";
     table.style.display = "none";
 
     try {
-      const response = await fetch(APPS_SCRIPT_URL);
-      const data = await response.json();
+      const res = await fetch(SCRIPT_URL);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
 
-      if (!data.success) {
-        loader.innerText = "Error: " + (data.error || "Failed to load");
-        return;
-      }
-
-      ordersList = data.orders || [];
-      populateStores(ordersList);
-      renderTable(ordersList);
-
+      allOrders = data.orders || [];
+      populateStores(allOrders);
+      renderCurrentTab();
       loader.style.display = "none";
       table.style.display = "table";
-    } catch (err) {
-      loader.innerText = "Fetch Failed: " + err.message;
+    } catch (e) {
+      loader.innerText = "Error: " + e.message;
     }
   }
 
@@ -110,68 +148,141 @@
     const select = document.getElementById("storeFilter");
     const current = select.value;
     const stores = [...new Set(orders.map(function(o) { return o.store_name; }).filter(Boolean))];
-
     select.innerHTML = '<option value="">All Stores</option>';
-    stores.forEach(function(store) {
+    stores.forEach(function(s) {
       const opt = document.createElement("option");
-      opt.value = store;
-      opt.textContent = store;
+      opt.value = s;
+      opt.textContent = s;
       select.appendChild(opt);
     });
     select.value = current;
   }
 
-  function renderTable(orders) {
-    const tbody = document.getElementById("tableBody");
-    const badge = document.getElementById("countBadge");
-    tbody.innerHTML = "";
-    badge.innerText = orders.length;
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById("tabPendingBtn").classList.toggle("active", tab === "pending");
+    document.getElementById("tabPackedBtn").classList.toggle("active", tab === "packed");
+    renderCurrentTab();
+  }
 
-    if (orders.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color:#8c9196;">Koi pending pickup order nahi mila.</td></tr>';
+  function shiftOrder(awb, toPacked) {
+    let packed = getPackedAwbs();
+    if (toPacked) {
+      if (!packed.includes(awb)) packed.push(awb);
+    } else {
+      packed = packed.filter(function(a) { return a !== awb; });
+    }
+    setPackedAwbs(packed);
+    renderCurrentTab();
+  }
+
+  function handleBarcode(e) {
+    if (e.key === "Enter") {
+      const scannedAwb = e.target.value.trim();
+      if (!scannedAwb) return;
+
+      const order = allOrders.find(function(o) { return String(o.awb_number).trim() === scannedAwb; });
+      if (order) {
+        shiftOrder(scannedAwb, true);
+        e.target.value = "";
+      } else {
+        alert("AWB " + scannedAwb + " not found in current not-picked list!");
+      }
+    }
+  }
+
+  function clearPackedHistory() {
+    if (confirm("Kya aap packed list reset karna chahte hain? Sabhi orders wapis To-Pack me aa jayenge.")) {
+      localStorage.removeItem("boxd_packed_awbs");
+      renderCurrentTab();
+    }
+  }
+
+  function renderCurrentTab() {
+    const packedList = getPackedAwbs();
+    const store = document.getElementById("storeFilter").value;
+    const query = document.getElementById("searchFilter").value.toLowerCase();
+
+    const pendingOrders = allOrders.filter(function(o) { return !packedList.includes(String(o.awb_number)); });
+    const packedOrders = allOrders.filter(function(o) { return packedList.includes(String(o.awb_number)); });
+
+    document.getElementById("pendingCount").innerText = pendingOrders.length;
+    document.getElementById("packedCount").innerText = packedOrders.length;
+
+    const targetList = (currentTab === "pending" ? pendingOrders : packedOrders).filter(function(o) {
+      const matchStore = !store || o.store_name === store;
+      const fullText = JSON.stringify(o).toLowerCase();
+      return matchStore && fullText.includes(query);
+    });
+
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+
+    if (targetList.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:25px; color:#94a3b8;">No orders in this list.</td></tr>';
       return;
     }
 
-    orders.forEach(function(o) {
-      const orderNum = o.order_number || o.channel_order_id || "-";
-      const store = o.store_name || "Shopify";
-      const awb = o.awb_number ? ('<span class="tag-awb">' + o.awb_number + '</span>') : '<span class="pending-text">Pending AWB</span>';
-      const customer = o.customer_name || "-";
-      const phone = o.customer_phone_number ? ((o.customer_isd_code || "+91") + " " + o.customer_phone_number) : "-";
-      const warehouse = o.pickup_name || "-";
+    targetList.forEach(function(o) {
+      const awb = String(o.awb_number || "");
+      const products = o.products || o.order_items || [];
+
+      let itemsHtml = "";
+      if (products.length > 0) {
+        itemsHtml = products.map(function(it) {
+          const skuTag = it.sku ? (' <span style="color:#0369a1; font-weight:700;">[' + it.sku + ']</span>') : '';
+          const disc = it.discount_amount ? (' <span style="color:#b91c1c;">(Disc: ₹' + it.discount_amount + ')</span>') : '';
+          return (
+            '<div class="item-card">' +
+              '<div class="item-title">' + (it.name || "Product") + skuTag + '</div>' +
+              '<div class="item-meta">' +
+                '<span><strong>Qty:</strong> ' + (it.quantity || 1) + '</span>' +
+                '<span><strong>Price:</strong> ₹' + (it.unit_price || it.price || 0) + '</span>' +
+                disc +
+              '</div>' +
+            '</div>'
+          );
+        }).join("");
+      } else {
+        itemsHtml = '<span style="color:#94a3b8; font-style:italic;">No products found</span>';
+      }
+
+      const paymentBadge = o.is_cod 
+        ? ('<span class="badge-cod">COD: ₹' + (o.cod_collectable_amount || o.total_amount || 0) + '</span>')
+        : '<span class="badge-prepaid">PREPAID</span>';
+
+      const actionBtn = currentTab === "pending"
+        ? ('<button class="btn btn-shift" onclick="shiftOrder(\'' + awb + '\', true)">✓ Mark Packed</button>')
+        : ('<button class="btn btn-undo" onclick="shiftOrder(\'' + awb + '\', false)">↺ Move Back</button>');
+
+      const orderNumber = o.order_number || o.customer_order_number || o.channel_order_id || "-";
+      const storeName = o.store_name || "Shopify";
+      const custName = o.shipping_name || o.customer_name || "-";
+      const custPhone = o.shipping_phone_number || o.customer_phone_number || "";
+      const cityState = (o.shipping_city || "") + (o.shipping_state ? (", " + o.shipping_state) : "");
+      const pincode = o.shipping_pincode || "-";
 
       const tr = document.createElement("tr");
       tr.innerHTML = 
-        '<td><strong>#' + orderNum + '</strong></td>' +
-        '<td><span class="tag-store">' + store + '</span></td>' +
-        '<td>' + awb + '</td>' +
-        '<td>' + customer + '</td>' +
-        '<td>' + phone + '</td>' +
-        '<td>' + warehouse + '</td>' +
-        '<td><span class="tag-status">NOT PICKED</span></td>';
+        '<td>' +
+          '<strong>#' + orderNumber + '</strong><br/>' +
+          '<span class="store-tag">' + storeName + '</span><br/>' +
+          '<div style="margin-top:4px;">' + paymentBadge + '</div>' +
+        '</td>' +
+        '<td><span class="awb-tag">' + awb + '</span></td>' +
+        '<td>' + itemsHtml + '</td>' +
+        '<td>' +
+          custName + '<br/>' +
+          '<span style="font-size:12px; color:#64748b;">' + custPhone + '</span>' +
+        '</td>' +
+        '<td>' +
+          cityState + '<br/>' +
+          '<span style="font-size:12px; color:#64748b;">Pin: ' + pincode + '</span>' +
+        '</td>' +
+        '<td>' + actionBtn + '</td>';
+
       tbody.appendChild(tr);
     });
-  }
-
-  function filterList() {
-    const query = document.getElementById("searchBox").value.toLowerCase();
-    const selectedStore = document.getElementById("storeFilter").value;
-
-    const filtered = ordersList.filter(function(o) {
-      const matchStore = !selectedStore || o.store_name === selectedStore;
-      const combined = [
-        o.order_number,
-        o.channel_order_id,
-        o.awb_number,
-        o.customer_name,
-        o.customer_phone_number,
-        o.pickup_name
-      ].join(" ").toLowerCase();
-
-      return matchStore && combined.includes(query);
-    });
-
-    renderTable(filtered);
   }
 
   window.onload = loadOrders;
