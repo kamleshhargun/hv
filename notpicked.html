@@ -69,8 +69,8 @@
   </div>
 </div>
 
-<script>
-  // Apne Supabase Project ke credentials yahan daalein:
+  <script>
+  // Apne Supabase Edge Function ka exact URL yahan dalein:
   const SUPABASE_FUNCTION_URL = "https://yyzvpjmejzbblunkyadp.supabase.co/functions/v1/bright-responder";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5enZwam1lanpiYmx1bmt5YWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMTU5NjcsImV4cCI6MjEwMDc5MTk2N30.S5XXzQBQQp6bo0jGGe0KBxdGoSdjzGjRFUqjK3y8KCM";
 
@@ -84,17 +84,24 @@
     table.style.display = "none";
 
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE")) {
+        headers["Authorization"] = "Bearer " + SUPABASE_ANON_KEY;
+        headers["apikey"] = SUPABASE_ANON_KEY;
+      }
+
       const res = await fetch(SUPABASE_FUNCTION_URL, {
         method: "GET",
-        headers: {
-          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json"
-        }
+        headers: headers
       });
+
+      if (!res.ok) {
+        throw new Error("HTTP Status " + res.status + " (" + res.statusText + ")");
+      }
 
       const data = await res.json();
       if (!data.success) {
-        loader.innerText = "Error: " + (data.error || "Failed to load");
+        loader.innerText = "Error from backend: " + (data.error || "Failed to load");
         return;
       }
 
@@ -112,13 +119,13 @@
   function populateStores(orders) {
     const select = document.getElementById("storeSelect");
     const curr = select.value;
-    const stores = [...new Set(orders.map(o => o.store_name).filter(Boolean))];
+    const stores = [...new Set(orders.map(function(o) { return o.store_name; }).filter(Boolean))];
     
     select.innerHTML = '<option value="">All Stores</option>';
-    stores.forEach(s => {
+    stores.forEach(function(s) {
       const opt = document.createElement("option");
       opt.value = s;
-      opt.innerText = s;
+      opt.textContent = s;
       select.appendChild(opt);
     });
     select.value = curr;
@@ -131,21 +138,27 @@
     badge.innerText = orders.length;
 
     if (orders.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 25px; color:#64748b;">No pending pickups found.</td></tr>`;
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 25px; color:#64748b;">No pending pickups found.</td></tr>';
       return;
     }
 
-    orders.forEach(o => {
+    orders.forEach(function(o) {
+      const orderNum = o.order_number || o.channel_order_id || "-";
+      const store = o.store_name || "Shopify";
+      const awb = o.awb_number ? '<span class="awb-code">' + o.awb_number + '</span>' : '<span style="color:#64748b;">Pending AWB</span>';
+      const customer = o.customer_name || "-";
+      const phone = o.customer_phone_number ? ((o.customer_isd_code || "+91") + " " + o.customer_phone_number) : "-";
+      const warehouse = o.pickup_name || "-";
+
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><strong>#${o.order_number || o.channel_order_id || "-"}</strong></td>
-        <td><span class="store-tag">${o.store_name || "Shopify"}</span></td>
-        <td>${o.awb_number ? `<span class="awb-code">\${o.awb_number}</span>` : '<span style="color:#64748b;">Pending AWB</span>'}</td>
-        <td>${o.customer_name || "-"}</td>
-        <td>${o.customer_phone_number ? `${o.customer_isd_code \vert{}\vert{} "+91"} ${o.customer_phone_number}` : "-"}</td>
-        <td>${o.pickup_name || "-"}</td>
-        <td><span class="status-pill">NOT PICKED</span></td>
-      `;
+      tr.innerHTML = 
+        '<td><strong>#' + orderNum + '</strong></td>' +
+        '<td><span class="store-tag">' + store + '</span></td>' +
+        '<td>' + awb + '</td>' +
+        '<td>' + customer + '</td>' +
+        '<td>' + phone + '</td>' +
+        '<td>' + warehouse + '</td>' +
+        '<td><span class="status-pill">NOT PICKED</span></td>';
       tbody.appendChild(tr);
     });
   }
@@ -154,7 +167,7 @@
     const query = document.getElementById("searchBox").value.toLowerCase();
     const store = document.getElementById("storeSelect").value;
 
-    const filtered = ordersList.filter(o => {
+    const filtered = ordersList.filter(function(o) {
       const matchStore = !store || o.store_name === store;
       const hay = [
         o.order_number,
