@@ -3,104 +3,95 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Harsidhi Logistics ERP - Kamlesh Hargun</title>
+  <title>Harsidhi Logistics Enterprise ERP</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
     :root {
-      --yahoo-purple: #6001d2;
-      --yahoo-purple-hover: #5000b8;
-      --yahoo-bg: #f4f6f9;
-      --yahoo-border: #e2e8f0;
-      --text-dark: #0f172a;
-      --text-muted: #64748b;
-      --yahoo-blue: #0284c7;
-      --yahoo-green: #108a00;
-      --yahoo-red: #dc2626;
-      --yahoo-amber: #d97706;
+      --primary: #6001d2;
+      --primary-hover: #5000b8;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --blue: #0284c7;
+      --green: #108a00;
+      --red: #dc2626;
+      --amber: #d97706;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; width: 100vw; background: var(--yahoo-bg); color: var(--text-dark); overflow: hidden; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; width: 100vw; background: var(--bg); color: var(--text); overflow: hidden; }
 
     .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; background: #fff; }
 
-    /* TOP YAHOO HEADER */
-    .yahoo-header { background: #fff; border-bottom: 1px solid var(--yahoo-border); padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; }
-    .brand-logo { font-size: 17px; font-weight: 800; color: var(--yahoo-purple); letter-spacing: -0.4px; display: flex; align-items: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; }
-    
+    /* HEADER BAR */
+    .yahoo-header { background: #fff; border-bottom: 1px solid var(--border); padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+    .brand-logo { font-size: 16px; font-weight: 800; color: var(--primary); letter-spacing: -0.4px; display: flex; align-items: center; gap: 6px; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; }
+
+    /* SEARCH WRAPPER WITH EMBEDDED CAMERA BUTTON & CLEAR */
     .search-wrapper { position: relative; display: flex; align-items: center; width: 100%; max-width: 480px; }
     .search-icon { position: absolute; left: 12px; color: #94a3b8; font-size: 14px; pointer-events: none; }
-    .search-input { width: 100%; height: 38px; background: #f1f5f9; border: 1px solid transparent; border-radius: 20px; padding: 0 36px 0 34px; font-size: 13px; font-weight: 500; outline: none; transition: all 0.2s; }
-    .search-input:focus { background: #fff; border-color: var(--yahoo-purple); box-shadow: 0 0 0 3px rgba(96, 1, 210, 0.12); }
+    .search-input { width: 100%; height: 38px; background: #f1f5f9; border: 1px solid transparent; border-radius: 20px; padding: 0 65px 0 34px; font-size: 13px; font-weight: 500; outline: none; transition: all 0.2s; }
+    .search-input:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(96, 1, 210, 0.12); }
+    .search-cam-btn { position: absolute; right: 34px; background: none; border: none; font-size: 15px; cursor: pointer; color: var(--primary); padding: 4px; }
     .search-clear-btn { position: absolute; right: 10px; background: #cbd5e1; border: none; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 800; color: #475569; display: none; align-items: center; justify-content: center; cursor: pointer; }
-    .search-clear-btn:hover { background: #94a3b8; color: #fff; }
 
-    .header-right { display: flex; align-items: center; gap: 10px; }
-    .date-pill { background: #f8fafc; border: 1px solid var(--yahoo-border); padding: 5px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-export { background: #0284c7; color: #fff; border: none; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .btn-export:hover { background: #0369a1; }
 
-    /* ACTION BAR WITH COMPACT TAB BADGES (NO METRIC STRIP) */
-    .yahoo-action-bar { background: #fafbfc; border-bottom: 1px solid var(--yahoo-border); padding: 8px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
+    /* RESPONSIVE KPI SUMMARY SLIDER (BETWEEN HEADER & TABS) */
+    .kpi-container { display: flex; gap: 10px; padding: 8px 18px; background: #fafbfc; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
+    .kpi-container::-webkit-scrollbar { display: none; }
+    .kpi-card { flex: 1; min-width: 130px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; }
+    .kpi-num { font-size: 17px; font-weight: 800; color: var(--text); }
+    .kpi-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 1px; }
+
+    /* ACTION BAR WITH TABS */
+    .action-bar { background: #fff; border-bottom: 1px solid var(--border); padding: 8px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+    .btn-mark-pack { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(96, 1, 210, 0.2); white-space: nowrap; }
     
-    .btn-pack-primary { background: var(--yahoo-purple); color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s; box-shadow: 0 2px 4px rgba(96, 1, 210, 0.2); }
-    .btn-pack-primary:hover { background: var(--yahoo-purple-hover); }
+    .tabs-slider { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; width: auto; }
+    .tabs-slider::-webkit-scrollbar { display: none; }
+    .tab-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid transparent; background: transparent; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+    .tab-btn:hover { background: #f1f5f9; color: var(--text); }
+    .tab-btn.active { background: #f3e8ff; color: var(--primary); font-weight: 800; }
+    .tab-badge { font-size: 11px; font-weight: 800; padding: 1px 6px; border-radius: 10px; background: #e2e8f0; color: #475569; }
+    .tab-btn.active .tab-badge { background: var(--primary); color: #fff; }
 
-    .tabs-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; }
-    .tabs-row::-webkit-scrollbar { display: none; }
-    .tab-pill { padding: 7px 14px; border-radius: 6px; border: 1px solid transparent; background: transparent; font-size: 12.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: 0.15s; display: inline-flex; align-items: center; gap: 6px; }
-    .tab-pill:hover { background: #f1f5f9; color: var(--text-dark); }
-    .tab-pill.active { background: #f3e8ff; color: var(--yahoo-purple); font-weight: 800; }
-    .tab-pill.active-danger { background: #fee2e2; color: var(--yahoo-red); font-weight: 800; }
-
-    .tab-badge { font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 10px; background: #e2e8f0; color: #475569; }
-    .tab-pill.active .tab-badge { background: var(--yahoo-purple); color: #fff; }
-    .tab-pill.active-danger .tab-badge { background: var(--yahoo-red); color: #fff; }
-
-    /* TABLE VIEWPORT */
+    /* VIEWPORT: TABLE */
     .viewport { flex: 1; overflow-y: auto; background: #fff; }
     .yahoo-table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    .yahoo-table th { background: #fafbfc; color: #64748b; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 11px 16px; border-bottom: 1px solid var(--yahoo-border); position: sticky; top: 0; z-index: 10; letter-spacing: 0.3px; }
-    .yahoo-table td { padding: 11px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .yahoo-table th { background: #fafbfc; color: #64748b; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 10px 14px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+    .yahoo-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
     .yahoo-table tr:hover { background: #f8fafc; }
 
-    /* DATA ELEMENTS */
-    .cust-order-badge { display: inline-flex; align-items: center; background: #eff6ff; color: var(--yahoo-blue); border: 1px solid #bfdbfe; font-size: 13.5px; font-weight: 800; padding: 3px 8px; border-radius: 6px; }
-    .order-num-text { font-size: 13px; font-weight: 700; color: var(--text-dark); }
-    .awb-text { font-family: monospace; font-size: 13px; font-weight: 700; color: #0f172a; }
-    .courier-tag { font-size: 11px; font-weight: 600; color: #64748b; margin-top: 2px; }
+    .cust-badge { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe; font-size: 14px; font-weight: 800; padding: 2px 8px; border-radius: 6px; display: inline-block; }
+    .sku-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px; font-size: 11px; margin-bottom: 2px; }
+    
+    .pay-chip { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block; }
+    .pay-cod { background: #fef3c7; color: #92400e; }
+    .pay-pre { background: #dcfce7; color: #166534; }
+    .gst-tag { font-size: 10.5px; color: var(--muted); margin-top: 2px; line-height: 1.3; }
 
-    .badge-payment { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 3px; }
-    .pay-cod { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-    .pay-prepaid { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-    .gst-text { font-size: 11px; color: #64748b; margin-top: 2px; }
-
-    .sku-item { display: block; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px 6px; font-size: 11.5px; margin-bottom: 3px; }
-    .sku-code { font-weight: 700; color: #0f172a; }
-
-    .tag-status { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+    .tag-st { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
     .st-shipped { background: #eff6ff; color: #1d4ed8; }
-    .st-manifested { background: #fef3c7; color: var(--yahoo-amber); }
-    .st-failed { background: #fee2e2; color: var(--yahoo-red); }
-    .st-packed { background: #dcfce7; color: var(--yahoo-green); }
-    .st-rto-rec { background: #e2e8f0; color: #475569; }
+    .st-packed { background: #dcfce7; color: #15803d; }
+    .st-deliv { background: #ecfdf5; color: #047857; font-weight: 800; }
+    .st-failed { background: #fee2e2; color: #b91c1c; }
 
-    .btn-table-action { background: #f8fafc; border: 1px solid #cbd5e1; padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.15s; }
-    .btn-table-action:hover { background: #f1f5f9; }
-    .btn-table-action.pack-direct { background: #ecfdf5; border-color: #a7f3d0; color: var(--yahoo-green); font-weight: 700; }
-    .btn-table-action.pack-direct:hover { background: #d1fae5; }
-    .btn-table-action.rto-btn { background: #fee2e2; border-color: #fca5a5; color: var(--yahoo-red); font-weight: 700; }
-    .btn-table-action.rto-btn:hover { background: #fecaca; }
+    .btn-act { background: #f8fafc; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 4px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+    .btn-act.pack-now { background: #ecfdf5; border-color: #a7f3d0; color: var(--green); font-weight: 700; }
+    .btn-act.undo-now { background: #fef2f2; border-color: #fecaca; color: var(--red); font-weight: 700; }
 
-    /* CAMERA & CONFIRMATION MODALS */
-    #scannerModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999; align-items: center; justify-content: center; }
-    .scanner-modal-card { background: #fff; border-radius: 14px; padding: 18px; width: 92%; max-width: 440px; display: flex; flex-direction: column; gap: 12px; }
+    /* MODALS */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; }
+    .modal-card { background: #fff; border-radius: 12px; padding: 18px; width: 92%; max-width: 420px; display: flex; flex-direction: column; gap: 12px; }
     #cameraReader { width: 100%; height: 260px; border-radius: 8px; overflow: hidden; background: #000; }
 
-    #confirmModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 10000; align-items: center; justify-content: center; }
-    .confirm-card { background: #fff; border-radius: 14px; padding: 22px; width: 90%; max-width: 400px; text-align: center; }
-    .confirm-btns { display: flex; gap: 10px; margin-top: 16px; }
-    .btn-confirm-yes { flex: 1; padding: 10px; background: var(--yahoo-green); color: #fff; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; }
+    .btn-confirm-yes { flex: 1; padding: 10px; background: var(--green); color: #fff; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; }
     .btn-confirm-no { flex: 1; padding: 10px; background: #94a3b8; color: #fff; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
     .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 10001; }
@@ -110,119 +101,142 @@
 
 <div class="app-container">
 
-  <!-- TOP HEADER WITH SEARCH & CLEAR (X) BUTTON -->
+  <!-- HEADER -->
   <div class="yahoo-header">
-    <div class="brand-logo">
-      <span>✉️</span> HARSIDHI DISPATCH ERP
-    </div>
+    <div class="brand-logo"><span>📦</span> HARSIDHI ERP</div>
 
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" id="searchBox" class="search-input" placeholder="Search Customer Order #, Order #, AWB, SKU, GST..." oninput="onSearchInput(this.value)" />
-      <button id="searchClearBtn" class="search-clear-btn" onclick="clearSearch()" title="Clear Search">✕</button>
+      <input type="text" id="searchBox" class="search-input" placeholder="Search Order #, Cust #, AWB, SKU, Phone..." oninput="onSearchInput(this.value)" />
+      <button class="search-cam-btn" onclick="openScanner('SEARCH')" title="Scan barcode to search">📷</button>
+      <button id="searchClearBtn" class="search-clear-btn" onclick="clearSearch()">✕</button>
     </div>
 
-    <div class="header-right">
-      <span class="date-pill">Today: <b id="todayLabel"></b></span>
-    </div>
-  </div>
-
-  <!-- ACTION BAR WITH 5 CLEAN TABS (NO EXTRA METRIC STRIP) -->
-  <div class="yahoo-action-bar">
-    <div style="display:flex; align-items:center; gap:10px;">
-      <button class="btn-pack-primary" onclick="openScanner()">
-        📷 Click to Mark Packed
-      </button>
-      <button class="btn-table-action" onclick="loadData()">↻ Refresh</button>
-    </div>
-
-    <!-- 5 Clean Tabs With Integrated Badges -->
-    <div class="tabs-row">
-      <button class="tab-pill active" id="tabPending" onclick="switchTab('PENDING')">
-        📦 Pending <span class="tab-badge" id="cntTabPending">0</span>
-      </button>
-      <button class="tab-pill" id="tabPicked" onclick="switchTab('PICKED_UP')">
-        ✅ Picked Up / Packed <span class="tab-badge" id="cntTabPacked">0</span>
-      </button>
-      <button class="tab-pill" id="tabFailed" onclick="switchTab('PICKUP_FAILED')">
-        ⚠️ Pickup Failed <span class="tab-badge" id="cntTabFailed">0</span>
-      </button>
-      <button class="tab-pill" id="tabRto" onclick="switchTab('RTO_PENDING')">
-        ❌ RTO Pending <span class="tab-badge" id="cntTabRto">0</span>
-      </button>
-      <button class="tab-pill" id="tabRtoRec" onclick="switchTab('RTO_RECEIVED')">
-        📥 RTO Received <span class="tab-badge" id="cntTabRtoRec">0</span>
-      </button>
+    <div class="header-actions">
+      <button class="btn-export" onclick="openExportModal()">📥 Export Supabase CSV</button>
     </div>
   </div>
 
-  <!-- VIEWPORT: TABLE -->
+  <!-- KPI SUMMARY SLIDER (RESPONSIVE) -->
+  <div class="kpi-container">
+    <div class="kpi-card"><span class="kpi-num" id="kpiPending">0</span><span class="kpi-title">To Pack</span></div>
+    <div class="kpi-card"><span class="kpi-num" id="kpiPacked" style="color:var(--green);">0</span><span class="kpi-title">Packed Today</span></div>
+    <div class="kpi-card"><span class="kpi-num" id="kpiFailed" style="color:var(--red);">0</span><span class="kpi-title">Pickup Failed</span></div>
+    <div class="kpi-card"><span class="kpi-num" id="kpiDeliv" style="color:var(--green);">0</span><span class="kpi-title">Delivered</span></div>
+    <div class="kpi-card"><span class="kpi-num" id="kpiRto" style="color:var(--amber);">0</span><span class="kpi-title">RTO Pipeline</span></div>
+  </div>
+
+  <!-- ACTION & TABS -->
+  <div class="action-bar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="btn-mark-pack" onclick="openScanner('PACK')">📷 Click to Mark Packed</button>
+      <button class="btn-act" onclick="loadData()">↻</button>
+    </div>
+
+    <div class="tabs-slider">
+      <button class="tab-btn active" id="tabPending" onclick="switchTab('PENDING')">📦 Pending <span class="tab-badge" id="cTabPending">0</span></button>
+      <button class="tab-btn" id="tabPicked" onclick="switchTab('PICKED_UP')">✅ Picked Up / Packed <span class="tab-badge" id="cTabPacked">0</span></button>
+      <button class="tab-btn" id="tabFailed" onclick="switchTab('PICKUP_FAILED')">⚠️ Pickup Failed <span class="tab-badge" id="cTabFailed">0</span></button>
+      <button class="tab-btn" id="tabDeliv" onclick="switchTab('DELIVERED')">🚚 Delivered <span class="tab-badge" id="cTabDeliv">0</span></button>
+      <button class="tab-btn" id="tabRto" onclick="switchTab('RTO_PENDING')">❌ RTO Pending <span class="tab-badge" id="cTabRto">0</span></button>
+      <button class="tab-btn" id="tabRtoRec" onclick="switchTab('RTO_RECEIVED')">📥 RTO Received <span class="tab-badge" id="cTabRtoRec">0</span></button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
   <div class="viewport">
     <table class="yahoo-table">
       <thead>
         <tr>
-          <th style="min-width: 140px;">Customer Order #</th>
-          <th style="min-width: 130px;">Order Number</th>
+          <th style="min-width:130px;">Customer Order #</th>
+          <th style="min-width:120px;">Order #</th>
           <th>AWB & Courier</th>
-          <th style="min-width: 250px;">Products (SKU, Qty, Price)</th>
-          <th style="min-width: 180px;">Payment & GST Info</th>
+          <th style="min-width:240px;">Products (SKU, Qty)</th>
+          <th style="min-width:180px;">Payment & 5% GST Details</th>
           <th>Shipping Destination</th>
           <th>Status</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="8" style="text-align:center; padding:30px; color:#87929d;">Connecting to Boxd Logistics...</td></tr>
+        <tr><td colspan="8" style="text-align:center; padding:30px; color:#94a3b8;">Loading orders...</td></tr>
       </tbody>
     </table>
   </div>
 
 </div>
 
-<!-- SCANNER MODAL -->
-<div id="scannerModal" onclick="onModalBgClick(event)">
-  <div class="scanner-modal-card" onclick="event.stopPropagation()">
+<!-- SCANNER OVERLAY -->
+<div id="scannerModal" class="modal-overlay" onclick="closeScanner()">
+  <div class="modal-card" onclick="event.stopPropagation()">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3 style="font-size:15px; font-weight:800; color:#1d2228;">Scan AWB Barcode</h3>
+      <h3 style="font-size:15px; font-weight:800;" id="scannerTitle">Scan AWB Barcode</h3>
       <button onclick="closeScanner()" style="background:none; border:none; font-size:18px; cursor:pointer;">✕</button>
     </div>
     <div id="cameraReader"></div>
-    <p style="font-size:11.5px; color:#5c6873; text-align:center;">Point camera at barcode. Click outside anytime to close.</p>
   </div>
 </div>
 
-<!-- CONFIRMATION POPUP (YES/NO) -->
-<div id="confirmModal">
-  <div class="confirm-card">
-    <div style="font-size:36px; margin-bottom:6px;">📦</div>
-    <h3 style="font-size:16px; font-weight:800; color:#1d2228;">Mark as Packed?</h3>
-    <div style="background:#f8fafc; border:1px solid var(--yahoo-border); border-radius:6px; padding:10px; margin-top:10px; font-size:12.5px; text-align:left;">
-      <div><b>Customer Order #:</b> <span id="cCustOrderNum" style="color:var(--yahoo-blue); font-weight:800;"></span></div>
-      <div><b>Order Number:</b> <span id="cOrderNum"></span></div>
+<!-- MARK PACK CONFIRMATION (YES/NO) -->
+<div id="confirmModal" class="modal-overlay">
+  <div class="modal-card" style="text-align:center;">
+    <div style="font-size:32px;">📦</div>
+    <h3 style="font-size:16px; font-weight:800;">Confirm Mark Packed?</h3>
+    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:6px; padding:10px; font-size:12.5px; text-align:left;">
+      <div><b>Customer Order #:</b> <span id="cCustOrderNum" style="color:var(--blue); font-weight:800;"></span></div>
       <div><b>AWB:</b> <span id="cAwb" style="font-family:monospace; font-weight:700;"></span></div>
-      <div id="cItems" style="margin-top:4px; font-size:11.5px; color:#64748b;"></div>
+      <div id="cItems" style="margin-top:4px; font-size:11px; color:#64748b;"></div>
     </div>
-    <div class="confirm-btns">
+    <div style="display:flex; gap:10px; margin-top:10px;">
       <button class="btn-confirm-yes" onclick="confirmShift(true)">Yes, Mark Packed</button>
       <button class="btn-confirm-no" onclick="confirmShift(false)">No / Cancel</button>
     </div>
   </div>
 </div>
 
+<!-- UNDO CONFIRMATION (YES/NO WARNING) -->
+<div id="undoModal" class="modal-overlay">
+  <div class="modal-card" style="text-align:center;">
+    <div style="font-size:32px;">⚠️</div>
+    <h3 style="font-size:16px; font-weight:800; color:var(--red);">Warning: Undo Packed Order?</h3>
+    <p style="font-size:12px; color:var(--muted);">Kya aap sach me AWB <b id="undoTargetAwb"></b> ko Packed list se hata kar wapis Pending me bhejna chahte hain?</p>
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <button class="btn-confirm-yes" style="background:var(--red);" onclick="confirmUndoAction(true)">Yes, Undo</button>
+      <button class="btn-confirm-no" onclick="confirmUndoAction(false)">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT SUPABASE MODAL -->
+<div id="exportModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3 style="font-size:15px; font-weight:800;">📥 Export Picked Data from Supabase</h3>
+    <div style="display:flex; flex-direction:column; gap:8px; font-size:12px;">
+      <label>From Date:</label>
+      <input type="date" id="exportFromDate" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
+      <label>To Date:</label>
+      <input type="date" id="exportToDate" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
+    </div>
+    <div style="display:flex; gap:10px; margin-top:10px;">
+      <button class="btn-confirm-yes" style="background:var(--blue);" onclick="executeSupabaseExport()">Download CSV</button>
+      <button class="btn-confirm-no" onclick="document.getElementById('exportModal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  // ==========================================
-  // APNA DEPLOYED APPS SCRIPT URL YAHAN DALEIN
-  // ==========================================
-  const API_URL = "https://script.google.com/macros/s/AKfycbxMGvfUgEfqkT3VFGkJmbHg1Emxwz75XAanJ_-v__1EPgUQVmIVL6Q-GL879ou4Vr97/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbx94g0vbElWdQ28vhO3We9uACo9rtpDCpvtkktTnzQQle664jAa1CdeCxpUqBJOUdj6/exec";
+  const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbXluamlveWp0enpqdHdsb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDI5MzIsImV4cCI6MjEwNzgxODkzMn0.L34UB_G55TSP9EAW9Xox-obUUe8XsVIwDTJ8XwfQ85A";
 
   let ordersList = [];
-  let rtoReceivedList = [];
   let currentTab = "PENDING";
   let html5QrCode = null;
   let activeScanCandidate = null;
+  let activeUndoAwb = null;
+  let scannerPurpose = "PACK";
 
   const TODAY_STR = new Date().toISOString().slice(0, 10);
-  document.getElementById("todayLabel").innerText = TODAY_STR;
 
   function getDailyPacked() {
     const raw = localStorage.getItem("harsidhi_erp_packed_" + TODAY_STR);
@@ -233,19 +247,38 @@
     localStorage.setItem("harsidhi_erp_packed_" + TODAY_STR, JSON.stringify(list));
   }
 
-  function getLocalRtoReceived() {
-    const raw = localStorage.getItem("harsidhi_erp_rto_received");
-    return raw ? JSON.parse(raw) : [];
+  /* 5% INCLUSIVE GST CALCULATION (RAJASTHAN VS OUTSIDE) */
+  function computeGstDetails(order) {
+    const total = parseFloat(order.total_amount || 0);
+    const taxable = parseFloat((total / 1.05).toFixed(2));
+    const totalGst = parseFloat((total - taxable).toFixed(2));
+
+    const state = String(order.shipping_state || order.state || "").trim().toLowerCase();
+    const isRajasthan = state.includes("rajasthan") || state === "rj";
+
+    if (isRajasthan) {
+      const half = parseFloat((totalGst / 2).toFixed(2));
+      return {
+        taxable,
+        cgst: half,
+        sgst: (totalGst - half).toFixed(2),
+        igst: 0,
+        text: `Taxable: ₹${taxable} | CGST (2.5%): ₹${half} | SGST (2.5%): ₹${(totalGst - half).toFixed(2)}`
+      };
+    } else {
+      return {
+        taxable,
+        cgst: 0,
+        sgst: 0,
+        igst: totalGst,
+        text: `Taxable: ₹${taxable} | IGST (5%): ₹${totalGst}`
+      };
+    }
   }
 
-  function saveLocalRtoReceived(list) {
-    localStorage.setItem("harsidhi_erp_rto_received", JSON.stringify(list));
-  }
-
-  /* CLEARABLE SEARCH BAR */
+  /* SEARCH CONTROLS */
   function onSearchInput(val) {
-    const clearBtn = document.getElementById("searchClearBtn");
-    clearBtn.style.display = val.length > 0 ? "flex" : "none";
+    document.getElementById("searchClearBtn").style.display = val.length > 0 ? "flex" : "none";
     renderTable();
   }
 
@@ -253,7 +286,6 @@
     const input = document.getElementById("searchBox");
     input.value = "";
     document.getElementById("searchClearBtn").style.display = "none";
-    input.focus();
     renderTable();
   }
 
@@ -262,63 +294,52 @@
       const res = await fetch(`${API_URL}?action=getNotPickedOrders`).then(r => r.json());
       if (res.success) {
         ordersList = res.orders || [];
-        await loadRtoReport();
-        updateTabBadges();
+        updateMetrics();
         renderTable();
-      } else {
-        toast(res.error || "Failed to load orders");
       }
     } catch (e) {
-      toast("Network error loading orders.");
+      toast("Error loading orders.");
     }
   }
 
-  async function loadRtoReport() {
-    try {
-      const res = await fetch(`${API_URL}?action=getRtoReport`).then(r => r.json());
-      if (res.success) {
-        rtoReceivedList = res.received || [];
-      }
-    } catch(e) {}
-  }
-
-  function updateTabBadges() {
+  function updateMetrics() {
     const packedList = getDailyPacked();
-    const localRto = getLocalRtoReceived();
-    let pendingCount = 0, failedCount = 0, rtoPipelineCount = 0;
+    let toPack = 0, failed = 0, deliv = 0, rto = 0;
 
     ordersList.forEach(o => {
       const awb = String(o.awb_number).trim();
       const st = (o.status || "").toLowerCase().trim();
       const isPacked = packedList.includes(awb);
-      const isRto = st.includes("rto") || o.is_rto;
 
-      if (isRto) rtoPipelineCount++;
-      if (st === "pickup_failed") failedCount++;
-      if (!isPacked && !isRto) pendingCount++;
+      if (st.includes("rto") || o.is_rto) rto++;
+      else if (st === "delivered") deliv++;
+      else if (st === "pickup_failed") failed++;
+      else if (!isPacked) toPack++;
     });
 
-    // Update Tab Badges Directly
-    document.getElementById("cntTabPending").innerText = pendingCount;
-    document.getElementById("cntTabPacked").innerText = packedList.length;
-    document.getElementById("cntTabFailed").innerText = failedCount;
-    document.getElementById("cntTabRto").innerText = rtoPipelineCount;
-    document.getElementById("cntTabRtoRec").innerText = rtoReceivedList.length;
+    // KPI Cards
+    document.getElementById("kpiPending").innerText = toPack;
+    document.getElementById("kpiPacked").innerText = packedList.length;
+    document.getElementById("kpiFailed").innerText = failed;
+    document.getElementById("kpiDeliv").innerText = deliv;
+    document.getElementById("kpiRto").innerText = rto;
+
+    // Tab Badges
+    document.getElementById("cTabPending").innerText = toPack;
+    document.getElementById("cTabPacked").innerText = packedList.length;
+    document.getElementById("cTabFailed").innerText = failed;
+    document.getElementById("cTabDeliv").innerText = deliv;
+    document.getElementById("cTabRto").innerText = rto;
   }
 
-  function switchTab(tabName) {
-    currentTab = tabName;
-    document.querySelectorAll(".tab-pill").forEach(t => {
-      t.classList.remove("active");
-      t.classList.remove("active-danger");
-    });
-
-    if (tabName === "PENDING") document.getElementById("tabPending").classList.add("active");
-    if (tabName === "PICKED_UP") document.getElementById("tabPicked").classList.add("active");
-    if (tabName === "PICKUP_FAILED") document.getElementById("tabFailed").classList.add("active-danger");
-    if (tabName === "RTO_PENDING") document.getElementById("tabRto").classList.add("active-danger");
-    if (tabName === "RTO_RECEIVED") document.getElementById("tabRtoRec").classList.add("active");
-
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    const idMap = {
+      "PENDING": "tabPending", "PICKED_UP": "tabPicked", "PICKUP_FAILED": "tabFailed",
+      "DELIVERED": "tabDeliv", "RTO_PENDING": "tabRto", "RTO_RECEIVED": "tabRtoRec"
+    };
+    if (idMap[tab]) document.getElementById(idMap[tab]).classList.add("active");
     renderTable();
   }
 
@@ -326,45 +347,28 @@
     const tbody = document.getElementById("tableBody");
     const query = document.getElementById("searchBox").value.toLowerCase().trim();
     const packedList = getDailyPacked();
-    const localRto = getLocalRtoReceived();
-
-    if (currentTab === "RTO_RECEIVED") {
-      renderRtoReceivedView(query);
-      return;
-    }
 
     const filtered = ordersList.filter(o => {
       const awb = String(o.awb_number).trim();
       const st = (o.status || "").toLowerCase().trim();
       const isPacked = packedList.includes(awb);
       const isRto = st.includes("rto") || o.is_rto;
-      const isPhysicallyReceived = localRto.includes(awb);
 
-      // EXACT 5 TAB FILTER LOGIC (Includes all historical dates)
-      if (currentTab === "PENDING" && (isPacked || isRto)) return false;
+      // Tab Filtering
+      if (currentTab === "PENDING" && (isPacked || isRto || st === "delivered")) return false;
       if (currentTab === "PICKED_UP" && !isPacked) return false;
       if (currentTab === "PICKUP_FAILED" && st !== "pickup_failed") return false;
-      if (currentTab === "RTO_PENDING" && (!isRto || isPhysicallyReceived)) return false;
+      if (currentTab === "DELIVERED" && st !== "delivered") return false;
+      if (currentTab === "RTO_PENDING" && !isRto) return false;
 
-      // Search match
       const custOrderNum = String(o.customer_order_number || o.channel_order_id || o.order_number || "");
-      const searchable = [
-        o.order_number,
-        custOrderNum,
-        awb,
-        o.courier_name,
-        o.shipping_name || o.customer_name || "",
-        o.shipping_phone_number || o.customer_phone_number || "",
-        o.customer_gst_number || "",
-        JSON.stringify(o.products || [])
-      ].join(" ").toLowerCase();
-
+      const searchable = [o.order_number, custOrderNum, awb, o.shipping_name, o.shipping_phone_number].join(" ").toLowerCase();
       return searchable.includes(query);
     });
 
     tbody.innerHTML = "";
     if (filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#87929d;">No orders found in this tab.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#94a3b8;">No orders in this tab.</td></tr>';
       return;
     }
 
@@ -372,282 +376,203 @@
       const awb = String(o.awb_number).trim();
       const st = (o.status || "").toLowerCase().trim();
       const isPacked = packedList.includes(awb);
-      const isRto = st.includes("rto") || o.is_rto;
 
-      const custOrderVal = o.customer_order_number || o.channel_order_id || o.order_number || "-";
-      const orderVal = o.order_number || "-";
+      const custOrder = o.customer_order_number || o.channel_order_id || o.order_number || "-";
+      const gst = computeGstDetails(o);
 
-      const prods = o.products || o.order_items || [];
-      let productsHtml = "";
-      if (prods.length > 0) {
-        productsHtml = prods.map(it => `
-          <div class="sku-item">
-            <span class="sku-code">${it.sku || it.name || "Item"}</span>
-            <span style="color:#64748b;">(Qty: ${it.quantity || 1} | ₹${it.unit_price || 0})</span>
-          </div>
-        `).join("");
-      } else {
-        productsHtml = '<span style="color:#94a3b8; font-style:italic;">No items</span>';
-      }
+      const prods = (o.products || o.order_items || []).map(p => `
+        <div class="sku-box"><b>${p.sku || p.name}</b> <span style="color:#64748b;">(Qty: ${p.quantity || 1} | ₹${p.unit_price || 0})</span></div>
+      `).join("");
 
-      const payBadge = o.is_cod 
-        ? `<span class="badge-payment pay-cod">COD: ₹${o.cod_collectable_amount || o.total_amount || 0}</span>`
-        : `<span class="badge-payment pay-prepaid">PREPAID: ₹${o.total_amount || 0}</span>`;
+      const payChip = o.is_cod 
+        ? `<span class="pay-chip pay-cod">COD: ₹${o.cod_collectable_amount || o.total_amount || 0}</span>`
+        : `<span class="pay-chip pay-pre">PREPAID: ₹${o.total_amount || 0}</span>`;
 
-      const gstDetails = o.customer_gst_number 
-        ? `<div class="gst-text"><b>GST:</b> ${o.customer_gst_number}</div>`
-        : `<div class="gst-text">Tax: ${o.tax_rate ? o.tax_rate + '%' : 'Retail'}</div>`;
+      let statusPill = `<span class="tag-st st-shipped">Shipped</span>`;
+      if (isPacked) statusPill = `<span class="tag-st st-packed">Packed Today</span>`;
+      else if (st === "delivered") statusPill = `<span class="tag-st st-deliv">Delivered</span>`;
+      else if (st === "pickup_failed") statusPill = `<span class="tag-st st-failed">Pickup Failed</span>`;
 
-      let statusTag = '';
-      if (isRto) {
-        statusTag = '<span class="tag-status st-failed">RTO in Transit</span>';
-      } else if (isPacked) {
-        statusTag = '<span class="tag-status st-packed">Packed Today</span>';
-      } else if (st === "pickup_failed") {
-        statusTag = '<span class="tag-status st-failed">Pickup Failed</span>';
-      } else if (st === "shipped") {
-        statusTag = '<span class="tag-status st-shipped">Shipped</span>';
-      } else {
-        statusTag = '<span class="tag-status st-manifested">Manifested</span>';
-      }
-
-      let actionBtn = "";
-      if (isRto) {
-        actionBtn = `<button class="btn-table-action rto-btn" onclick="markRtoReceivedPhysically('${awb}')">📦 Mark RTO Received</button>`;
-      } else if (!isPacked) {
-        actionBtn = `<button class="btn-table-action pack-direct" onclick="triggerDirectShift('${awb}')">✓ Mark Packed</button>`;
-      } else {
-        actionBtn = `<button class="btn-table-action" onclick="undoPacked('${awb}')">↺ Undo</button>`;
-      }
+      const actionBtn = !isPacked
+        ? `<button class="btn-act pack-now" onclick="triggerDirectShift('${awb}')">✓ Pack</button>`
+        : `<button class="btn-act undo-now" onclick="requestUndoAction('${awb}')">↺ Undo</button>`;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><span class="cust-order-badge">#${custOrderVal}</span></td>
-        <td>
-          <div class="order-num-text">#${orderVal}</div>
-          <span style="font-size:11px; color:#87929d;">${o.store_name || "Shopify"}</span>
-        </td>
-        <td>
-          <span class="awb-text">${awb}</span>
-          <div class="courier-tag">${o.courier_name || o.courier_keyword || "Standard"}</div>
-        </td>
-        <td>${productsHtml}</td>
-        <td>
-          ${payBadge}
-          ${gstDetails}
-        </td>
-        <td>
-          <b>${o.shipping_name || o.customer_name || "-"}</b><br>
-          <span style="font-size:11.5px; color:#5c6873;">${o.shipping_city || ""}, ${o.shipping_pincode || ""}</span>
-        </td>
-        <td>${statusTag}</td>
+        <td><span class="cust-badge">#${custOrder}</span></td>
+        <td><b>#${o.order_number || "-"}</b><br><span style="font-size:11px; color:#87929d;">${o.store_name || "Shopify"}</span></td>
+        <td><span style="font-family:monospace; font-weight:700;">${awb}</span><br><span style="font-size:11px; color:#64748b;">${o.courier_name || "-"}</span></td>
+        <td>${prods || '<span style="color:#94a3b8;">No items</span>'}</td>
+        <td>${payChip}<div class="gst-tag">${gst.text}</div></td>
+        <td><b>${o.shipping_name || "-"}</b><br><span style="font-size:11px; color:#64748b;">${o.shipping_city || ""}, ${o.shipping_state || ""}</span></td>
+        <td>${statusPill}</td>
         <td>${actionBtn}</td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  function renderRtoReceivedView(query) {
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
-
-    const list = rtoReceivedList.filter(item => {
-      const text = [item.customer_order_number, item.order_number, item.awb, item.customer_name].join(" ").toLowerCase();
-      return text.includes(query);
-    });
-
-    if (list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#87929d;">No physically received RTO packets logged yet.</td></tr>';
-      return;
-    }
-
-    list.forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><span class="cust-order-badge">#${item.customer_order_number || "-"}</span></td>
-        <td><div class="order-num-text">#${item.order_number || "-"}</div></td>
-        <td><span class="awb-text">${item.awb}</span><div class="courier-tag">${item.courier || "-"}</div></td>
-        <td colspan="2"><span style="color:#64748b; font-size:12px;">Physical Packet Verified & Shelved in Warehouse</span></td>
-        <td><b>${item.customer_name || "-"}</b><br><span style="font-size:11px; color:#5c6873;">${item.phone || ""}</span></td>
-        <td><span class="tag-status st-rto-rec">RECEIVED (${item.date || ""})</span></td>
-        <td><span style="color:var(--yahoo-green); font-size:12px; font-weight:700;">✓ In Warehouse</span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function markRtoReceivedPhysically(awb) {
-    const order = ordersList.find(o => String(o.awb_number).trim() === awb);
-    if (!order) return;
-
-    if (!confirm(`Confirm packet physically received in warehouse for AWB ${awb}?`)) return;
-
-    let localRto = getLocalRtoReceived();
-    if (!localRto.includes(awb)) {
-      localRto.push(awb);
-      saveLocalRtoReceived(localRto);
-    }
-
-    fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: "markRtoReceived",
-        payload: {
-          awb_number: awb,
-          customer_order_number: order.customer_order_number || order.channel_order_id || order.order_number,
-          order_number: order.order_number,
-          customer_name: order.customer_name || order.shipping_name,
-          phone: order.customer_phone_number || order.shipping_phone_number,
-          courier_name: order.courier_name || order.courier_keyword || ""
-        }
-      })
-    });
-
-    toast("RTO packet physically received & synced to Sheet!");
-    loadRtoReport();
-    updateTabBadges();
-    renderTable();
-  }
-
-  function openScanner() {
+  /* SCANNER WORKFLOW (BOTH SEARCH & MARK PACK) */
+  function openScanner(purpose) {
+    scannerPurpose = purpose;
+    document.getElementById("scannerTitle").innerText = purpose === "SEARCH" ? "Scan Barcode to Find Order" : "Scan Barcode to Mark Packed";
     document.getElementById("scannerModal").style.display = "flex";
+
     html5QrCode = new Html5Qrcode("cameraReader");
-    html5QrCode.start(
-      { facingMode: "environment" },
-      { fps: 20, qrbox: { width: 280, height: 180 } },
-      (decodedText) => {
-        handleScannedCode(decodedText);
+    html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: { width: 280, height: 180 } }, (text) => {
+      const scannedAwb = text.trim();
+      closeScanner();
+
+      if (scannerPurpose === "SEARCH") {
+        document.getElementById("searchBox").value = scannedAwb;
+        onSearchInput(scannedAwb);
+        toast(`Found AWB: ${scannedAwb}`);
+      } else {
+        triggerDirectShift(scannedAwb);
       }
-    ).catch(err => {
-      toast("Camera permission denied / unavailable.");
+    }).catch(() => {
+      toast("Camera permission error.");
       closeScanner();
     });
   }
 
   function closeScanner() {
     if (html5QrCode) {
-      html5QrCode.stop().then(() => {
-        html5QrCode = null;
-        document.getElementById("scannerModal").style.display = "none";
-      }).catch(() => {
-        document.getElementById("scannerModal").style.display = "none";
-      });
+      html5QrCode.stop().then(() => { html5QrCode = null; document.getElementById("scannerModal").style.display = "none"; }).catch(() => { document.getElementById("scannerModal").style.display = "none"; });
     } else {
       document.getElementById("scannerModal").style.display = "none";
     }
   }
 
-  function onModalBgClick(e) {
-    if (e.target.id === "scannerModal") {
-      closeScanner();
-    }
-  }
-
-  function handleScannedCode(scannedText) {
-    const awb = scannedText.trim();
-    const candidate = ordersList.find(o => String(o.awb_number).trim() === awb);
-
-    if (!candidate) {
-      toast(`AWB ${awb} not in active queue!`);
-      return;
-    }
-
-    triggerDirectShift(awb);
-  }
-
+  /* MARK PACK WITH 7-DAYS SHEET DUPLICATE BLOCK */
   function triggerDirectShift(awb) {
     const candidate = ordersList.find(o => String(o.awb_number).trim() === awb);
-    if (!candidate) return;
+    if (!candidate) return toast(`AWB ${awb} not found in active list!`);
 
     activeScanCandidate = candidate;
-    if (html5QrCode) html5QrCode.pause();
-
-    document.getElementById("cCustOrderNum").innerText = candidate.customer_order_number || candidate.channel_order_id || candidate.order_number || "-";
-    document.getElementById("cOrderNum").innerText = candidate.order_number || "-";
+    document.getElementById("cCustOrderNum").innerText = candidate.customer_order_number || candidate.order_number;
     document.getElementById("cAwb").innerText = candidate.awb_number;
-
-    const prods = (candidate.products || []).map(p => `${p.sku || p.name} (x${p.quantity || 1})`).join(", ");
-    document.getElementById("cItems").innerText = prods ? `Items: ${prods}` : "";
-
     document.getElementById("confirmModal").style.display = "flex";
   }
 
-  function confirmShift(confirmed) {
+  async function confirmShift(yes) {
     document.getElementById("confirmModal").style.display = "none";
-
-    if (confirmed && activeScanCandidate) {
+    if (yes && activeScanCandidate) {
       const awb = String(activeScanCandidate.awb_number).trim();
       let packedList = getDailyPacked();
-      if (!packedList.includes(awb)) {
-        packedList.push(awb);
-        saveDailyPacked(packedList);
+
+      // Background Sheet & Supabase Save with 7-Days Duplicate Block Check
+      const summary = (activeScanCandidate.products || []).map(p => `${p.sku || p.name} x${p.quantity || 1}`).join(" | ");
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "savePackedEntry",
+          payload: {
+            awb_number: awb,
+            customer_order_number: activeScanCandidate.customer_order_number || activeScanCandidate.order_number,
+            order_number: activeScanCandidate.order_number,
+            store_name: activeScanCandidate.store_name,
+            customer_name: activeScanCandidate.shipping_name || activeScanCandidate.customer_name,
+            phone: activeScanCandidate.shipping_phone_number || activeScanCandidate.customer_phone_number,
+            city: activeScanCandidate.shipping_city,
+            state: activeScanCandidate.shipping_state,
+            pincode: activeScanCandidate.shipping_pincode,
+            is_cod: activeScanCandidate.is_cod,
+            total_amount: activeScanCandidate.total_amount,
+            courier_name: activeScanCandidate.courier_name,
+            package_weight_in_gm: activeScanCandidate.package_weight_in_gm,
+            products_summary: summary,
+            status: activeScanCandidate.status
+          }
+        })
+      }).then(r => r.json());
+
+      if (res.duplicate) {
+        toast(`⚠️ ${res.message}`);
+      } else {
+        if (!packedList.includes(awb)) {
+          packedList.push(awb);
+          saveDailyPacked(packedList);
+        }
+        toast(`Order #${activeScanCandidate.customer_order_number || activeScanCandidate.order_number} Packed!`);
       }
 
-      syncToSheet(activeScanCandidate);
-      toast(`Order #${activeScanCandidate.customer_order_number || activeScanCandidate.order_number} Packed!`);
-      updateTabBadges();
+      updateMetrics();
       renderTable();
     }
-
     activeScanCandidate = null;
+  }
 
-    if (html5QrCode) {
-      html5QrCode.resume();
+  /* SAFE UNDO WITH WARNING MODAL */
+  function requestUndoAction(awb) {
+    activeUndoAwb = awb;
+    document.getElementById("undoTargetAwb").innerText = awb;
+    document.getElementById("undoModal").style.display = "flex";
+  }
+
+  function confirmUndoAction(confirmed) {
+    document.getElementById("undoModal").style.display = "none";
+    if (confirmed && activeUndoAwb) {
+      let packedList = getDailyPacked();
+      packedList = packedList.filter(a => a !== activeUndoAwb);
+      saveDailyPacked(packedList);
+      toast(`AWB ${activeUndoAwb} moved back to Pending.`);
+      updateMetrics();
+      renderTable();
     }
+    activeUndoAwb = null;
   }
 
-  function undoPacked(awb) {
-    let packedList = getDailyPacked();
-    packedList = packedList.filter(a => a !== awb);
-    saveDailyPacked(packedList);
-    toast("Moved back to Pending.");
-    updateTabBadges();
-    renderTable();
+  /* SUPABASE CSV EXPORT ENGINE */
+  function openExportModal() {
+    document.getElementById("exportFromDate").value = TODAY_STR;
+    document.getElementById("exportToDate").value = TODAY_STR;
+    document.getElementById("exportModal").style.display = "flex";
   }
 
-  function syncToSheet(order) {
-    const summary = (order.products || []).map(p => `${p.sku || p.name} x${p.quantity || 1}`).join(" | ");
-    fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: "savePackedEntry",
-        payload: {
-          awb_number: order.awb_number,
-          order_number: order.order_number,
-          customer_order_number: order.customer_order_number || order.channel_order_id || order.order_number,
-          store_name: order.store_name,
-          customer_name: order.shipping_name || order.customer_name,
-          phone: order.shipping_phone_number || order.customer_phone_number,
-          city: order.shipping_city,
-          state: order.shipping_state,
-          pincode: order.shipping_pincode,
-          is_cod: order.is_cod,
-          total_amount: order.total_amount,
-          cod_collectable_amount: order.cod_collectable_amount,
-          tax_rate: order.tax_rate,
-          cgst_amount: order.cgst_amount,
-          sgst_amount: order.sgst_amount,
-          igst_amount: order.igst_amount,
-          customer_gst_number: order.customer_gst_number,
-          courier_name: order.courier_name,
-          courier_keyword: order.courier_keyword,
-          package_weight_in_gm: order.package_weight_in_gm,
-          estimated_delivery_date: order.estimated_delivery_date,
-          products_summary: summary,
-          status: order.status
-        }
-      })
-    });
+  async function executeSupabaseExport() {
+    const fromDate = document.getElementById("exportFromDate").value;
+    const toDate = document.getElementById("exportToDate").value;
+
+    if (!fromDate || !toDate) return toast("Select both dates!");
+    document.getElementById("exportModal").style.display = "none";
+    toast("Fetching Supabase records...");
+
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/dispatches?dispatch_date=gte.${fromDate}&dispatch_date=lte.${toDate}&select=*`;
+      const res = await fetch(url, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+      }).then(r => r.json());
+
+      if (!Array.isArray(res) || res.length === 0) return toast("No records found in this range.");
+
+      // Convert to CSV
+      const headers = Object.keys(res[0]);
+      const csvRows = [headers.join(",")];
+
+      res.forEach(row => {
+        const values = headers.map(h => `"${String(row[h] || '').replace(/"/g, '""')}"`);
+        csvRows.push(values.join(","));
+      });
+
+      const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const filename = `Dispatch_Report_${fromDate}_to_${toDate}.csv`;
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast("CSV Downloaded Successfully!");
+    } catch (e) {
+      toast("Failed to export from Supabase.");
+    }
   }
 
   function toast(msg) {
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.innerText = msg;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2500);
+    const t = document.createElement("div"); t.className = "toast"; t.innerText = msg;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
   }
 
   window.onload = loadData;
