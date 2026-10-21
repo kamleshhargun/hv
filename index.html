@@ -14,9 +14,9 @@
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
     .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: 0 10px 25px rgba(100,116,139,0.08); }
-    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; }
-    .nav-links { display: flex; gap: 10px; }
+    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
     .nav-btn:hover { background: #312e81; }
     .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
@@ -45,16 +45,26 @@
 
   <div style="background:#fff; padding:30px; border-radius:16px; border:1.5px solid var(--card-border); text-align:center;">
     <h3 style="color:#1e1b4b; margin-bottom:10px;">Welcome to Harsidhi Logistics ERP</h3>
-    <p style="color:var(--muted); font-size:14px;">Aap upar diye gaye navigation links se Order, RTO aur Payment Reconciliation pages par ja sakte hain.</p>
+    <p style="color:var(--muted); font-size:14px;">Aap upar diye gaye navigation links se Order, RTO aur Payment Reconciliation pages par asani se ja sakte hain.</p>
   </div>
 </div>
 <script>
-  // Fast Dashboard Analytics Loader
-  window.onload = function() {
-    document.getElementById("totalOrders").innerText = "1,240";
-    document.getElementById("totalRevenue").innerText = "₹4,85,200";
-    document.getElementById("pendingDeliveries").innerText = "85";
-  };
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbx...APNA_SCRIPT_ID.../exec";
+
+  async function loadDashboardSummary() {
+    try {
+      const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
+      if (res.success) {
+        document.getElementById("totalOrders").innerText = (res.orders || []).length;
+        let rev = 0;
+        (res.orders || []).forEach(o => { rev += (o.total_amount || 0); });
+        document.getElementById("totalRevenue").innerText = "₹" + rev.toLocaleString('en-IN');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  window.onload = loadDashboardSummary;
 </script>
 </body>
 </html>
