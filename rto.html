@@ -6,7 +6,10 @@
   <title>Return Reconciliation (RTO) - Harsidhi ERP</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root { --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4; --text: #1e293b; --muted: #64748b; }
+    :root {
+      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4;
+      --text: #1e293b; --muted: #64748b; --jelly-red: #ef4444; --radius-jelly: 20px;
+    }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
     .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; border: 1.5px solid var(--card-border); padding: 22px; box-shadow: 0 10px 25px rgba(100,116,139,0.08); }
@@ -14,17 +17,19 @@
     .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; }
     .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 700; }
+
     .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); margin-top: 15px; }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
     th { background: #f8fafc; color: #475569; padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); }
     td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); }
     .rto-badge { background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; }
+    .fail-badge { background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; }
   </style>
 </head>
 <body>
 <div class="app-box">
   <div class="header">
-    <div class="brand">🔄 Return Reconciliation (RTO)</div>
+    <div class="brand">🔄 Return Reconciliation & Pickup Failed Inward</div>
     <div class="nav-links">
       <a href="index.html" class="nav-btn">Dashboard</a>
       <a href="order.html" class="nav-btn">Order Recon</a>
@@ -32,28 +37,29 @@
       <a href="payment.html" class="nav-btn">Payment Recon</a>
     </div>
   </div>
-  <p style="color:var(--muted); font-size:13px;">Track returned shipments, RTO deliveries, and warehouse inward logs[cite: 2].</p>
+  <p style="color:var(--muted); font-size:13px;">Track rolling 32-day unpicked packages, failed attempts (like 25/09 & 06/10), and RTO returns.</p>
   
   <div class="table-viewport">
     <table>
       <thead>
         <tr>
           <th>AWB Number</th>
-          <th>Order Number</th>
-          <th>Customer</th>
-          <th>Reason</th>
-          <th>RTO Status</th>
+          <th>Customer Order #</th>
+          <th>Order #</th>
+          <th>Customer & Destination</th>
+          <th>Courier</th>
+          <th>Issue / Status</th>
         </tr>
       </thead>
       <tbody id="rtoTableBody">
-        <tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">Loading RTO logs...[cite: 3]</td></tr>
+        <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--muted);">Loading RTO and unpicked logs...</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzwsETqGw3qosnU2ag1MzUhVJbYusgL9LZAWhaSBOvyf_gr6U28laqQ09HMe02pZXuy/exec";
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz77WUMlZrhMFQeHQdw1MPFI3Lb4I27CqAhijmhLk5ufkJAXZePRHhdyGY8IWWmFXgJ/exec";
 
   async function loadRtoData() {
     try {
@@ -61,25 +67,36 @@
       const tbody = document.getElementById("rtoTableBody");
       tbody.innerHTML = "";
 
-      const rtoList = (res.orders || []).filter(o => String(o.status || "").toLowerCase().includes("rto") || String(o.status || "").toLowerCase().includes("fail"));
-      if (rtoList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">No RTO records found.</td></tr>';
+      const list = (res.orders || []).filter(o => 
+        o.cohort === "pickup_failed" || 
+        String(o.status || "").toLowerCase().includes("rto") || 
+        String(o.status || "").toLowerCase().includes("fail")
+      );
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--muted);">No unpicked or RTO records found.</td></tr>';
         return;
       }
 
-      rtoList.forEach(o => {
+      list.forEach(o => {
+        const isFailed = o.cohort === "pickup_failed" || String(o.status).toLowerCase().includes("fail");
+        const badge = isFailed 
+          ? `<span class="fail-badge">PICKUP FAILED (30-Day Window)</span>`
+          : `<span class="rto-badge">RTO LOGGED</span>`;
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><code>${o.awb_number}</code></td>
-          <td>${o.order_number}</td>
-          <td><b>${o.shipping_name}</b></td>
-          <td>${o.status}</td>
-          <td><span class="rto-badge">RTO Logged</span></td>
+          <td><b>#${o.customer_order_number}</b></td>
+          <td>#${o.order_number}</td>
+          <td><b>${o.shipping_name}</b> (${o.shipping_city}, ${o.shipping_state})</td>
+          <td>${o.courier_name}</td>
+          <td>${badge}</td>
         `;
         tbody.appendChild(tr);
       });
     } catch(err) {
-      document.getElementById("rtoTableBody").innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:red;">Error: ${err.message}</td></tr>`;
+      document.getElementById("rtoTableBody").innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:red;">Error: ${err.message}</td></tr>`;
     }
   }
 
