@@ -6,25 +6,54 @@
   <title>Order Reconciliation - Harsidhi ERP</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    :root { --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4; --text: #1e293b; --muted: #64748b; }
+    :root {
+      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4;
+      --text: #1e293b; --muted: #64748b; --jelly-blue: #3b82f6; --jelly-green: #10b981;
+      --jelly-red: #ef4444; --radius-jelly: 20px; --radius-pill: 30px;
+    }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
     .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; border: 1.5px solid var(--card-border); padding: 22px; box-shadow: 0 10px 25px rgba(100,116,139,0.08); }
-    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
     .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; }
     .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
-    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 700; }
-    .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); margin-top: 15px; }
+    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; }
+
+    .tabs-strip { display: flex; gap: 8px; margin: 15px 0; overflow-x: auto; }
+    .tab-pill { background: #f8fafc; border: 1.5px solid var(--card-border); color: #475569; padding: 7px 16px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .tab-pill.active { background: #1e1b4b; color: #fff; }
+
+    .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); margin-top: 10px; }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
     th { background: #f8fafc; color: #475569; padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); }
-    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); }
-    .status-badge { background: #dcfce7; color: #166534; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; }
+    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); vertical-align: top; }
+    
+    .cust-badge { background: #eff6ff; color: #3b82f6; border: 1.5px solid #bfdbfe; font-size: 13px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; }
+    .wh-pill { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; }
+    .wh-gs { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .wh-uc { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+    .wh-other { background: #f1f5f9; color: #475569; }
+
+    .sku-bubble { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 6px; font-size: 11px; margin-bottom: 3px; }
+    .btn-act { border: none; padding: 6px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+    .btn-act-pick { background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; }
+    .btn-act-pick:hover { background: #10b981; color: #fff; }
+    .btn-act-undo { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
+    .btn-act-undo:hover { background: #ef4444; color: #fff; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 440px; text-align: center; border: 1px solid var(--card-border); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
+    .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
+    .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
   </style>
 </head>
 <body>
 <div class="app-box">
   <div class="header">
-    <div class="brand">📦 Order Reconciliation & Delivered Intransit</div>
+    <div class="brand">📦 Order Reconciliation & Dispatches</div>
     <div class="nav-links">
       <a href="index.html" class="nav-btn">Dashboard</a>
       <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>
@@ -32,56 +61,214 @@
       <a href="payment.html" class="nav-btn">Payment Recon</a>
     </div>
   </div>
-  <p style="color:var(--muted); font-size:13px;">Manage all active orders, dispatches, and Delivered Intransit statuses synchronized securely with Supabase[cite: 2].</p>
-  
+
+  <div class="tabs-strip">
+    <button class="tab-pill active" id="tabToday" onclick="filterTab('today_new')">📦 Today New (<span id="cToday">0</span>)</button>
+    <button class="tab-pill" id="tabFailed" onclick="filterTab('pickup_failed')">⚠️ Pickup Failed (<span id="cFailed">0</span>)</button>
+    <button class="tab-pill" id="tabPicked" onclick="filterTab('picked_up')">✅ Picked Up In Sheet (<span id="cPicked">0</span>)</button>
+  </div>
+
   <div class="table-viewport">
     <table>
       <thead>
         <tr>
-          <th>AWB Number</th>
-          <th>Customer Order #</th>
-          <th>Customer Name</th>
-          <th>Courier</th>
-          <th>Total Amount</th>
-          <th>Status</th>
+          <th>Cust Order # (Tracking)</th>
+          <th>Order # & Warehouse</th>
+          <th>AWB & Courier</th>
+          <th>Products (SKU, Qty)</th>
+          <th>Payment & 5% GST</th>
+          <th>Customer & City</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="orderTableBody">
-        <tr><td colspan="6" style="text-align:center; padding:20px; color:var(--muted);">Loading orders from API...[cite: 3]</td></tr>
+        <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">Loading orders...</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
+<!-- CONFIRM PICKUP MODAL -->
+<div id="modalPick" class="modal-overlay">
+  <div class="modal-sheet">
+    <div style="font-size:36px; margin-bottom:6px;">📦</div>
+    <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Picked Up?</h3>
+    <p style="font-size:13px; color:var(--muted); margin-top:6px;">
+      Order <b id="pCustOrder"></b> (Warehouse: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) ko Picked Up mark karke Google Sheet Column C, Supabase aur Razorpay/GoKwik Auto-Recon me save karein?
+    </p>
+    <div class="modal-actions">
+      <button class="btn-m-confirm" onclick="commitPickup(true)">Yes, Mark Picked Up</button>
+      <button class="btn-m-cancel" onclick="commitPickup(false)">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM UNDO MODAL -->
+<div id="modalUndo" class="modal-overlay">
+  <div class="modal-sheet">
+    <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
+    <h3 style="color:var(--jelly-red); font-size:17px; font-weight:800;">Warning: Undo Picked Up?</h3>
+    <p style="font-size:13px; color:var(--muted); margin-top:6px;">
+      Order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) ko Sheet & Database se delete karke active queue me layein?
+    </p>
+    <div class="modal-actions">
+      <button class="btn-m-confirm" style="background:var(--jelly-red);" onclick="commitUndo(true)">Yes, Undo & Remove</button>
+      <button class="btn-m-cancel" onclick="commitUndo(false)">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzwsETqGw3qosnU2ag1MzUhVJbYusgL9LZAWhaSBOvyf_gr6U28laqQ09HMe02pZXuy/exec";
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz77WUMlZrhMFQeHQdw1MPFI3Lb4I27CqAhijmhLk5ufkJAXZePRHhdyGY8IWWmFXgJ/exec";
+  let masterOrders = [];
+  let activeTab = "today_new";
+  let currentCandidate = null;
 
   async function loadOrderData() {
     try {
       const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
-      const tbody = document.getElementById("orderTableBody");
-      tbody.innerHTML = "";
+      if (!res.success) return alert("Error: " + res.error);
 
-      if (!res.success || !res.orders || res.orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--muted);">No orders found.</td></tr>';
-        return;
-      }
+      masterOrders = res.orders || [];
+      document.getElementById("cToday").innerText = res.counts.today_new;
+      document.getElementById("cFailed").innerText = res.counts.pickup_failed;
+      document.getElementById("cPicked").innerText = res.counts.picked_up;
 
-      res.orders.forEach(o => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><code>${o.awb_number}</code></td>
-          <td>${o.customer_order_number}</td>
-          <td><b>${o.shipping_name}</b></td>
-          <td>${o.courier_name}</td>
-          <td>₹${o.total_amount}</td>
-          <td><span class="status-badge">${o.status || 'Delivered Intransit'}</span></td>
-        `;
-        tbody.appendChild(tr);
-      });
+      renderTable();
     } catch(err) {
-      document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:red;">Error loading data: ${err.message}</td></tr>`;
+      document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:red;">Error: ${err.message}</td></tr>`;
     }
+  }
+
+  function filterTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
+    if (tab === "today_new") document.getElementById("tabToday").classList.add("active");
+    if (tab === "pickup_failed") document.getElementById("tabFailed").classList.add("active");
+    if (tab === "picked_up") document.getElementById("tabPicked").classList.add("active");
+    renderTable();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById("orderTableBody");
+    tbody.innerHTML = "";
+
+    const list = masterOrders.filter(o => {
+      if (activeTab === "picked_up") return o.is_picked_up;
+      if (activeTab === "today_new") return !o.is_picked_up && o.cohort === "today_new";
+      if (activeTab === "pickup_failed") return !o.is_picked_up && o.cohort === "pickup_failed";
+      return false;
+    });
+
+    if (list.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">No orders in this tab.</td></tr>';
+      return;
+    }
+
+    list.forEach(o => {
+      const prodsHtml = (o.products || []).map(p => 
+        '<div class="sku-bubble"><b>' + (p.sku || p.name) + '</b> <span style="color:var(--muted);">(x' + p.quantity + ' | ₹' + p.unit_price + ')</span></div>'
+      ).join("");
+
+      let whBadge = '<span class="wh-pill wh-other">' + o.warehouse_tag + '</span>';
+      if (o.warehouse_tag === "GS") whBadge = '<span class="wh-pill wh-gs">🏭 GS (128)</span>';
+      else if (o.warehouse_tag === "UC") whBadge = '<span class="wh-pill wh-uc">🏬 UC (127)</span>';
+
+      const gstText = o.igst_amount > 0 ? 'IGST: ₹' + o.igst_amount : 'CGST: ₹' + o.cgst_amount + ' | SGST: ₹' + o.sgst_amount;
+      const actionBtn = o.is_picked_up
+        ? '<button class="btn-act btn-act-undo" onclick="promptUndo(\\'' + o.awb_number + '\\')">↺ Undo</button>'
+        : '<button class="btn-act btn-act-pick" onclick="promptPickup(\\'' + o.awb_number + '\\')">✓ Picked Up</button>';
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><span class="cust-badge">#${o.customer_order_number}</span></td>
+        <td><b>#${o.order_number}</b><br>${whBadge}</td>
+        <td><code style="font-weight:700;">${o.awb_number}</code><br><span style="font-size:11px; color:var(--muted);">${o.courier_name}</span></td>
+        <td>${prodsHtml || '-'}</td>
+        <td><b>₹${o.total_amount}</b> (${o.payment_mode})<div style="font-size:10.5px; color:var(--muted); margin-top:2px;">${gstText}</div></td>
+        <td><b>${o.shipping_name}</b><br><span style="font-size:11px; color:var(--muted);">${o.shipping_city}, ${o.shipping_state} (${o.shipping_pincode})</span></td>
+        <td>${actionBtn}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function promptPickup(awb) {
+    const order = masterOrders.find(o => o.awb_number === awb);
+    if (!order) return;
+    currentCandidate = order;
+    document.getElementById("pCustOrder").innerText = "#" + order.customer_order_number;
+    document.getElementById("pWh").innerText = order.warehouse_tag;
+    document.getElementById("pAwb").innerText = order.awb_number;
+    document.getElementById("modalPick").style.display = "flex";
+  }
+
+  async function commitPickup(yes) {
+    document.getElementById("modalPick").style.display = "none";
+    if (yes && currentCandidate) {
+      const ord = currentCandidate;
+      showToast("Logging #" + ord.customer_order_number + " & auto-verifying gateway...");
+
+      ord.is_picked_up = true;
+      renderTable();
+
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "savePickedUp", payload: ord })
+      }).then(r => r.json());
+
+      if (res.success) {
+        if (res.payment_reconciled) showToast("Auto-Paid via " + res.gateway + ": ₹" + res.payment_amount);
+        else showToast("Order #" + ord.customer_order_number + " Saved in Sheet (Pending Payment)");
+        loadOrderData();
+      } else {
+        alert("Save Error: " + res.error);
+      }
+    }
+    currentCandidate = null;
+  }
+
+  function promptUndo(awb) {
+    const order = masterOrders.find(o => o.awb_number === awb);
+    if (!order) return;
+    currentCandidate = order;
+    document.getElementById("uCustOrder").innerText = "#" + order.customer_order_number;
+    document.getElementById("uAwb").innerText = order.awb_number;
+    document.getElementById("modalUndo").style.display = "flex";
+  }
+
+  async function commitUndo(yes) {
+    document.getElementById("modalUndo").style.display = "none";
+    if (yes && currentCandidate) {
+      const ord = currentCandidate;
+      showToast("Reverting #" + ord.customer_order_number + "...");
+
+      ord.is_picked_up = false;
+      renderTable();
+
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "undoPickedUp", payload: { awb: ord.awb_number } })
+      }).then(r => r.json());
+
+      if (res.success) {
+        showToast("Reverted successfully!");
+        loadOrderData();
+      } else {
+        alert("Undo Error: " + res.error);
+      }
+    }
+    currentCandidate = null;
+  }
+
+  function showToast(msg) {
+    const el = document.createElement("div");
+    el.className = "toast-pill";
+    el.innerText = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
   }
 
   window.onload = loadOrderData;
