@@ -1,733 +1,496 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Harsidhi Logistics & Financial Health ERP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/html5-qrcode"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  
   <style>
+    /* 2026 JELLY-MORPHIC LIGHT THEME STYLES */
     :root {
-      --primary: #6001d2;
-      --primary-hover: #5000b8;
-      --bg: #f8fafc;
-      --border: #e2e8f0;
-      --text: #0f172a;
+      --bg: #f4f6fb;
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --card-border: #e8ecf4;
+      --text: #1e293b;
       --muted: #64748b;
-      --blue: #0284c7;
-      --green: #108a00;
-      --red: #dc2626;
-      --amber: #d97706;
+      
+      --jelly-blue: #3b82f6;
+      --jelly-blue-tint: #eff6ff;
+      --jelly-green: #10b981;
+      --jelly-green-tint: #ecfdf5;
+      --jelly-purple: #8b5cf6;
+      --jelly-purple-tint: #f5f3ff;
+      --jelly-amber: #f59e0b;
+      --jelly-amber-tint: #fffbeb;
+      --jelly-red: #ef4444;
+      --jelly-red-tint: #fef2f2;
+      
+      --shadow-jelly: 0 10px 25px -5px rgba(100, 116, 139, 0.08), 0 8px 10px -6px rgba(100, 116, 139, 0.04);
+      --shadow-bubble: 0 4px 14px 0 rgba(0, 0, 0, 0.04);
+      --radius-jelly: 20px;
+      --radius-pill: 30px;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-    html, body { height: 100%; width: 100vw; background: var(--bg); color: var(--text); overflow: hidden; }
-
-    .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; background: #fff; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
+    .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: var(--shadow-jelly); backdrop-filter: blur(16px); }
 
     /* HEADER */
-    .header { background: #fff; border-bottom: 1px solid var(--border); padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
-    .brand { font-size: 16px; font-weight: 800; color: var(--primary); letter-spacing: -0.4px; display: flex; align-items: center; gap: 6px; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 20px; flex-wrap: wrap; gap: 14px; }
+    .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; letter-spacing: -0.4px; }
+    .brand span { font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
 
-    .search-wrapper { position: relative; display: flex; align-items: center; width: 100%; max-width: 440px; }
-    .search-icon { position: absolute; left: 12px; color: #94a3b8; font-size: 14px; pointer-events: none; }
-    .search-input { width: 100%; height: 38px; background: #f1f5f9; border: 1px solid transparent; border-radius: 20px; padding: 0 65px 0 34px; font-size: 13px; font-weight: 500; outline: none; transition: all 0.2s; }
-    .search-input:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(96, 1, 210, 0.12); }
-    .search-cam-btn { position: absolute; right: 34px; background: none; border: none; font-size: 15px; cursor: pointer; color: var(--primary); padding: 4px; }
-    .search-clear-btn { position: absolute; right: 10px; background: #cbd5e1; border: none; width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 800; color: #475569; display: none; align-items: center; justify-content: center; cursor: pointer; }
+    /* JELLY BOUNCE BUTTONS */
+    .btn-jelly { border: none; padding: 10px 18px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-bubble); }
+    .btn-jelly:hover { transform: translateY(-2px) scale(1.02); }
+    .btn-jelly:active { transform: translateY(1px) scale(0.97); }
 
-    .header-actions { display: flex; align-items: center; gap: 8px; }
-    .btn-top { border: none; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-    .btn-payment-modal { background: #108a00; color: #fff; }
-    .btn-payment-modal:hover { background: #0c6b00; }
-    .btn-export { background: #0284c7; color: #fff; }
+    .btn-pay { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.28); }
+    .btn-refresh { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.28); }
 
-    /* EXECUTIVE FINANCIAL KPI SLIDER (BETWEEN HEADER & TABS) */
-    .kpi-slider { display: flex; gap: 10px; padding: 10px 18px; background: #fafbfc; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
-    .kpi-slider::-webkit-scrollbar { display: none; }
-    .kpi-box { flex: 1; min-width: 145px; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
-    .kpi-amount { font-size: 16px; font-weight: 800; color: var(--text); }
-    .kpi-desc { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+    /* FINANCIAL HEALTH KPI SLIDER */
+    .kpi-row { display: flex; gap: 12px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+    .kpi-row::-webkit-scrollbar { display: none; }
+    .kpi-card { flex: 1; min-width: 165px; background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); transition: all 0.2s ease; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-bubble); border-color: #cbd5e1; }
+    .kpi-val { font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+    .kpi-lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.4px; }
 
-    /* ACTION BAR WITH REQUESTED EXACT TAB SEQUENCE */
-    .action-bar { background: #fff; border-bottom: 1px solid var(--border); padding: 8px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
-    .btn-mark-pack { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    /* TABS */
+    .tabs-strip { display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto; border-bottom: 1.5px solid var(--card-border); padding-bottom: 12px; }
+    .tab-pill { background: #f8fafc; border: 1.5px solid var(--card-border); color: #475569; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
+    .tab-pill:hover { background: #f1f5f9; color: var(--text); }
+    .tab-pill.active { background: #1e1b4b; color: #fff; border-color: #1e1b4b; box-shadow: 0 4px 12px rgba(30, 27, 75, 0.2); }
+    .tab-badge { background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 20px; font-weight: 800; }
+    .tab-pill.active .tab-badge { background: rgba(255,255,255,0.25); color: #fff; }
 
-    .tabs-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; }
-    .tabs-row::-webkit-scrollbar { display: none; }
-    .tab-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid transparent; background: transparent; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
-    .tab-btn:hover { background: #f1f5f9; color: var(--text); }
-    .tab-btn.active { background: #f3e8ff; color: var(--primary); font-weight: 800; }
-    .tab-badge { font-size: 11px; font-weight: 800; padding: 1px 6px; border-radius: 10px; background: #e2e8f0; color: #475569; }
-    .tab-btn.active .tab-badge { background: var(--primary); color: #fff; }
+    /* TABLE */
+    .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    th { background: #f8fafc; color: #475569; padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1.5px solid var(--card-border); }
+    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top; color: #1e293b; }
+    tr:hover td { background: #fafcff; }
 
-    /* TABLE VIEWPORT */
-    .viewport { flex: 1; overflow-y: auto; background: #fff; }
-    .table-custom { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    .table-custom th { background: #fafbfc; color: #64748b; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 10px 14px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
-    .table-custom td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-    .table-custom tr:hover { background: #f8fafc; }
+    .cust-badge { background: var(--jelly-blue-tint); color: var(--jelly-blue); border: 1.5px solid #bfdbfe; font-size: 13.5px; font-weight: 800; padding: 3px 9px; border-radius: 10px; display: inline-block; }
+    
+    /* WAREHOUSE CANDY BADGES */
+    .wh-pill { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; letter-spacing: 0.5px; margin-top: 2px; }
+    .wh-gs { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .wh-uc { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
+    .wh-other { background: #f1f5f9; color: #475569; }
 
-    .cust-badge { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe; font-size: 13.5px; font-weight: 800; padding: 2px 8px; border-radius: 6px; display: inline-block; }
-    .sku-item { background: #f8fafc; border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px; font-size: 11px; margin-bottom: 2px; }
+    .sku-bubble { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px; font-size: 11px; margin-bottom: 3px; }
+    .pill-status { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; }
+    .pay-cod { background: #fef3c7; color: #92400e; }
+    .pay-pre { background: #dcfce7; color: #166534; }
+    .pay-paid { background: #dcfce7; color: #15803d; font-weight: 800; }
+    .pay-unpaid { background: #fee2e2; color: #b91c1c; font-weight: 800; }
 
-    .tag-st { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
-    .st-shipped { background: #eff6ff; color: #1d4ed8; }
-    .st-packed { background: #dcfce7; color: #15803d; }
-    .st-deliv { background: #ecfdf5; color: #047857; font-weight: 800; }
-    .st-failed { background: #fee2e2; color: #b91c1c; }
-    .st-paid { background: #dcfce7; color: #15803d; font-weight: 800; }
-    .st-unpaid { background: #fef3c7; color: #b45309; font-weight: 800; }
+    /* ACTION BUTTONS */
+    .btn-act { border: none; padding: 6px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s ease; }
+    .btn-act-pick { background: var(--jelly-green-tint); color: #047857; border: 1.5px solid #a7f3d0; }
+    .btn-act-pick:hover { background: #10b981; color: #fff; }
+    .btn-act-undo { background: var(--jelly-red-tint); color: #b91c1c; border: 1.5px solid #fecaca; }
+    .btn-act-undo:hover { background: #ef4444; color: #fff; }
 
-    .btn-act { background: #f8fafc; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 4px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
-    .btn-act.pack-now { background: #ecfdf5; border-color: #a7f3d0; color: var(--green); font-weight: 700; }
-    .btn-act.undo-now { background: #fef2f2; border-color: #fecaca; color: var(--red); font-weight: 700; }
+    /* JELLY MODAL DIALOGS */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--card-border); text-align: center; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
+    .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
 
-    /* MODALS */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; }
-    .modal-card { background: #fff; border-radius: 12px; padding: 18px; width: 92%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; }
-    #cameraReader { width: 100%; height: 260px; border-radius: 8px; overflow: hidden; background: #000; }
-
-    .btn-confirm-yes { flex: 1; padding: 10px; background: var(--green); color: #fff; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; }
-    .btn-confirm-no { flex: 1; padding: 10px; background: #94a3b8; color: #fff; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; }
-
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 10001; }
+    .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
   </style>
 </head>
 <body>
 
-<div class="app-container">
-
-  <!-- TOP HEADER -->
+<div class="app-box">
   <div class="header">
-    <div class="brand"><span>📦</span> HARSIDHI ERP</div>
-
-    <div class="search-wrapper">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchBox" class="search-input" placeholder="Search Cust #, Order #, AWB, SKU, Phone..." oninput="onSearchInput(this.value)" />
-      <button class="search-cam-btn" onclick="openScanner('SEARCH')" title="Scan Barcode to Find">📷</button>
-      <button id="searchClearBtn" class="search-clear-btn" onclick="clearSearch()">✕</button>
-    </div>
-
+    <div class="brand"><span>📦</span> HARSIDHI ENTERPRISE ERP</div>
     <div class="header-actions">
-      <button class="btn-top btn-payment-modal" onclick="openPaymentReconcileModal()">💳 Payment Reconcile</button>
-      <button class="btn-top btn-export" onclick="openExportModal()">📥 Export CSV</button>
+      <button class="btn-jelly btn-pay" onclick="openPaymentModal()">💳 Bulk Remittance Recon</button>
+      <button class="btn-jelly btn-refresh" onclick="loadDashboardData()">↻ Sync Station</button>
+      <span id="loadNotice" style="display:none; color:var(--jelly-amber); font-size:12px; font-weight:700;">Connecting...</span>
     </div>
   </div>
 
-  <!-- EXECUTIVE FINANCIAL HEALTH KPI SLIDER -->
-  <div class="kpi-slider">
-    <div class="kpi-box">
-      <span class="kpi-amount" id="kpiTodaySale">₹0</span>
-      <span class="kpi-desc">Today Gross Sales</span>
-    </div>
-    <div class="kpi-box">
-      <span class="kpi-amount" id="kpiPrepaidSale" style="color:var(--blue);">₹0</span>
-      <span class="kpi-desc">Prepaid Volume</span>
-    </div>
-    <div class="kpi-box">
-      <span class="kpi-amount" id="kpiCodCollectable" style="color:var(--amber);">₹0</span>
-      <span class="kpi-desc">COD In-Transit Pipeline</span>
-    </div>
-    <div class="kpi-box">
-      <span class="kpi-amount" id="kpiPaymentReceived" style="color:var(--green);">₹0</span>
-      <span class="kpi-desc">Bank Reconciled</span>
-    </div>
-    <div class="kpi-box">
-      <span class="kpi-amount" id="kpiPaymentPending" style="color:var(--red);">₹0</span>
-      <span class="kpi-desc">Payment Outstanding</span>
-    </div>
-    <div class="kpi-box">
-      <span class="kpi-amount" id="kpiGstLiability">₹0</span>
-      <span class="kpi-desc">Est. 5% GST Liability</span>
-    </div>
+  <!-- FINANCIAL HEALTH KPIS -->
+  <div class="kpi-row">
+    <div class="kpi-card"><div class="kpi-val" id="kpiGross">₹0</div><div class="kpi-lbl">Today Gross Sales</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpiPrepaid" style="color:var(--jelly-blue);">₹0</div><div class="kpi-lbl">Prepaid Volume</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpiCod" style="color:var(--jelly-amber);">₹0</div><div class="kpi-lbl">COD Pipeline</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpiBankRec" style="color:var(--jelly-green);">₹0</div><div class="kpi-lbl">Bank Reconciled</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpiBankPend" style="color:var(--jelly-red);">₹0</div><div class="kpi-lbl">Payment Outstanding</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpiGst" style="color:var(--jelly-purple);">₹0</div><div class="kpi-lbl">Est. 5% GST Liability</div></div>
   </div>
 
-  <!-- ACTION BAR WITH EXACT REQUESTED TAB ORDER -->
-  <div class="action-bar">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <button class="btn-mark-pack" onclick="openScanner('PACK')">📷 Click to Mark Packed</button>
-      <button class="btn-act" onclick="loadData()">↻</button>
-    </div>
-
-    <!-- Sequence: Pending -> Pickup Failed -> Picked Up / Packed -> Delivered -> RTO Pending -> RTO Received -> Payment Pending -> Payment Received -->
-    <div class="tabs-row">
-      <button class="tab-btn active" id="tabPending" onclick="switchTab('PENDING')">📦 Pending <span class="tab-badge" id="cTabPending">0</span></button>
-      <button class="tab-btn" id="tabFailed" onclick="switchTab('PICKUP_FAILED')">⚠️ Pickup Failed <span class="tab-badge" id="cTabFailed">0</span></button>
-      <button class="tab-btn" id="tabPicked" onclick="switchTab('PICKED_UP')">✅ Picked Up / Packed <span class="tab-badge" id="cTabPacked">0</span></button>
-      <button class="tab-btn" id="tabDeliv" onclick="switchTab('DELIVERED')">🚚 Delivered <span class="tab-badge" id="cTabDeliv">0</span></button>
-      <button class="tab-btn" id="tabRto" onclick="switchTab('RTO_PENDING')">❌ RTO Pending <span class="tab-badge" id="cTabRto">0</span></button>
-      <button class="tab-btn" id="tabRtoRec" onclick="switchTab('RTO_RECEIVED')">📥 RTO Received <span class="tab-badge" id="cTabRtoRec">0</span></button>
-      <button class="tab-btn" id="tabPayPend" onclick="switchTab('PAYMENT_PENDING')">⏳ Payment Pending <span class="tab-badge" id="cTabPayPend">0</span></button>
-      <button class="tab-btn" id="tabPayRec" onclick="switchTab('PAYMENT_RECEIVED')">💰 Payment Received <span class="tab-badge" id="cTabPayRec">0</span></button>
-    </div>
+  <!-- JELLY TABS -->
+  <div class="tabs-strip">
+    <button class="tab-pill active" id="tabToday" onclick="setTab('today_new')">📦 Pending (Today New) <span class="tab-badge" id="cToday">0</span></button>
+    <button class="tab-pill" id="tabFailed" onclick="setTab('pickup_failed')">⚠️ Pickup Failed <span class="tab-badge" id="cFailed">0</span></button>
+    <button class="tab-pill" id="tabPicked" onclick="setTab('picked_up')">✅ Picked Up / Packed <span class="tab-badge" id="cPicked">0</span></button>
+    <button class="tab-pill" id="tabPayPend" onclick="setTab('payment_pending')">⏳ Payment Pending <span class="tab-badge" id="cPayPend">0</span></button>
+    <button class="tab-pill" id="tabPayRec" onclick="setTab('payment_received')">💰 Payment Received <span class="tab-badge" id="cPayRec">0</span></button>
   </div>
 
   <!-- TABLE VIEWPORT -->
-  <div class="viewport">
-    <table class="table-custom">
+  <div class="table-viewport">
+    <table>
       <thead>
         <tr>
-          <th style="min-width:130px;">Customer Order #</th>
-          <th style="min-width:120px;">Order #</th>
+          <th style="min-width:130px;">Cust Order # (Tracking)</th>
+          <th style="min-width:130px;">Order # & Warehouse</th>
           <th>AWB & Courier</th>
-          <th style="min-width:240px;">Products (SKU, Qty)</th>
+          <th style="min-width:240px;">Products (SKU, Qty, Price)</th>
           <th style="min-width:170px;">Payment & 5% GST Details</th>
-          <th>Customer / City</th>
-          <th>Status</th>
+          <th>Customer & Destination</th>
           <th>Action</th>
         </tr>
       </thead>
-      <tbody id="tableBody">
-        <tr><td colspan="8" style="text-align:center; padding:30px; color:#94a3b8;">Loading orders across all pages...</td></tr>
+      <tbody id="gridTbody">
+        <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">Loading live data...</td></tr>
       </tbody>
     </table>
   </div>
-
 </div>
 
-<!-- BULK PAYMENT RECONCILIATION MODAL -->
-<div id="paymentModal" class="modal-overlay">
-  <div class="modal-card">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3 style="font-size:15px; font-weight:800; color:var(--green);">💳 Bulk Payment Reconciliation</h3>
-      <button onclick="document.getElementById('paymentModal').style.display='none'" style="background:none; border:none; font-size:18px; cursor:pointer;">✕</button>
-    </div>
-    <div style="font-size:12px; color:var(--muted);">
-      Google Sheet ya Excel se do columns copy karke yahan paste karein: <b>AWB [Tab / Space / Comma] Amount</b>
-    </div>
-    <div>
-      <label style="font-size:11px; font-weight:700;">Remittance Date:</label>
-      <input type="date" id="reconcileDate" style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; margin-top:3px;">
-    </div>
-    <div>
-      <label style="font-size:11px; font-weight:700;">AWB & Received Amount Paste Box:</label>
-      <textarea id="bulkPasteText" placeholder="50845018032080	899&#10;50845018032091	1250" style="width:100%; height:140px; padding:8px; border:1px solid var(--border); border-radius:6px; font-family:monospace; font-size:12px;"></textarea>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button class="btn-confirm-yes" onclick="submitBulkPaymentReconcile()">Reconcile & Update Supabase</button>
-      <button class="btn-confirm-no" onclick="document.getElementById('paymentModal').style.display='none'">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- CAMERA SCANNER MODAL -->
-<div id="scannerModal" class="modal-overlay" onclick="closeScanner()">
-  <div class="modal-card" onclick="event.stopPropagation()">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3 style="font-size:15px; font-weight:800;" id="scannerTitle">Scan AWB Barcode</h3>
-      <button onclick="closeScanner()" style="background:none; border:none; font-size:18px; cursor:pointer;">✕</button>
-    </div>
-    <div id="cameraReader"></div>
-  </div>
-</div>
-
-<!-- CONFIRM MARK PACK MODAL -->
-<div id="confirmModal" class="modal-overlay">
-  <div class="modal-card" style="text-align:center;">
-    <div style="font-size:32px;">📦</div>
-    <h3 style="font-size:16px; font-weight:800;">Confirm Mark Packed?</h3>
-    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:6px; padding:10px; font-size:12.5px; text-align:left;">
-      <div><b>Customer Order #:</b> <span id="cCustOrderNum" style="color:var(--blue); font-weight:800;"></span></div>
-      <div><b>AWB:</b> <span id="cAwb" style="font-family:monospace; font-weight:700;"></span></div>
-      <div id="cItems" style="margin-top:4px; font-size:11px; color:#64748b;"></div>
-    </div>
-    <div style="display:flex; gap:10px; margin-top:10px;">
-      <button class="btn-confirm-yes" onclick="confirmShift(true)">Yes, Mark Packed</button>
-      <button class="btn-confirm-no" onclick="confirmShift(false)">No / Cancel</button>
+<!-- PICKUP CONFIRMATION MODAL -->
+<div id="modalPick" class="modal-overlay">
+  <div class="modal-sheet">
+    <div style="font-size:36px; margin-bottom:6px;">📦</div>
+    <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Picked Up?</h3>
+    <p style="font-size:13px; color:var(--muted); margin-top:6px;">
+      Order <b id="pCustOrder" style="color:#0f172a;"></b> (Warehouse: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) ko Picked Up mark karke Google Sheet, Supabase aur Razorpay/GoKwik Auto-Reconciliation me save karein?
+    </p>
+    <div class="modal-actions">
+      <button class="btn-m-confirm" onclick="commitPickup(true)">Yes, Mark Picked Up</button>
+      <button class="btn-m-cancel" onclick="commitPickup(false)">No / Cancel</button>
     </div>
   </div>
 </div>
 
 <!-- UNDO CONFIRMATION MODAL -->
-<div id="undoModal" class="modal-overlay">
-  <div class="modal-card" style="text-align:center;">
-    <div style="font-size:32px;">⚠️</div>
-    <h3 style="font-size:16px; font-weight:800; color:var(--red);">Warning: Undo Packed Order?</h3>
-    <p style="font-size:12px; color:var(--muted);">Kya aap sach me AWB <b id="undoTargetAwb"></b> ko wapis Pending me bhejna chahte hain?</p>
-    <div style="display:flex; gap:10px; margin-top:12px;">
-      <button class="btn-confirm-yes" style="background:var(--red);" onclick="confirmUndoAction(true)">Yes, Undo</button>
-      <button class="btn-confirm-no" onclick="confirmUndoAction(false)">Cancel</button>
+<div id="modalUndo" class="modal-overlay">
+  <div class="modal-sheet">
+    <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
+    <h3 style="color:var(--jelly-red); font-size:17px; font-weight:800;">Warning: Undo Picked Up?</h3>
+    <p style="font-size:13px; color:var(--muted); margin-top:6px;">
+      Order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) ko Sheet & Database se delete karke wapis active queue me layein?
+    </p>
+    <div class="modal-actions">
+      <button class="btn-m-confirm" style="background:var(--jelly-red);" onclick="commitUndo(true)">Yes, Undo & Remove</button>
+      <button class="btn-m-cancel" onclick="commitUndo(false)">Cancel</button>
     </div>
   </div>
 </div>
 
-<!-- EXPORT SUPABASE MODAL -->
-<div id="exportModal" class="modal-overlay">
-  <div class="modal-card">
-    <h3 style="font-size:15px; font-weight:800;">📥 Export Supabase CSV Report</h3>
-    <div style="display:flex; flex-direction:column; gap:8px; font-size:12px;">
-      <label>From Date:</label>
-      <input type="date" id="exportFromDate" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
-      <label>To Date:</label>
-      <input type="date" id="exportToDate" style="padding:8px; border:1px solid var(--border); border-radius:6px;">
+<!-- BULK PAYMENT RECON MODAL -->
+<div id="modalPay" class="modal-overlay">
+  <div class="modal-sheet" style="text-align:left; max-width:480px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="color:var(--jelly-green); font-size:16px; font-weight:800;">💳 Bulk Payment Remittance</h3>
+      <button onclick="document.getElementById('modalPay').style.display='none'" style="background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer;">✕</button>
     </div>
-    <div style="display:flex; gap:10px; margin-top:10px;">
-      <button class="btn-confirm-yes" style="background:var(--blue);" onclick="executeSupabaseExport()">Download CSV</button>
-      <button class="btn-confirm-no" onclick="document.getElementById('exportModal').style.display='none'">Cancel</button>
+    <label style="font-size:11px; font-weight:700; color:var(--muted);">Remittance Date:</label>
+    <input type="date" id="remitDate" style="width:100%; padding:9px; border:1.5px solid var(--card-border); border-radius:10px; margin-top:3px; margin-bottom:12px; outline:none;" />
+    <label style="font-size:11px; font-weight:700; color:var(--muted);">Paste AWB & Received Amount (2 Columns):</label>
+    <textarea id="bulkPasteText" placeholder="50845018032080	899&#10;50845018032091	1250" style="width:100%; height:130px; padding:10px; border:1.5px solid var(--card-border); border-radius:10px; font-family:monospace; font-size:12px; margin-top:3px; outline:none;"></textarea>
+    <div class="modal-actions">
+      <button class="btn-m-confirm" onclick="submitRemittance()">Reconcile All</button>
+      <button class="btn-m-cancel" onclick="document.getElementById('modalPay').style.display='none'">Cancel</button>
     </div>
   </div>
 </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbzoRJiu14UEc7RI60r8pUvj0b7To7SfpPPVeGc8NdiMRW1hfM4HUgP7RBjORL7swmn-/exec";
-  const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbXluamlveWp0enpqdHdsb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDI5MzIsImV4cCI6MjEwNzgxODkzMn0.L34UB_G55TSP9EAW9Xox-obUUe8XsVIwDTJ8XwfQ85A";
+  // YAHAN APNA GOOGLE APPS SCRIPT WEB APP DEPLOYMENT URL DALEIN
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbx...APNA_SCRIPT_ID.../exec";
 
-  let ordersList = [];
-  let savedPickedList = [];
-  let currentTab = "PENDING";
-  let html5QrCode = null;
-  let activeScanCandidate = null;
-  let activeUndoAwb = null;
-  let scannerPurpose = "PACK";
+  let stationOrders = [];
+  let savedOrders = [];
+  let activeTab = "today_new";
+  let activeCandidate = null;
 
-  const TODAY_STR = new Date().toISOString().slice(0, 10);
-  document.getElementById("reconcileDate").value = TODAY_STR;
+  document.getElementById("remitDate").value = new Date().toISOString().slice(0, 10);
 
-  function getDailyPacked() {
-    const raw = localStorage.getItem("harsidhi_erp_packed_" + TODAY_STR);
-    return raw ? JSON.parse(raw) : [];
-  }
+  async function loadDashboardData() {
+    const notice = document.getElementById("loadNotice");
+    notice.style.display = "inline";
 
-  function saveDailyPacked(list) {
-    localStorage.setItem("harsidhi_erp_packed_" + TODAY_STR, JSON.stringify(list));
-  }
-
-  /* 5% INCLUSIVE GST CALCULATION (RAJASTHAN VS OTHER STATES) */
-  function computeGst(order) {
-    const total = parseFloat(order.total_amount || 0);
-    const taxable = parseFloat((total / 1.05).toFixed(2));
-    const totalGst = parseFloat((total - taxable).toFixed(2));
-
-    const state = String(order.shipping_state || order.state || "").trim().toLowerCase();
-    const isRajasthan = state.includes("rajasthan") || state === "rj";
-
-    if (isRajasthan) {
-      const half = parseFloat((totalGst / 2).toFixed(2));
-      return { taxable, cgst: half, sgst: (totalGst - half).toFixed(2), igst: 0, text: `Taxable: ₹${taxable} | CGST: ₹${half} | SGST: ₹${(totalGst - half).toFixed(2)}` };
-    } else {
-      return { taxable, cgst: 0, sgst: 0, igst: totalGst, text: `Taxable: ₹${taxable} | IGST (5%): ₹${totalGst}` };
-    }
-  }
-
-  function onSearchInput(val) {
-    document.getElementById("searchClearBtn").style.display = val.length > 0 ? "flex" : "none";
-    renderTable();
-  }
-
-  function clearSearch() {
-    const input = document.getElementById("searchBox");
-    input.value = "";
-    document.getElementById("searchClearBtn").style.display = "none";
-    input.focus();
-    renderTable();
-  }
-
-  async function loadData() {
     try {
-      const [resBoxd, resSaved] = await Promise.all([
-        fetch(`${API_URL}?action=getNotPickedOrders`).then(r => r.json()),
-        fetch(`${API_URL}?action=getSavedPickedOrders`).then(r => r.json())
-      ]);
+      const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
+      notice.style.display = "none";
 
-      if (resBoxd.success) ordersList = resBoxd.orders || [];
-      if (resSaved.success) savedPickedList = resSaved.saved || [];
+      if (!res.success) {
+        alert("API Error: " + res.error);
+        return;
+      }
 
-      updateExecutiveFinancialDashboard();
-      renderTable();
-    } catch (e) {
-      toast("Error loading sync data.");
+      stationOrders = res.orders || [];
+      savedOrders = res.saved_picked_orders || [];
+
+      updateExecutiveMetrics();
+      renderGrid();
+    } catch(err) {
+      notice.style.display = "none";
+      alert("Failed connecting to Backend: " + err.message);
     }
   }
 
-  /* FINANCIAL & EXECUTIVE KPI RECONCILIATION */
-  function updateExecutiveFinancialDashboard() {
-    const packedToday = getDailyPacked();
+  function updateExecutiveMetrics() {
+    let grossToday = 0, prepaidVol = 0, codPipeline = 0, bankRec = 0, bankPend = 0, gstLiability = 0;
+    let cntToday = 0, cntFailed = 0, cntPicked = 0, cntPayPend = 0, cntPayRec = 0;
 
-    let todayGrossSales = 0;
-    let prepaidVol = 0;
-    let codPipeline = 0;
-    let paymentRec = 0;
-    let paymentPend = 0;
-    let gstAccrual = 0;
-
-    let cPending = 0, cFailed = 0, cDeliv = 0, cRto = 0, cPayPend = 0, cPayRec = 0;
-
-    // 1. Boxd Open orders metrics
-    ordersList.forEach(o => {
-      const awb = String(o.awb_number).trim();
-      const st = (o.status || "").toLowerCase().trim();
-      const isPacked = packedToday.includes(awb);
-
-      if (st.includes("rto") || o.is_rto) cRto++;
-      else if (st === "pickup_failed") cFailed++;
-      else if (!isPacked) cPending++;
-
-      if (isPacked) {
-        const amt = parseFloat(o.total_amount || 0);
-        todayGrossSales += amt;
-        const gst = computeGst(o);
-        gstAccrual += (parseFloat(gst.cgst) + parseFloat(gst.sgst) + parseFloat(gst.igst));
-      }
+    stationOrders.forEach(o => {
+      if (o.is_picked_up) {
+        cntPicked++;
+        grossToday += o.total_amount;
+        gstLiability += (o.cgst_amount + o.sgst_amount + o.igst_amount);
+      } else if (o.cohort === "today_new") cntToday++;
+      else if (o.cohort === "pickup_failed") cntFailed++;
     });
 
-    // 2. Saved Picked list metrics (Delivered strictly from saved records)
-    savedPickedList.forEach(s => {
-      const amt = parseFloat(s.total_amount || 0);
-      if (s.boxd_status === "delivered" || s.packed_status === "DELIVERED") cDeliv++;
-
-      if (s.payment_mode === "PREPAID") prepaidVol += amt;
-      else codPipeline += amt;
+    savedOrders.forEach(s => {
+      if (s.payment_mode === "PREPAID") prepaidVol += s.total_amount;
+      else codPipeline += s.total_amount;
 
       if (s.payment_status === "RECEIVED") {
-        paymentRec += parseFloat(s.payment_received_amount || amt);
-        cPayRec++;
+        bankRec += s.payment_received_amount;
+        cntPayRec++;
       } else {
-        paymentPend += amt;
-        cPayPend++;
+        bankPend += s.total_amount;
+        cntPayPend++;
       }
     });
 
-    // KPI Slider Values
-    document.getElementById("kpiTodaySale").innerText = `₹${todayGrossSales.toLocaleString('en-IN')}`;
-    document.getElementById("kpiPrepaidSale").innerText = `₹${prepaidVol.toLocaleString('en-IN')}`;
-    document.getElementById("kpiCodCollectable").innerText = `₹${codPipeline.toLocaleString('en-IN')}`;
-    document.getElementById("kpiPaymentReceived").innerText = `₹${paymentRec.toLocaleString('en-IN')}`;
-    document.getElementById("kpiPaymentPending").innerText = `₹${paymentPend.toLocaleString('en-IN')}`;
-    document.getElementById("kpiGstLiability").innerText = `₹${gstAccrual.toFixed(2)}`;
+    document.getElementById("kpiGross").innerText = "₹" + grossToday.toLocaleString('en-IN');
+    document.getElementById("kpiPrepaid").innerText = "₹" + prepaidVol.toLocaleString('en-IN');
+    document.getElementById("kpiCod").innerText = "₹" + codPipeline.toLocaleString('en-IN');
+    document.getElementById("kpiBankRec").innerText = "₹" + bankRec.toLocaleString('en-IN');
+    document.getElementById("kpiBankPend").innerText = "₹" + bankPend.toLocaleString('en-IN');
+    document.getElementById("kpiGst").innerText = "₹" + gstLiability.toFixed(2);
 
-    // Tab Badges
-    document.getElementById("cTabPending").innerText = cPending;
-    document.getElementById("cTabFailed").innerText = cFailed;
-    document.getElementById("cTabPacked").innerText = packedToday.length;
-    document.getElementById("cTabDeliv").innerText = cDeliv;
-    document.getElementById("cTabRto").innerText = cRto;
-    document.getElementById("cTabPayPend").innerText = cPayPend;
-    document.getElementById("cTabPayRec").innerText = cPayRec;
+    document.getElementById("cToday").innerText = cntToday;
+    document.getElementById("cFailed").innerText = cntFailed;
+    document.getElementById("cPicked").innerText = cntPicked;
+    document.getElementById("cPayPend").innerText = cntPayPend;
+    document.getElementById("cPayRec").innerText = cntPayRec;
   }
 
-  function switchTab(tab) {
-    currentTab = tab;
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    const idMap = {
-      "PENDING": "tabPending", "PICKUP_FAILED": "tabFailed", "PICKED_UP": "tabPicked",
-      "DELIVERED": "tabDeliv", "RTO_PENDING": "tabRto", "RTO_RECEIVED": "tabRtoRec",
-      "PAYMENT_PENDING": "tabPayPend", "PAYMENT_RECEIVED": "tabPayRec"
+  function setTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
+    const map = {
+      "today_new": "tabToday", "pickup_failed": "tabFailed", "picked_up": "tabPicked",
+      "payment_pending": "tabPayPend", "payment_received": "tabPayRec"
     };
-    if (idMap[tab]) document.getElementById(idMap[tab]).classList.add("active");
-    renderTable();
+    if (map[tab]) document.getElementById(map[tab]).classList.add("active");
+    renderGrid();
   }
 
-  function renderTable() {
-    const tbody = document.getElementById("tableBody");
-    const query = document.getElementById("searchBox").value.toLowerCase().trim();
-    const packedList = getDailyPacked();
+  function renderGrid() {
+    const tbody = document.getElementById("gridTbody");
+    tbody.innerHTML = "";
 
-    let displayList = [];
-
-    // DELIVERED, PAYMENT PENDING, PAYMENT RECEIVED read strictly from Saved Picked dataset
-    if (["DELIVERED", "PAYMENT_PENDING", "PAYMENT_RECEIVED"].includes(currentTab)) {
-      displayList = savedPickedList.filter(s => {
-        if (currentTab === "DELIVERED" && s.boxd_status !== "delivered") return false;
-        if (currentTab === "PAYMENT_PENDING" && s.payment_status === "RECEIVED") return false;
-        if (currentTab === "PAYMENT_RECEIVED" && s.payment_status !== "RECEIVED") return false;
-
-        const text = [s.order_number, s.customer_order_number, s.awb_number, s.customer_name, s.phone].join(" ").toLowerCase();
-        return text.includes(query);
+    // Payment Tabs
+    if (activeTab === "payment_pending" || activeTab === "payment_received") {
+      const list = savedOrders.filter(s => {
+        if (activeTab === "payment_pending") return s.payment_status !== "RECEIVED";
+        if (activeTab === "payment_received") return s.payment_status === "RECEIVED";
+        return false;
       });
 
-      renderSavedTable(displayList);
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">No payment records in this queue.</td></tr>';
+        return;
+      }
+
+      list.forEach(s => {
+        const payPill = s.payment_status === "RECEIVED"
+          ? '<span class="pill-status pay-paid">PAID: ₹' + s.payment_received_amount + ' (' + s.payment_received_date + ')</span>'
+          : '<span class="pill-status pay-unpaid">PENDING: ₹' + s.total_amount + '</span>';
+
+        let whBadge = '<span class="wh-pill wh-other">' + s.warehouse_tag + '</span>';
+        if (s.warehouse_tag === "GS") whBadge = '<span class="wh-pill wh-gs">🏭 GS (128)</span>';
+        else if (s.warehouse_tag === "UC") whBadge = '<span class="wh-pill wh-uc">🏬 UC (127)</span>';
+
+        const gatewayTag = s.gateway ? '<div style="font-size:10px; color:var(--jelly-purple); font-weight:700; margin-top:2px;">' + s.gateway + ' (' + (s.tx_id || '') + ')</div>' : '';
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = 
+          '<td><span class="cust-badge">#' + s.customer_order_number + '</span></td>' +
+          '<td><b>#' + s.order_number + '</b><br>' + whBadge + '</td>' +
+          '<td><code style="font-weight:700;">' + s.awb_number + '</code></td>' +
+          '<td><span style="font-size:11px; color:#475569;">' + (s.products_summary || '-') + '</span></td>' +
+          '<td>' + payPill + gatewayTag + '<div style="font-size:10.5px; color:var(--muted); margin-top:2px;">Mode: ' + s.payment_mode + '</div></td>' +
+          '<td><b>' + s.customer_name + '</b><br><span style="font-size:11px; color:var(--muted);">' + s.city + ', ' + s.state + '</span></td>' +
+          '<td><span style="color:var(--jelly-green); font-size:12px; font-weight:800;">✓ Synced</span></td>';
+        tbody.appendChild(tr);
+      });
       return;
     }
 
-    // Open Boxd Orders (Pending, Pickup Failed, Picked Today, RTO)
-    displayList = ordersList.filter(o => {
-      const awb = String(o.awb_number).trim();
-      const st = (o.status || "").toLowerCase().trim();
-      const isPacked = packedList.includes(awb);
-      const isRto = st.includes("rto") || o.is_rto;
-
-      if (currentTab === "PENDING" && (isPacked || isRto)) return false;
-      if (currentTab === "PICKUP_FAILED" && st !== "pickup_failed") return false;
-      if (currentTab === "PICKED_UP" && !isPacked) return false;
-      if (currentTab === "RTO_PENDING" && !isRto) return false;
-
-      const custOrderNum = String(o.customer_order_number || o.channel_order_id || o.order_number || "");
-      const text = [o.order_number, custOrderNum, awb, o.shipping_name, o.shipping_phone_number].join(" ").toLowerCase();
-      return text.includes(query);
+    // Queue Tabs
+    const list = stationOrders.filter(o => {
+      if (activeTab === "picked_up") return o.is_picked_up;
+      if (activeTab === "today_new") return !o.is_picked_up && o.cohort === "today_new";
+      if (activeTab === "pickup_failed") return !o.is_picked_up && o.cohort === "pickup_failed";
+      return false;
     });
-
-    tbody.innerHTML = "";
-    if (displayList.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#94a3b8;">No orders in this queue.</td></tr>';
-      return;
-    }
-
-    displayList.forEach(o => {
-      const awb = String(o.awb_number).trim();
-      const st = (o.status || "").toLowerCase().trim();
-      const isPacked = packedList.includes(awb);
-      const custOrder = o.customer_order_number || o.channel_order_id || o.order_number || "-";
-      const gst = computeGst(o);
-
-      const prods = (o.products || o.order_items || []).map(p => `
-        <div class="sku-item"><b>${p.sku || p.name}</b> (Qty: ${p.quantity || 1} | ₹${p.unit_price || 0})</div>
-      `).join("");
-
-      const payChip = o.is_cod 
-        ? `<span class="tag-st" style="background:#fef3c7; color:#92400e;">COD: ₹${o.cod_collectable_amount || o.total_amount || 0}</span>`
-        : `<span class="tag-st" style="background:#dcfce7; color:#166534;">PREPAID: ₹${o.total_amount || 0}</span>`;
-
-      let statusPill = `<span class="tag-st st-shipped">Shipped</span>`;
-      if (isPacked) statusPill = `<span class="tag-st st-packed">Packed Today</span>`;
-      else if (st === "pickup_failed") statusPill = `<span class="tag-st st-failed">Pickup Failed</span>`;
-
-      const actionBtn = !isPacked
-        ? `<button class="btn-act pack-now" onclick="triggerDirectShift('${awb}')">✓ Pack</button>`
-        : `<button class="btn-act undo-now" onclick="requestUndoAction('${awb}')">↺ Undo</button>`;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><span class="cust-badge">#${custOrder}</span></td>
-        <td><b>#${o.order_number || "-"}</b><br><span style="font-size:11px; color:#87929d;">${o.store_name || "Shopify"}</span></td>
-        <td><span style="font-family:monospace; font-weight:700;">${awb}</span><br><span style="font-size:11px; color:#64748b;">${o.courier_name || "-"}</span></td>
-        <td>${prods || '<span style="color:#94a3b8;">No items</span>'}</td>
-        <td>${payChip}<div style="font-size:10.5px; color:#64748b; margin-top:2px;">${gst.text}</div></td>
-        <td><b>${o.shipping_name || "-"}</b><br><span style="font-size:11px; color:#64748b;">${o.shipping_city || ""}, ${o.shipping_state || ""}</span></td>
-        <td>${statusPill}</td>
-        <td>${actionBtn}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function renderSavedTable(list) {
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
 
     if (list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#94a3b8;">No records in this category.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">No orders in this queue.</td></tr>';
       return;
     }
 
-    list.forEach(s => {
-      const payPill = s.payment_status === "RECEIVED"
-        ? `<span class="tag-st st-paid">PAID: ₹${s.payment_received_amount} (${s.payment_received_date})</span>`
-        : `<span class="tag-st st-unpaid">PENDING: ₹${s.total_amount}</span>`;
+    list.forEach(o => {
+      const prodsHtml = (o.products || []).map(p => 
+        '<div class="sku-bubble"><b>' + (p.sku || p.name) + '</b> <span style="color:var(--muted);">(x' + p.quantity + ' | ₹' + p.unit_price + ')</span></div>'
+      ).join("");
+
+      const payPill = o.is_cod 
+        ? '<span class="pill-status pay-cod">COD: ₹' + o.cod_collectable_amount + '</span>'
+        : '<span class="pill-status pay-pre">PREPAID: ₹' + o.total_amount + '</span>';
+
+      const gstText = o.igst_amount > 0 
+        ? 'IGST: ₹' + o.igst_amount 
+        : 'CGST: ₹' + o.cgst_amount + ' | SGST: ₹' + o.sgst_amount;
+
+      let whBadge = '<span class="wh-pill wh-other">' + o.warehouse_tag + '</span>';
+      if (o.warehouse_tag === "GS") whBadge = '<span class="wh-pill wh-gs">🏭 GS (128)</span>';
+      else if (o.warehouse_tag === "UC") whBadge = '<span class="wh-pill wh-uc">🏬 UC (127)</span>';
+
+      const actionBtn = o.is_picked_up
+        ? '<button class="btn-act btn-act-undo" onclick="promptUndo(\\'' + o.awb_number + '\\')">↺ Undo</button>'
+        : '<button class="btn-act btn-act-pick" onclick="promptPickup(\\'' + o.awb_number + '\\')">✓ Picked Up</button>';
 
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><span class="cust-badge">#${s.customer_order_number || "-"}</span></td>
-        <td><b>#${s.order_number || "-"}</b><br><span style="font-size:11px; color:#87929d;">${s.store_name || "Shopify"}</span></td>
-        <td><span style="font-family:monospace; font-weight:700;">${s.awb_number}</span><br><span style="font-size:11px; color:#64748b;">${s.courier_name || "-"}</span></td>
-        <td><span style="font-size:11.5px; color:#334155;">${s.products_summary || "-"}</span></td>
-        <td>${payPill}<div style="font-size:10.5px; color:#64748b; margin-top:2px;">Mode: ${s.payment_mode}</div></td>
-        <td><b>${s.customer_name || "-"}</b><br><span style="font-size:11px; color:#64748b;">${s.city || ""}, ${s.state || ""}</span></td>
-        <td><span class="tag-st st-deliv">${s.boxd_status || s.packed_status}</span></td>
-        <td><span style="color:var(--green); font-size:12px; font-weight:700;">✓ Synced</span></td>
-      `;
+      tr.innerHTML = 
+        '<td><span class="cust-badge">#' + o.customer_order_number + '</span></td>' +
+        '<td><b>#' + o.order_number + '</b><br>' + whBadge + '</td>' +
+        '<td><code style="font-weight:700;">' + o.awb_number + '</code><br><span style="font-size:11px; color:var(--muted);">' + o.courier_name + '</span></td>' +
+        '<td>' + (prodsHtml || '<span style="color:var(--muted);">No items</span>') + '</td>' +
+        '<td>' + payPill + '<div style="font-size:10.5px; color:var(--muted); margin-top:2px;">Taxable: ₹' + o.taxable_amount + ' | ' + gstText + '</div></td>' +
+        '<td><b>' + o.shipping_name + '</b><br><span style="font-size:11px; color:var(--muted);">' + o.shipping_city + ', ' + o.shipping_state + ' (' + o.shipping_pincode + ')</span><br><span style="font-size:11px; color:var(--jelly-blue); font-weight:700;">' + o.customer_phone_number + '</span></td>' +
+        '<td>' + actionBtn + '</td>';
+
       tbody.appendChild(tr);
     });
   }
 
-  /* BULK PAYMENT RECONCILIATION MODAL & SUBMIT */
-  function openPaymentReconcileModal() {
-    document.getElementById("paymentModal").style.display = "flex";
+  function promptPickup(awb) {
+    const order = stationOrders.find(o => o.awb_number === awb);
+    if (!order) return;
+    activeCandidate = order;
+    document.getElementById("pCustOrder").innerText = "#" + order.customer_order_number;
+    document.getElementById("pWh").innerText = order.warehouse_tag;
+    document.getElementById("pAwb").innerText = order.awb_number;
+    document.getElementById("modalPick").style.display = "flex";
   }
 
-  async function submitBulkPaymentReconcile() {
-    const date = document.getElementById("reconcileDate").value;
-    const text = document.getElementById("bulkPasteText").value.trim();
+  async function commitPickup(yes) {
+    document.getElementById("modalPick").style.display = "none";
+    if (yes && activeCandidate) {
+      const ord = activeCandidate;
+      showToast("Saving #" + ord.customer_order_number + " & auto-verifying gateway...");
 
-    if (!text) return toast("Paste AWB and amount rows!");
-    const lines = text.split("\n");
-    const entries = [];
+      ord.is_picked_up = true;
+      updateExecutiveMetrics();
+      renderGrid();
 
-    lines.forEach(l => {
-      const parts = l.split(/[\t, ]+/);
-      if (parts.length >= 2) {
-        entries.push({ awb: parts[0].trim(), amount: parseFloat(parts[1].trim()) || 0 });
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "savePickedUp", payload: ord })
+      }).then(r => r.json());
+
+      if (res.success) {
+        if (res.payment_reconciled) {
+          showToast("Paid via " + res.gateway + ": ₹" + res.payment_amount);
+        } else {
+          showToast("Order #" + ord.customer_order_number + " Picked Up (Pending Payment)");
+        }
+        loadDashboardData();
+      } else {
+        alert("Save Error: " + res.error);
       }
-    });
+    }
+    activeCandidate = null;
+  }
 
-    if (entries.length === 0) return toast("No valid rows detected. Format: AWB Amount");
+  function promptUndo(awb) {
+    const order = stationOrders.find(o => o.awb_number === awb);
+    if (!order) return;
+    activeCandidate = order;
+    document.getElementById("uCustOrder").innerText = "#" + order.customer_order_number;
+    document.getElementById("uAwb").innerText = order.awb_number;
+    document.getElementById("modalUndo").style.display = "flex";
+  }
 
-    document.getElementById("paymentModal").style.display = "none";
-    toast(`Reconciling ${entries.length} payments...`);
+  async function commitUndo(yes) {
+    document.getElementById("modalUndo").style.display = "none";
+    if (yes && activeCandidate) {
+      const ord = activeCandidate;
+      showToast("Reverting #" + ord.customer_order_number + "...");
 
-    const res = await fetch(API_URL, {
+      ord.is_picked_up = false;
+      updateExecutiveMetrics();
+      renderGrid();
+
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "undoPickedUp", payload: { awb: ord.awb_number } })
+      }).then(r => r.json());
+
+      if (res.success) {
+        showToast("Reverted successfully!");
+        loadDashboardData();
+      } else {
+        alert("Undo Error: " + res.error);
+      }
+    }
+    activeCandidate = null;
+  }
+
+  function openPaymentModal() {
+    document.getElementById("modalPay").style.display = "flex";
+  }
+
+  async function submitRemittance() {
+    const date = document.getElementById("remitDate").value;
+    const text = document.getElementById("bulkPasteText").value;
+    if (!text.trim()) return alert("Paste AWB and amount rows.");
+
+    document.getElementById("modalPay").style.display = "none";
+    showToast("Reconciling remittance...");
+
+    const res = await fetch(API_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: "bulkReconcilePayment",
-        payload: { date, entries }
-      })
+      body: JSON.stringify({ action: "bulkReconcile", payload: { date: date, text: text } })
     }).then(r => r.json());
 
     if (res.success) {
-      toast(`Matched: ${res.matched} | Skipped Duplicates: ${res.skippedAlreadyPaid}`);
-      loadData();
+      showToast("Matched: " + res.matched + " | Skipped: " + res.skipped);
+      loadDashboardData();
     } else {
-      toast("Error updating payments.");
+      alert("Error: " + res.error);
     }
   }
 
-  /* BARCODE SCANNER LOGIC */
-  function openScanner(purpose) {
-    scannerPurpose = purpose;
-    document.getElementById("scannerTitle").innerText = purpose === "SEARCH" ? "Scan Barcode to Find" : "Scan Barcode to Mark Packed";
-    document.getElementById("scannerModal").style.display = "flex";
-
-    html5QrCode = new Html5Qrcode("cameraReader");
-    html5QrCode.start({ facingMode: "environment" }, { fps: 20, qrbox: { width: 280, height: 180 } }, (text) => {
-      const scannedAwb = text.trim();
-      closeScanner();
-
-      if (scannerPurpose === "SEARCH") {
-        document.getElementById("searchBox").value = scannedAwb;
-        onSearchInput(scannedAwb);
-        toast(`Found AWB: ${scannedAwb}`);
-      } else {
-        triggerDirectShift(scannedAwb);
-      }
-    }).catch(() => {
-      toast("Camera permission error.");
-      closeScanner();
-    });
+  function showToast(msg) {
+    const el = document.createElement("div");
+    el.className = "toast-pill";
+    el.innerText = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
   }
 
-  function closeScanner() {
-    if (html5QrCode) {
-      html5QrCode.stop().then(() => { html5QrCode = null; document.getElementById("scannerModal").style.display = "none"; }).catch(() => { document.getElementById("scannerModal").style.display = "none"; });
-    } else {
-      document.getElementById("scannerModal").style.display = "none";
-    }
-  }
-
-  function triggerDirectShift(awb) {
-    const candidate = ordersList.find(o => String(o.awb_number).trim() === awb);
-    if (!candidate) return toast(`AWB ${awb} not in active queue!`);
-
-    activeScanCandidate = candidate;
-    document.getElementById("cCustOrderNum").innerText = candidate.customer_order_number || candidate.order_number;
-    document.getElementById("cAwb").innerText = candidate.awb_number;
-    document.getElementById("confirmModal").style.display = "flex";
-  }
-
-  async function confirmShift(yes) {
-    document.getElementById("confirmModal").style.display = "none";
-    if (yes && activeScanCandidate) {
-      const awb = String(activeScanCandidate.awb_number).trim();
-      let packedList = getDailyPacked();
-
-      const summary = (activeScanCandidate.products || []).map(p => `${p.sku || p.name} x${p.quantity || 1}`).join(" | ");
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          action: "savePackedEntry",
-          payload: {
-            awb_number: awb,
-            customer_order_number: activeScanCandidate.customer_order_number || activeScanCandidate.order_number,
-            order_number: activeScanCandidate.order_number,
-            store_name: activeScanCandidate.store_name,
-            customer_name: activeScanCandidate.shipping_name || activeScanCandidate.customer_name,
-            phone: activeScanCandidate.shipping_phone_number || activeScanCandidate.customer_phone_number,
-            city: activeScanCandidate.shipping_city,
-            state: activeScanCandidate.shipping_state,
-            pincode: activeScanCandidate.shipping_pincode,
-            is_cod: activeScanCandidate.is_cod,
-            total_amount: activeScanCandidate.total_amount,
-            courier_name: activeScanCandidate.courier_name,
-            package_weight_in_gm: activeScanCandidate.package_weight_in_gm,
-            products_summary: summary,
-            status: activeScanCandidate.status
-          }
-        })
-      }).then(r => r.json());
-
-      if (res.duplicate) {
-        toast(`⚠️ ${res.message}`);
-      } else {
-        if (!packedList.includes(awb)) {
-          packedList.push(awb);
-          saveDailyPacked(packedList);
-        }
-        toast(`Order #${activeScanCandidate.customer_order_number || activeScanCandidate.order_number} Packed!`);
-      }
-
-      loadData();
-    }
-    activeScanCandidate = null;
-  }
-
-  function requestUndoAction(awb) {
-    activeUndoAwb = awb;
-    document.getElementById("undoTargetAwb").innerText = awb;
-    document.getElementById("undoModal").style.display = "flex";
-  }
-
-  function confirmUndoAction(confirmed) {
-    document.getElementById("undoModal").style.display = "none";
-    if (confirmed && activeUndoAwb) {
-      let packedList = getDailyPacked();
-      packedList = packedList.filter(a => a !== activeUndoAwb);
-      saveDailyPacked(packedList);
-      toast(`AWB ${activeUndoAwb} moved back to Pending.`);
-      updateExecutiveFinancialDashboard();
-      renderTable();
-    }
-    activeUndoAwb = null;
-  }
-
-  function openExportModal() {
-    document.getElementById("exportFromDate").value = TODAY_STR;
-    document.getElementById("exportToDate").value = TODAY_STR;
-    document.getElementById("exportModal").style.display = "flex";
-  }
-
-  async function executeSupabaseExport() {
-    const fromDate = document.getElementById("exportFromDate").value;
-    const toDate = document.getElementById("exportToDate").value;
-    if (!fromDate || !toDate) return toast("Select dates!");
-
-    document.getElementById("exportModal").style.display = "none";
-    toast("Generating CSV from Supabase...");
-
-    try {
-      const url = `${SUPABASE_URL}/rest/v1/dispatches?dispatch_date=gte.${fromDate}&dispatch_date=lte.${toDate}&select=*`;
-      const res = await fetch(url, { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }).then(r => r.json());
-
-      if (!Array.isArray(res) || res.length === 0) return toast("No data in selected date range.");
-
-      const headers = Object.keys(res[0]);
-      const csvRows = [headers.join(",")];
-      res.forEach(row => {
-        const values = headers.map(h => `"${String(row[h] || '').replace(/"/g, '""')}"`);
-        csvRows.push(values.join(","));
-      });
-
-      const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute("download", `Dispatch_Report_${fromDate}_to_${toDate}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast("CSV Report Downloaded!");
-    } catch(e) {
-      toast("Failed exporting CSV.");
-    }
-  }
-
-  function toast(msg) {
-    const t = document.createElement("div"); t.className = "toast"; t.innerText = msg;
-    document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
-  }
-
-  window.onload = loadData;
+  window.onload = loadDashboardData;
 </script>
 
 </body>
