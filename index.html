@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Harsidhi Logistics Enterprise - Kamlesh Hargun</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title>Harsidhi Logistics Enterprise ERP - Kamlesh Hargun</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
@@ -18,7 +18,7 @@
       --yahoo-blue: #0f69ff;
       --yahoo-green: #108a00;
       --yahoo-red: #d9381e;
-      --yahoo-amber: #e07900;
+      --yahoo-amber: #b45309;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -26,11 +26,11 @@
 
     .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; background: #fff; }
 
-    /* YAHOO TOP HEADER WITH CLEARABLE SEARCH */
+    /* HEADER WITH CLEARABLE SEARCH */
     .yahoo-header { background: #fff; border-bottom: 1px solid var(--yahoo-border); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; }
-    .brand-logo { font-size: 17px; font-weight: 800; color: var(--yahoo-purple); letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+    .brand-logo { font-size: 17px; font-weight: 800; color: var(--yahoo-purple); letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; }
     
-    .search-wrapper { position: relative; display: flex; align-items: center; width: 100%; max-width: 440px; }
+    .search-wrapper { position: relative; display: flex; align-items: center; width: 100%; max-width: 460px; }
     .search-icon { position: absolute; left: 12px; color: #87929d; font-size: 14px; pointer-events: none; }
     .search-input { width: 100%; height: 38px; background: #f0f3f8; border: 1px solid transparent; border-radius: 20px; padding: 0 36px 0 34px; font-size: 13px; font-weight: 500; outline: none; transition: all 0.2s; }
     .search-input:focus { background: #fff; border-color: var(--yahoo-purple); box-shadow: 0 0 0 3px rgba(96, 1, 210, 0.12); }
@@ -39,7 +39,7 @@
 
     .date-pill { background: #f0f3f8; border: 1px solid var(--yahoo-border); padding: 5px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
 
-    /* ACTION BAR & TABS */
+    /* ACTION BAR & EXACT 5 TABS */
     .yahoo-action-bar { background: #fafbfc; border-bottom: 1px solid var(--yahoo-border); padding: 8px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
     
     .btn-pack-primary { background: var(--yahoo-purple); color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s; }
@@ -47,59 +47,64 @@
 
     .tabs-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center; }
     .tabs-row::-webkit-scrollbar { display: none; }
-    .tab-pill { padding: 6px 12px; border-radius: 6px; border: 1px solid transparent; background: transparent; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: 0.15s; }
+    .tab-pill { padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; background: transparent; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: 0.15s; }
     .tab-pill:hover { background: #eaedf2; color: var(--text-dark); }
     .tab-pill.active { background: #e8dbfc; color: var(--yahoo-purple); font-weight: 700; }
-    .tab-pill.rto-tab.active { background: #fee2e2; color: var(--yahoo-red); font-weight: 700; }
+    .tab-pill.active-danger { background: #fee2e2; color: var(--yahoo-red); font-weight: 700; }
 
     /* METRICS STRIP */
     .metrics-bar { display: flex; gap: 10px; padding: 8px 20px; background: #fff; border-bottom: 1px solid var(--yahoo-border); overflow-x: auto; scrollbar-width: none; flex-shrink: 0; }
     .metrics-bar::-webkit-scrollbar { display: none; }
-    .m-item { min-width: 120px; border-right: 1px solid var(--yahoo-border); padding-right: 12px; display: flex; flex-direction: column; }
+    .m-item { min-width: 130px; border-right: 1px solid var(--yahoo-border); padding-right: 14px; display: flex; flex-direction: column; }
     .m-item:last-child { border-right: none; }
-    .m-num { font-size: 16px; font-weight: 800; color: var(--text-dark); }
-    .m-title { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 1px; }
+    .m-num { font-size: 17px; font-weight: 800; color: var(--text-dark); }
+    .m-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 1px; }
 
-    /* TABLE VIEWPORT */
+    /* VIEWPORT & DENSE TABLE */
     .viewport { flex: 1; overflow-y: auto; background: #fff; }
-    .yahoo-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-    .yahoo-table th { background: #fafbfc; color: #5c6873; font-weight: 600; font-size: 11px; text-transform: uppercase; padding: 10px 14px; border-bottom: 1px solid var(--yahoo-border); position: sticky; top: 0; z-index: 10; letter-spacing: 0.3px; }
-    .yahoo-table td { padding: 10px 14px; border-bottom: 1px solid #f1f3f7; vertical-align: middle; }
+    .yahoo-table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    .yahoo-table th { background: #fafbfc; color: #5c6873; font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 10px 14px; border-bottom: 1px solid var(--yahoo-border); position: sticky; top: 0; z-index: 10; letter-spacing: 0.3px; }
+    .yahoo-table td { padding: 10px 14px; border-bottom: 1px solid #f1f3f7; vertical-align: top; }
     .yahoo-table tr:hover { background: #f8fafc; }
 
-    /* COLUMN 1 & 2 IDENTIFIERS */
-    .cust-order-badge { display: inline-flex; align-items: center; background: #eff6ff; color: var(--yahoo-blue); border: 1px solid #bfdbfe; font-size: 13.5px; font-weight: 800; padding: 3px 8px; border-radius: 6px; }
+    /* COLUMN HIGHLIGHTS */
+    .cust-order-badge { display: inline-flex; align-items: center; background: #eff6ff; color: var(--yahoo-blue); border: 1px solid #bfdbfe; font-size: 14px; font-weight: 800; padding: 3px 8px; border-radius: 6px; }
     .order-num-text { font-size: 13px; font-weight: 700; color: var(--text-dark); }
-    .store-label { font-size: 11px; font-weight: 600; color: #87929d; }
+    .awb-text { font-family: monospace; font-size: 13px; font-weight: 700; color: #0f172a; }
+    .courier-tag { font-size: 11px; font-weight: 600; color: #64748b; margin-top: 2px; }
 
-    .awb-text { font-family: monospace; font-size: 12.5px; font-weight: 700; color: #1e293b; }
-    
-    .sku-item { display: inline-block; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px; padding: 3px 6px; font-size: 11.5px; margin: 2px 2px 2px 0; }
+    /* FINANCIAL & GST CHIPS */
+    .badge-payment { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 3px; }
+    .pay-cod { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .pay-prepaid { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .gst-text { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    .sku-item { display: block; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px 6px; font-size: 11.5px; margin-bottom: 3px; }
     .sku-code { font-weight: 700; color: #0f172a; }
 
     .tag-status { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; display: inline-block; }
-    .st-manifested { background: #fef3c7; color: var(--yahoo-amber); }
-    .st-failed { background: #fee2e2; color: var(--yahoo-red); }
-    .st-packed { background: #dcfce7; color: var(--yahoo-green); }
+    .st-shipped { background: #eff6ff; color: #1d4ed8; }
+    .st-manifested { background: #fef3c7; color: #b45309; }
+    .st-failed { background: #fee2e2; color: #b91c1c; }
+    .st-packed { background: #dcfce7; color: #15803d; }
     .st-rto-rec { background: #e2e8f0; color: #475569; }
 
-    .btn-table-action { background: #f0f3f8; border: 1px solid #d0d7de; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; color: #24292f; cursor: pointer; transition: 0.15s; }
-    .btn-table-action:hover { background: #e2e7ef; }
+    .btn-table-action { background: #f0f3f8; border: 1px solid #d0d7de; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.15s; }
     .btn-table-action.pack-direct { background: #ecfdf5; border-color: #a7f3d0; color: var(--yahoo-green); font-weight: 700; }
     .btn-table-action.pack-direct:hover { background: #d1fae5; }
     .btn-table-action.rto-btn { background: #fee2e2; border-color: #fca5a5; color: var(--yahoo-red); font-weight: 700; }
     .btn-table-action.rto-btn:hover { background: #fecaca; }
 
     /* CAMERA & CONFIRMATION MODALS */
-    #scannerModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; }
-    .scanner-modal-card { background: #fff; border-radius: 12px; padding: 18px; width: 92%; max-width: 440px; display: flex; flex-direction: column; gap: 12px; }
+    #scannerModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9999; align-items: center; justify-content: center; }
+    .scanner-modal-card { background: #fff; border-radius: 14px; padding: 18px; width: 92%; max-width: 440px; display: flex; flex-direction: column; gap: 12px; }
     #cameraReader { width: 100%; height: 260px; border-radius: 8px; overflow: hidden; background: #000; }
 
-    #confirmModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; }
-    .confirm-card { background: #fff; border-radius: 12px; padding: 22px; width: 90%; max-width: 380px; text-align: center; }
+    #confirmModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 10000; align-items: center; justify-content: center; }
+    .confirm-card { background: #fff; border-radius: 14px; padding: 22px; width: 90%; max-width: 400px; text-align: center; }
     .confirm-btns { display: flex; gap: 10px; margin-top: 16px; }
-    .btn-confirm-yes { flex: 1; padding: 10px; background: var(--yahoo-green); color: #fff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
-    .btn-confirm-no { flex: 1; padding: 10px; background: #94a3b8; color: #fff; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    .btn-confirm-yes { flex: 1; padding: 10px; background: var(--yahoo-green); color: #fff; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; }
+    .btn-confirm-no { flex: 1; padding: 10px; background: #94a3b8; color: #fff; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
     .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1f2937; color: #fff; padding: 8px 18px; border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 10001; }
   </style>
@@ -108,15 +113,15 @@
 
 <div class="app-container">
 
-  <!-- TOP HEADER WITH SEARCH & CLEAR (X) BUTTON -->
+  <!-- TOP HEADER WITH LIVE SEARCH & CLEAR (X) BUTTON -->
   <div class="yahoo-header">
     <div class="brand-logo">
-      <span>✉️</span> HARSIDHI DISPATCH & RETURN ERP
+      <span>✉️</span> HARSIDHI DISPATCH ERP
     </div>
 
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" id="searchBox" class="search-input" placeholder="Search Customer Order #, Order #, AWB, SKU, Phone..." oninput="onSearchInput(this.value)" />
+      <input type="text" id="searchBox" class="search-input" placeholder="Search Customer Order #, Order #, AWB, SKU, GST..." oninput="onSearchInput(this.value)" />
       <button id="searchClearBtn" class="search-clear-btn" onclick="clearSearch()" title="Clear Search">✕</button>
     </div>
 
@@ -125,7 +130,7 @@
     </div>
   </div>
 
-  <!-- ACTION STRIP -->
+  <!-- ACTION BAR WITH EXACT 5 TABS -->
   <div class="yahoo-action-bar">
     <div style="display:flex; align-items:center; gap:10px;">
       <button class="btn-pack-primary" onclick="openScanner()">
@@ -134,63 +139,74 @@
       <button class="btn-table-action" onclick="loadData()">↻ Refresh</button>
     </div>
 
+    <!-- 5 Clean Tabs: Pending, Picked Up / Packed, Pickup Failed, RTO Pending, RTO Received -->
     <div class="tabs-row">
-      <button class="tab-pill active" id="fAll" onclick="setFilter('ALL')">All Orders</button>
-      <button class="tab-pill" id="fPending" onclick="setFilter('PENDING')">To Pack (Pending)</button>
-      <button class="tab-pill" id="fPacked" onclick="setFilter('PACKED')">Packed Today</button>
-      <button class="tab-pill" id="fFailed" onclick="setFilter('FAILED')">Pickup Failed</button>
-      <button class="tab-pill rto-tab" id="fRto" onclick="setFilter('RTO_PENDING')">❌ RTO Pending Scan</button>
-      <button class="tab-pill" id="fRtoRec" onclick="setFilter('RTO_RECEIVED')">✅ RTO Received (<span id="cntRtoRecBadge">0</span>)</button>
+      <button class="tab-pill active" id="tabPending" onclick="switchTab('PENDING')">
+        📦 Pending (<span id="cntTabPending">0</span>)
+      </button>
+      <button class="tab-pill" id="tabPicked" onclick="switchTab('PICKED_UP')">
+        ✅ Picked Up (<span id="cntTabPacked">0</span>)
+      </button>
+      <button class="tab-pill" id="tabFailed" onclick="switchTab('PICKUP_FAILED')">
+        ⚠️ Pickup Failed (<span id="cntTabFailed">0</span>)
+      </button>
+      <button class="tab-pill" id="tabRto" onclick="switchTab('RTO_PENDING')">
+        ❌ RTO Pending (<span id="cntTabRto">0</span>)
+      </button>
+      <button class="tab-pill" id="tabRtoRec" onclick="switchTab('RTO_RECEIVED')">
+        📥 RTO Received (<span id="cntTabRtoRec">0</span>)
+      </button>
     </div>
   </div>
 
-  <!-- METRICS SUMMARY STRIP -->
+  <!-- METRICS SUMMARY BAR -->
   <div class="metrics-bar">
     <div class="m-item">
-      <span class="m-num" id="cntTotal">0</span>
-      <span class="m-title">Total Manifested</span>
+      <span class="m-num" id="cntTotalNotPicked">0</span>
+      <span class="m-title">Total Not Picked</span>
     </div>
     <div class="m-item">
-      <span class="m-num" id="cntToPack" style="color:var(--yahoo-amber);">0</span>
+      <span class="m-num" id="cntMetricPending" style="color:var(--yahoo-amber);">0</span>
       <span class="m-title">To Pack (Pending)</span>
     </div>
     <div class="m-item">
-      <span class="m-num" id="cntPacked" style="color:var(--yahoo-green);">0</span>
+      <span class="m-num" id="cntMetricPacked" style="color:var(--yahoo-green);">0</span>
       <span class="m-title">Packed Today</span>
     </div>
     <div class="m-item">
-      <span class="m-num" id="cntFailed" style="color:var(--yahoo-red);">0</span>
+      <span class="m-num" id="cntMetricFailed" style="color:var(--yahoo-red);">0</span>
       <span class="m-title">Pickup Failed</span>
     </div>
     <div class="m-item">
-      <span class="m-num" id="cntRtoTotal" style="color:var(--yahoo-red);">0</span>
-      <span class="m-title">Total RTO Returns</span>
+      <span class="m-num" id="cntMetricRto" style="color:var(--yahoo-red);">0</span>
+      <span class="m-title">RTO In Pipeline</span>
     </div>
   </div>
 
-  <!-- TABLE VIEWPORT -->
+  <!-- VIEWPORT: ENTERPRISE TABLE -->
   <div class="viewport">
     <table class="yahoo-table">
       <thead>
         <tr>
           <th style="min-width: 140px;">Customer Order #</th>
           <th style="min-width: 130px;">Order Number</th>
-          <th>AWB Number</th>
-          <th style="min-width: 260px;">Products (SKU, Qty, Price)</th>
-          <th>Customer Details</th>
+          <th>AWB & Courier</th>
+          <th style="min-width: 250px;">Products (SKU, Qty, Price)</th>
+          <th style="min-width: 180px;">Payment & GST Info</th>
+          <th>Shipping Destination</th>
           <th>Status</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="7" style="text-align:center; padding:30px; color:#87929d;">Loading orders from Boxd...</td></tr>
+        <tr><td colspan="8" style="text-align:center; padding:30px; color:#87929d;">Connecting to Boxd Logistics...</td></tr>
       </tbody>
     </table>
   </div>
 
 </div>
 
-<!-- SCANNER OVERLAY -->
+<!-- SCANNER MODAL (Camera closes on background click) -->
 <div id="scannerModal" onclick="onModalBgClick(event)">
   <div class="scanner-modal-card" onclick="event.stopPropagation()">
     <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -224,11 +240,11 @@
   // ==========================================
   // APNA DEPLOYED APPS SCRIPT URL YAHAN DALEIN
   // ==========================================
-  const API_URL = "https://script.google.com/macros/s/AKfycbxyP-qk2rnXzXOz6qCSwSLvJareJTpqSEY-bp2lZchH0f9095kC3hTRTbvn975gbQA5/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwsrjAvnO1RInC5Tu_RCfs2l0i8zOQhKDAYzcnMzzXYECV0HIo6jGE72z-hL01FIZN8/exec";
 
   let ordersList = [];
   let rtoReceivedList = [];
-  let currentFilter = "ALL";
+  let currentTab = "PENDING";
   let html5QrCode = null;
   let activeScanCandidate = null;
 
@@ -236,24 +252,24 @@
   document.getElementById("todayLabel").innerText = TODAY_STR;
 
   function getDailyPacked() {
-    const raw = localStorage.getItem("yahoo_erp_packed_" + TODAY_STR);
+    const raw = localStorage.getItem("harsidhi_erp_packed_" + TODAY_STR);
     return raw ? JSON.parse(raw) : [];
   }
 
   function saveDailyPacked(list) {
-    localStorage.setItem("yahoo_erp_packed_" + TODAY_STR, JSON.stringify(list));
+    localStorage.setItem("harsidhi_erp_packed_" + TODAY_STR, JSON.stringify(list));
   }
 
   function getLocalRtoReceived() {
-    const raw = localStorage.getItem("yahoo_erp_rto_received");
+    const raw = localStorage.getItem("harsidhi_erp_rto_received");
     return raw ? JSON.parse(raw) : [];
   }
 
   function saveLocalRtoReceived(list) {
-    localStorage.setItem("yahoo_erp_rto_received", JSON.stringify(list));
+    localStorage.setItem("harsidhi_erp_rto_received", JSON.stringify(list));
   }
 
-  /* CLEARABLE SEARCH INPUT */
+  /* CLEARABLE SEARCH BAR */
   function onSearchInput(val) {
     const clearBtn = document.getElementById("searchClearBtn");
     clearBtn.style.display = val.length > 0 ? "flex" : "none";
@@ -289,7 +305,6 @@
       const res = await fetch(`${API_URL}?action=getRtoReport`).then(r => r.json());
       if (res.success) {
         rtoReceivedList = res.received || [];
-        document.getElementById("cntRtoRecBadge").innerText = rtoReceivedList.length;
       }
     } catch(e) {}
   }
@@ -297,7 +312,7 @@
   function updateMetrics() {
     const packedList = getDailyPacked();
     const localRto = getLocalRtoReceived();
-    let toPack = 0, failed = 0, rtoTotal = 0;
+    let pendingCount = 0, failedCount = 0, rtoPipelineCount = 0;
 
     ordersList.forEach(o => {
       const awb = String(o.awb_number).trim();
@@ -305,27 +320,38 @@
       const isPacked = packedList.includes(awb);
       const isRto = st.includes("rto") || o.is_rto;
 
-      if (isRto) rtoTotal++;
-      if (st === "pickup_failed") failed++;
-      if (!isPacked && !isRto) toPack++;
+      if (isRto) rtoPipelineCount++;
+      if (st === "pickup_failed") failedCount++;
+      if (!isPacked && !isRto) pendingCount++;
     });
 
-    document.getElementById("cntTotal").innerText = ordersList.length;
-    document.getElementById("cntToPack").innerText = toPack;
-    document.getElementById("cntPacked").innerText = packedList.length;
-    document.getElementById("cntFailed").innerText = failed;
-    document.getElementById("cntRtoTotal").innerText = rtoTotal + rtoReceivedList.length;
+    // Strip Counters
+    document.getElementById("cntTotalNotPicked").innerText = ordersList.length;
+    document.getElementById("cntMetricPending").innerText = pendingCount;
+    document.getElementById("cntMetricPacked").innerText = packedList.length;
+    document.getElementById("cntMetricFailed").innerText = failedCount;
+    document.getElementById("cntMetricRto").innerText = rtoPipelineCount + rtoReceivedList.length;
+
+    // Tab Badges
+    document.getElementById("cntTabPending").innerText = pendingCount;
+    document.getElementById("cntTabPacked").innerText = packedList.length;
+    document.getElementById("cntTabFailed").innerText = failedCount;
+    document.getElementById("cntTabRto").innerText = rtoPipelineCount;
+    document.getElementById("cntTabRtoRec").innerText = rtoReceivedList.length;
   }
 
-  function setFilter(flt) {
-    currentFilter = flt;
-    document.querySelectorAll(".tab-pill").forEach(t => t.classList.remove("active"));
-    if (flt === "ALL") document.getElementById("fAll").classList.add("active");
-    if (flt === "PENDING") document.getElementById("fPending").classList.add("active");
-    if (flt === "PACKED") document.getElementById("fPacked").classList.add("active");
-    if (flt === "FAILED") document.getElementById("fFailed").classList.add("active");
-    if (flt === "RTO_PENDING") document.getElementById("fRto").classList.add("active");
-    if (flt === "RTO_RECEIVED") document.getElementById("fRtoRec").classList.add("active");
+  function switchTab(tabName) {
+    currentTab = tabName;
+    document.querySelectorAll(".tab-pill").forEach(t => {
+      t.classList.remove("active");
+      t.classList.remove("active-danger");
+    });
+
+    if (tabName === "PENDING") document.getElementById("tabPending").classList.add("active");
+    if (tabName === "PICKED_UP") document.getElementById("tabPicked").classList.add("active");
+    if (tabName === "PICKUP_FAILED") document.getElementById("tabFailed").classList.add("active-danger");
+    if (tabName === "RTO_PENDING") document.getElementById("tabRto").classList.add("active-danger");
+    if (tabName === "RTO_RECEIVED") document.getElementById("tabRtoRec").classList.add("active");
 
     renderTable();
   }
@@ -336,8 +362,7 @@
     const packedList = getDailyPacked();
     const localRto = getLocalRtoReceived();
 
-    // RTO RECEIVED VIEW (From Sheet / Local)
-    if (currentFilter === "RTO_RECEIVED") {
+    if (currentTab === "RTO_RECEIVED") {
       renderRtoReceivedView(query);
       return;
     }
@@ -349,20 +374,22 @@
       const isRto = st.includes("rto") || o.is_rto;
       const isPhysicallyReceived = localRto.includes(awb);
 
-      if (currentFilter === "PENDING" && (isPacked || isRto)) return false;
-      if (currentFilter === "PACKED" && !isPacked) return false;
-      if (currentFilter === "FAILED" && st !== "pickup_failed") return false;
-      if (currentFilter === "RTO_PENDING" && (!isRto || isPhysicallyReceived)) return false;
+      // EXACT 5 TAB FILTER LOGIC
+      if (currentTab === "PENDING" && (isPacked || isRto)) return false;
+      if (currentTab === "PICKED_UP" && !isPacked) return false;
+      if (currentTab === "PICKUP_FAILED" && st !== "pickup_failed") return false;
+      if (currentTab === "RTO_PENDING" && (!isRto || isPhysicallyReceived)) return false;
 
+      // Search match
       const custOrderNum = String(o.customer_order_number || o.channel_order_id || o.order_number || "");
-      const orderNum = String(o.order_number || "");
-
       const searchable = [
-        orderNum,
+        o.order_number,
         custOrderNum,
         awb,
+        o.courier_name,
         o.shipping_name || o.customer_name || "",
         o.shipping_phone_number || o.customer_phone_number || "",
+        o.customer_gst_number || "",
         JSON.stringify(o.products || [])
       ].join(" ").toLowerCase();
 
@@ -371,7 +398,7 @@
 
     tbody.innerHTML = "";
     if (filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#87929d;">No orders match the current filter or search.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#87929d;">No orders found in this tab.</td></tr>';
       return;
     }
 
@@ -381,11 +408,11 @@
       const isPacked = packedList.includes(awb);
       const isRto = st.includes("rto") || o.is_rto;
 
-      // COLUMN 1: Customer Order Number
+      // Col 1 & 2
       const custOrderVal = o.customer_order_number || o.channel_order_id || o.order_number || "-";
-      // COLUMN 2: Order Number
       const orderVal = o.order_number || "-";
 
+      // Products breakdown
       const prods = o.products || o.order_items || [];
       let productsHtml = "";
       if (prods.length > 0) {
@@ -396,9 +423,19 @@
           </div>
         `).join("");
       } else {
-        productsHtml = '<span style="color:#94a3b8; font-style:italic;">No products itemized</span>';
+        productsHtml = '<span style="color:#94a3b8; font-style:italic;">No items</span>';
       }
 
+      // Financials & GST
+      const payBadge = o.is_cod 
+        ? `<span class="badge-payment pay-cod">COD: ₹${o.cod_collectable_amount || o.total_amount || 0}</span>`
+        : `<span class="badge-payment pay-prepaid">PREPAID: ₹${o.total_amount || 0}</span>`;
+
+      const gstDetails = o.customer_gst_number 
+        ? `<div class="gst-text"><b>GST:</b> ${o.customer_gst_number}</div>`
+        : `<div class="gst-text">Tax: ${o.tax_rate ? o.tax_rate + '%' : 'Retail'}</div>`;
+
+      // Status Badge
       let statusTag = '';
       if (isRto) {
         statusTag = '<span class="tag-status st-failed">RTO in Transit</span>';
@@ -406,11 +443,13 @@
         statusTag = '<span class="tag-status st-packed">Packed Today</span>';
       } else if (st === "pickup_failed") {
         statusTag = '<span class="tag-status st-failed">Pickup Failed</span>';
+      } else if (st === "shipped") {
+        statusTag = '<span class="tag-status st-shipped">Shipped</span>';
       } else {
         statusTag = '<span class="tag-status st-manifested">Manifested</span>';
       }
 
-      // Actions: Mark Packed vs Mark RTO Received
+      // Action Buttons
       let actionBtn = "";
       if (isRto) {
         actionBtn = `<button class="btn-table-action rto-btn" onclick="markRtoReceivedPhysically('${awb}')">📦 Mark RTO Received</button>`;
@@ -422,18 +461,23 @@
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>
-          <span class="cust-order-badge">#${custOrderVal}</span>
-        </td>
+        <td><span class="cust-order-badge">#${custOrderVal}</span></td>
         <td>
           <div class="order-num-text">#${orderVal}</div>
-          <div class="store-label">${o.store_name || "Shopify"}</div>
+          <span style="font-size:11px; color:#87929d;">${o.store_name || "Shopify"}</span>
         </td>
-        <td><span class="awb-text">${awb}</span></td>
+        <td>
+          <span class="awb-text">${awb}</span>
+          <div class="courier-tag">${o.courier_name || o.courier_keyword || "Standard"}</div>
+        </td>
         <td>${productsHtml}</td>
         <td>
+          ${payBadge}
+          ${gstDetails}
+        </td>
+        <td>
           <b>${o.shipping_name || o.customer_name || "-"}</b><br>
-          <span style="font-size:11.5px; color:#5c6873;">${o.shipping_city || ""}, Pin: ${o.shipping_pincode || "-"}</span>
+          <span style="font-size:11.5px; color:#5c6873;">${o.shipping_city || ""}, ${o.shipping_pincode || ""}</span>
         </td>
         <td>${statusTag}</td>
         <td>${actionBtn}</td>
@@ -452,7 +496,7 @@
     });
 
     if (list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#87929d;">No physically received RTO packets logged yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#87929d;">No physically received RTO packets logged yet.</td></tr>';
       return;
     }
 
@@ -461,8 +505,8 @@
       tr.innerHTML = `
         <td><span class="cust-order-badge">#${item.customer_order_number || "-"}</span></td>
         <td><div class="order-num-text">#${item.order_number || "-"}</div></td>
-        <td><span class="awb-text">${item.awb}</span></td>
-        <td><span style="color:#64748b; font-size:12px;">Physical Packet Verified & Shelved</span></td>
+        <td><span class="awb-text">${item.awb}</span><div class="courier-tag">${item.courier || "-"}</div></td>
+        <td colspan="2"><span style="color:#64748b; font-size:12px;">Physical Packet Verified & Shelved in Warehouse</span></td>
         <td><b>${item.customer_name || "-"}</b><br><span style="font-size:11px; color:#5c6873;">${item.phone || ""}</span></td>
         <td><span class="tag-status st-rto-rec">RECEIVED (${item.date || ""})</span></td>
         <td><span style="color:var(--yahoo-green); font-size:12px; font-weight:700;">✓ In Warehouse</span></td>
@@ -471,7 +515,7 @@
     });
   }
 
-  /* PHYSICAL RTO RECEIVED WORKFLOW */
+  /* PHYSICAL RTO RECEIVED HANDLER */
   function markRtoReceivedPhysically(awb) {
     const order = ordersList.find(o => String(o.awb_number).trim() === awb);
     if (!order) return;
@@ -484,18 +528,18 @@
       saveLocalRtoReceived(localRto);
     }
 
-    // Sync to RTO_TRACKER Sheet
     fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({
         action: "markRtoReceived",
         payload: {
-          awb: awb,
+          awb_number: awb,
           customer_order_number: order.customer_order_number || order.channel_order_id || order.order_number,
           order_number: order.order_number,
           customer_name: order.customer_name || order.shipping_name,
-          phone: order.customer_phone_number || order.shipping_phone_number
+          phone: order.customer_phone_number || order.shipping_phone_number,
+          courier_name: order.courier_name || order.courier_keyword || ""
         }
       })
     });
@@ -546,7 +590,7 @@
     const candidate = ordersList.find(o => String(o.awb_number).trim() === awb);
 
     if (!candidate) {
-      toast(`AWB ${awb} not in current Not-Picked queue!`);
+      toast(`AWB ${awb} not in active queue!`);
       return;
     }
 
@@ -598,7 +642,7 @@
     let packedList = getDailyPacked();
     packedList = packedList.filter(a => a !== awb);
     saveDailyPacked(packedList);
-    toast("Order moved back to To-Pack queue.");
+    toast("Moved back to Pending.");
     updateMetrics();
     renderTable();
   }
@@ -611,14 +655,29 @@
       body: JSON.stringify({
         action: "savePackedEntry",
         payload: {
-          awb: order.awb_number,
+          awb_number: order.awb_number,
           order_number: order.order_number,
           customer_order_number: order.customer_order_number || order.channel_order_id || order.order_number,
           store_name: order.store_name,
           customer_name: order.shipping_name || order.customer_name,
           phone: order.shipping_phone_number || order.customer_phone_number,
+          city: order.shipping_city,
+          state: order.shipping_state,
+          pincode: order.shipping_pincode,
+          is_cod: order.is_cod,
+          total_amount: order.total_amount,
+          cod_collectable_amount: order.cod_collectable_amount,
+          tax_rate: order.tax_rate,
+          cgst_amount: order.cgst_amount,
+          sgst_amount: order.sgst_amount,
+          igst_amount: order.igst_amount,
+          customer_gst_number: order.customer_gst_number,
+          courier_name: order.courier_name,
+          courier_keyword: order.courier_keyword,
+          package_weight_in_gm: order.package_weight_in_gm,
+          estimated_delivery_date: order.estimated_delivery_date,
           products_summary: summary,
-          live_status: order.status || "manifested"
+          status: order.status
         }
       })
     });
