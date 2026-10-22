@@ -428,25 +428,27 @@
       return;
     }
 
-    // Try finding locally first
+    // 1. Check if order is already present in memory
     var matched = masterOrders.find(function(o) { return o.awb_number === awb; });
-
     if (matched) {
       setupEmergencyCandidate(matched);
       return;
     }
 
-    // Otherwise, perform direct lookup via Tracking API
+    // 2. Query through backend Apps Script to bypass CORS block
     try {
-      showToast("Searching tracking record...");
-      var res = await fetch(TRACKING_DIRECT_URL + encodeURIComponent(awb)).then(function(r) { return r.json(); });
-      var data = res.data || res.shipment || res;
+      showToast("Searching tracking record via backend...");
+      var response = await fetch(API_ENDPOINT + "?action=lookupAwb&awb=" + encodeURIComponent(awb));
+      var res = await response.json();
 
-      if (!data || !data.awb_number) {
+      if (!res.success || !res.data) {
         playErrorSound();
-        alert("No shipment record found for this AWB.");
+        alert("No shipment record found for this AWB: " + (res.error || ""));
         return;
       }
+
+      var data = res.data;
+      var brand = resolveStoreDetails(data.store_name, data.channel_name, data.channel_id);
 
       var customCandidate = {
         awb_number: data.awb_number || awb,
@@ -460,8 +462,8 @@
         payment_mode: data.payment_mode || "PREPAID",
         is_cod: Boolean(data.is_cod),
         total_amount: Number(data.total_amount || 0),
-        store_name: data.store_name || "GULABISHEHAR",
-        warehouse_tag: (String(data.store_name || "").toLowerCase().includes("uncluttered") || String(data.channel_id) === "127") ? "UC" : "GS",
+        store_name: brand.storeName,
+        warehouse_tag: brand.tag,
         products: []
       };
 
@@ -470,6 +472,16 @@
       playErrorSound();
       alert("Lookup failed: " + err.message);
     }
+  }
+
+  function resolveStoreDetails(rawStoreName, rawChannelName, rawChannelId) {
+    var combined = (String(rawStoreName || "") + " " + String(rawChannelName || "") + " " + String(rawChannelId || "")).toLowerCase();
+    if (combined.includes("gulabi") || combined.includes("128") || combined.includes("gs")) {
+      return { tag: "GS", storeName: "GULABISHEHAR" };
+    } else if (combined.includes("uncluttered") || combined.includes("127") || combined.includes("uc")) {
+      return { tag: "UC", storeName: "UNCLUTTERED CLOSET" };
+    }
+    return { tag: "OTHER", storeName: rawStoreName || "Shopify" };
   }
 
   function setupEmergencyCandidate(order) {
