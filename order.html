@@ -6,6 +6,7 @@
   <title>Order Reconciliation - Harsidhi ERP</title>
   <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- HTML5 QR / Barcode Scanner Library -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   
   <style>
@@ -42,7 +43,7 @@
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
     .nav-btn:hover { background: #312e81; }
 
-    /* PROFESSIONAL SYNC BUTTON & STATUS */
+    /* DYNAMIC REFRESH BUTTON */
     .sync-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
     .btn-sync {
       border: none;
@@ -61,7 +62,7 @@
     .btn-sync-loading { background: #f59e0b !important; color: #0f172a !important; animation: pulseGlow 1.2s infinite alternate; }
     .btn-sync-success { background: #10b981 !important; color: #ffffff !important; }
     .btn-sync-error { background: #ef4444 !important; color: #ffffff !important; animation: shake 0.4s ease-in-out; }
-    .sync-tip { font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.3px; display: inline-flex; align-items: center; gap: 4px; }
+    .sync-tip { font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.3px; }
     
     @keyframes pulseGlow {
       from { box-shadow: 0 0 4px #f59e0b; transform: scale(0.98); }
@@ -162,24 +163,24 @@
   <div class="header">
     <div class="brand"><span>📦</span> Order Reconciliation & Dispatches</div>
     <div class="nav-links">
-      <a href="index.html" class="nav-btn">Dashboard</a>[cite: 3]
-      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>[cite: 4]
-      <a href="rto.html" class="nav-btn">Return Recon</a>[cite: 2]
-      <a href="payment.html" class="nav-btn">Payment Recon</a>[cite: 1]
+      <a href="index.html" class="nav-btn">Dashboard</a>
+      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>
+      <a href="rto.html" class="nav-btn">Return Recon</a>
+      <a href="payment.html" class="nav-btn">Payment Recon</a>
       
       <div class="sync-wrap">
         <button id="mainSyncBtn" class="btn-sync btn-sync-loading" onclick="loadOrderData()">
           <span id="syncIcon">↻</span> <span id="syncLabel">Connecting...</span>
         </button>
-        <span class="sync-tip" id="syncTip">● Auto-Cached (Smart Sync Enabled)</span>
+        <span class="sync-tip" id="syncTip">Smart Cache Active</span>
       </div>
     </div>
   </div>
 
-  <!-- GOOGLE SHEET ANALYTICS KPI CARDS (Today, Yesterday, Total) -->
+  <!-- SHEET ANALYTICS KPI CARDS -->
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-title">📅 Today Picked in Sheet</div>
+      <div class="kpi-title">Today Picked in Sheet</div>
       <div class="kpi-main-val">
         <span id="kpiTodayCount">0</span>
         <span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span>
@@ -191,7 +192,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-title">⏮️ Yesterday Picked in Sheet</div>
+      <div class="kpi-title">Yesterday Picked in Sheet</div>
       <div class="kpi-main-val">
         <span id="kpiYestCount">0</span>
         <span class="kpi-sub-amt" id="kpiYestAmt">₹0</span>
@@ -203,7 +204,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-title">📊 Total Picked in Sheet</div>
+      <div class="kpi-title">Total Picked in Sheet</div>
       <div class="kpi-main-val">
         <span id="kpiTotalCount">0</span>
         <span class="kpi-sub-amt" id="kpiTotalAmt">₹0</span>
@@ -215,7 +216,7 @@
     </div>
   </div>
 
-  <!-- TOOLBAR: TABS + CAMERA BUTTON -->
+  <!-- TABS STRIP + CAMERA BUTTON -->
   <div class="toolbar-row">
     <div class="tabs-strip">
       <button class="tab-pill active" id="tabAll" onclick="filterTab('all_orders')">📦 All Orders (<span id="cAll">0</span>)</button>
@@ -223,11 +224,7 @@
       <button class="tab-pill" id="tabPicked" onclick="filterTab('picked_up')">✅ Picked Up (<span id="cPicked">0</span>)</button>
       <button class="tab-pill" id="tabTransit" onclick="filterTab('in_transit')">🚚 In-Transit (<span id="cTransit">0</span>)</button>
       <button class="tab-pill" id="tabDelivered" onclick="filterTab('delivered')">🎯 Delivered (<span id="cDelivered">0</span>)</button>
-      
-      <!-- CAMERA BUTTON RIGHT AFTER DELIVERED -->
-      <button class="btn-camera" onclick="openCameraScanner()">
-        📷 Scan Barcode / AWB
-      </button>
+      <button class="btn-camera" onclick="openCameraScanner()">📷 Scan Barcode / AWB</button>
     </div>
   </div>
 
@@ -245,7 +242,7 @@
         </tr>
       </thead>
       <tbody id="orderTableBody">
-        <tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Connecting to live backend & tracking engine...</td></tr>
+        <tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Connecting to live backend...</td></tr>
       </tbody>
     </table>
   </div>
@@ -255,11 +252,11 @@
 <div id="modalCamera" class="modal-overlay" onclick="onModalBgClick(event, 'modalCamera')">
   <div class="modal-sheet" style="max-width:500px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">📷 Continuous Barcode / AWB Scanner</h3>
+      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">Continuous Barcode / AWB Scanner</h3>
       <button onclick="closeCameraScanner()" style="background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer;">✕</button>
     </div>
     <div id="cameraReader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
-    <div style="font-size:12px; color:var(--muted); margin-top:10px;">Parcel scan hote hi confirmation aayega. Modal tabhi band hoga jab aap [✕] ya bahar click karenge.</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:10px;">Parcel scan karein, auto confirmation aayega. Modal band karne ke liye [✕] ya bahar touch karein.</div>
   </div>
 </div>
 
@@ -269,7 +266,7 @@
     <div style="font-size:36px; margin-bottom:6px;">📦</div>
     <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Order <b id="pCustOrder"></b> (Warehouse: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) ko Picked Up mark karke Google Sheet, Supabase aur Razorpay/GoKwik Auto-Recon me save karein?
+      Order <b id="pCustOrder"></b> (Warehouse: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) ko Picked Up mark karke Google Sheet me save karein?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" onclick="commitPickup(true)">Yes, Mark Picked Up</button>
@@ -284,7 +281,7 @@
     <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
     <h3 style="color:var(--jelly-red); font-size:17px; font-weight:800;">Warning: Undo Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) ko Sheet & Database se delete karke wapis active queue me layein?
+      Order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) ko Sheet se delete karke wapis active queue me layein?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" style="background:var(--jelly-red);" onclick="commitUndo(true)">Yes, Undo & Remove</button>
@@ -294,7 +291,7 @@
 </div>
 
 <script>
-  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz1MhQDdW_aQwt1L8QJ05OpEgcvDcVqJZCrZH53Kkh8vfOaPJJd5tGVoHBKFQbRJbc4/exec";[cite: 4]
+  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyZnNo1nzwDCiTI5RoXSX1IyCn5NgxF8uhqkADId33T5DfA_yqHzdjckFG2EzSwbhFY/exec";
   var TRACKING_DIRECT_URL = "https://api.boxdlogistics.com/api/v1/shipments/track-shipment/?awb_number=";
 
   var masterOrders = [];
@@ -368,17 +365,17 @@
 
   function updateKpiDisplay() {
     document.getElementById("kpiTodayCount").innerText = sheetKpis.today.count;
-    document.getElementById("kpiTodayAmt").innerText = "₹" + sheetKpis.today.amount.toLocaleString('en-IN');
+    document.getElementById("kpiTodayAmt").innerText = "₹" + Number(sheetKpis.today.amount).toLocaleString('en-IN');
     document.getElementById("kpiTodayGs").innerText = "GS: " + sheetKpis.today.gs;
     document.getElementById("kpiTodayUc").innerText = "UC: " + sheetKpis.today.uc;
 
     document.getElementById("kpiYestCount").innerText = sheetKpis.yesterday.count;
-    document.getElementById("kpiYestAmt").innerText = "₹" + sheetKpis.yesterday.amount.toLocaleString('en-IN');
+    document.getElementById("kpiYestAmt").innerText = "₹" + Number(sheetKpis.yesterday.amount).toLocaleString('en-IN');
     document.getElementById("kpiYestGs").innerText = "GS: " + sheetKpis.yesterday.gs;
     document.getElementById("kpiYestUc").innerText = "UC: " + sheetKpis.yesterday.uc;
 
     document.getElementById("kpiTotalCount").innerText = sheetKpis.total.count;
-    document.getElementById("kpiTotalAmt").innerText = "₹" + sheetKpis.total.amount.toLocaleString('en-IN');
+    document.getElementById("kpiTotalAmt").innerText = "₹" + Number(sheetKpis.total.amount).toLocaleString('en-IN');
     document.getElementById("kpiTotalGs").innerText = "GS: " + sheetKpis.total.gs;
     document.getElementById("kpiTotalUc").innerText = "UC: " + sheetKpis.total.uc;
   }
@@ -432,9 +429,13 @@
       }
 
       var parentTd = btnElem.parentElement;
-      parentTd.innerHTML = '<span class="cust-badge">#' + (custOrd || "-") + '</span>';
+      parentTd.innerHTML = "";
+      var span = document.createElement("span");
+      span.className = "cust-badge";
+      span.innerText = "#" + (custOrd || "-");
+      parentTd.appendChild(span);
     } catch(e) {
-      btnElem.innerText = "⚡ Load";
+      btnElem.innerText = "Load";
       btnElem.disabled = false;
       alert("Tracking fetch error: " + e.message);
     }
@@ -477,7 +478,7 @@
       } else {
         var btnLoad = document.createElement("button");
         btnLoad.className = "btn-fetch-tracking";
-        btnLoad.innerText = "⚡ Load";
+        btnLoad.innerText = "Load";
         btnLoad.title = "Click to fetch live Tracking Customer Order #";
         btnLoad.onclick = (function(targetAwb, targetBtn) {
           return function() { loadSingleTrackingOrder(targetAwb, targetBtn); };
@@ -565,7 +566,7 @@
       { facingMode: "environment" },
       config,
       onScanSuccess,
-      function(error) { /* Frame scan bypass */ }
+      function(error) { }
     ).catch(function(err) {
       alert("Camera Permission Error: " + err);
       closeCameraScanner();
@@ -616,7 +617,7 @@
     var order = masterOrders.find(function(o) { return o.awb_number === awb; });
     if (!order) return;
     currentCandidate = order;
-    currentCandidate.fromCamera = !!fromCamera;
+    currentCandidate.fromCamera = Boolean(fromCamera);
     
     var dispNum = order.cust_order_loaded ? order.customer_order_number : order.order_number;
     document.getElementById("pCustOrder").innerText = "#" + dispNum;
@@ -630,7 +631,7 @@
     
     if (yes && currentCandidate) {
       var ord = currentCandidate;
-      showToast("Saving #" + (ord.customer_order_number || ord.order_number) + " to Sheet & DB...");
+      showToast("Saving #" + (ord.customer_order_number || ord.order_number) + " to Sheet...");
 
       ord.is_picked_up = true;
       updateCounters();
@@ -666,7 +667,7 @@
           ord.is_picked_up = false;
           updateCounters();
           renderTable();
-          alert(res.duplicate ? ("⚠️ DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
+          alert(res.duplicate ? ("DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
         }
       } catch(e) {
         ord.is_picked_up = false;
