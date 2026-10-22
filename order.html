@@ -61,7 +61,7 @@
     .btn-sync-error { background: #ef4444 !important; color: #ffffff !important; }
     .sync-tip { font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.3px; }
 
-    /* SHEET ANALYTICS KPI CARDS */
+    /* SUPABASE ANALYTICS KPI CARDS */
     .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 18px; }
     .kpi-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 16px; padding: 14px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
     .kpi-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -133,7 +133,6 @@
     .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
 
-    /* EMERGENCY MODAL FORM */
     .form-group { text-align: left; margin-bottom: 12px; }
     .form-group label { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
     .form-group input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--card-border); border-radius: 10px; font-size: 13px; outline: none; }
@@ -145,7 +144,6 @@
 <div class="app-box">
   <div class="header">
     <div class="brand">
-      <!-- 5-CLICK SECRET EMERGENCY TRIGGER -->
       <span class="secret-trigger" id="emergencyTrigger" title="System Controls">📦</span>
       Order Reconciliation & Dispatches
     </div>
@@ -159,15 +157,15 @@
         <button id="mainSyncBtn" class="btn-sync btn-sync-loading" onclick="loadOrderData()">
           <span id="syncIcon">↻</span> <span id="syncLabel">Connecting...</span>
         </button>
-        <span class="sync-tip" id="syncTip">Smart Cache Active</span>
+        <span class="sync-tip" id="syncTip">Live Supabase Sync</span>
       </div>
     </div>
   </div>
 
-  <!-- SHEET ANALYTICS KPI CARDS -->
+  <!-- KPI CARDS (Calculated from Supabase) -->
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-title">Today Picked in Sheet</div>
+      <div class="kpi-title">Today Picked in Supabase</div>
       <div class="kpi-main-val">
         <span id="kpiTodayCount">0</span>
         <span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span>
@@ -179,7 +177,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-title">Yesterday Picked in Sheet</div>
+      <div class="kpi-title">Yesterday Picked in Supabase</div>
       <div class="kpi-main-val">
         <span id="kpiYestCount">0</span>
         <span class="kpi-sub-amt" id="kpiYestAmt">₹0</span>
@@ -239,7 +237,7 @@
   <div class="modal-sheet" style="max-width:500px;">
     <div style="font-size:32px; margin-bottom:6px;">🚨</div>
     <h3 style="color:#1e1b4b; font-size:17px; font-weight:800;">Emergency Manual Dispatch Entry</h3>
-    <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Directly log historical or untracked orders into the sheet with a custom date.</p>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Directly log historical or untracked orders into Supabase with a custom date.</p>
 
     <div class="form-group">
       <label>Target Log Date:</label>
@@ -285,7 +283,7 @@
     <div style="font-size:36px; margin-bottom:6px;">📦</div>
     <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Log order <b id="pCustOrder"></b> (Store: <span id="pStore" style="font-weight:800;"></span> | Tag: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) as Picked Up to Google Sheet?
+      Log order <b id="pCustOrder"></b> (Store: <span id="pStore" style="font-weight:800;"></span> | Tag: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) as Picked Up to Supabase?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" onclick="commitPickup(true)">Yes, Mark Picked Up</button>
@@ -300,7 +298,7 @@
     <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
     <h3 style="color:var(--jelly-red); font-size:17px; font-weight:800;">Warning: Undo Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Revert order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) and remove it from Google Sheet?
+      Revert order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) and remove it from Supabase?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" style="background:var(--jelly-red);" onclick="commitUndo(true)">Yes, Undo & Remove</button>
@@ -310,7 +308,7 @@
 </div>
 
 <script>
-  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxPgOIVLl5ORE9pNjw-4PoKiNJ3MEkZ1ZhpZc4EDhp_3zyGDnGEKkwDFIxEBk8ACYop/exec";
+  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyLSzdwcT2YPPHzHHlAG9imeKaWBpfmus4ihVYdZ_jNjHtCMykgAM0U0mUGZ7Y1ItJ3/exec";
   var TRACKING_DIRECT_URL = "https://api.boxdlogistics.com/api/v1/shipments/track-shipment/?awb_number=";
 
   var masterOrders = [];
@@ -327,17 +325,10 @@
     total: { count: 0, amount: 0, gs: 0, uc: 0 }
   };
 
-  /* ========================================================
-     AUDIO EFFECTS (Pleasant Chime & Warning Buzz)
-  ======================================================== */
   var audioCtx = null;
   function getAudioContext() {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
 
@@ -345,7 +336,6 @@
     try {
       var ctx = getAudioContext();
       var now = ctx.currentTime;
-
       var osc1 = ctx.createOscillator();
       var gain1 = ctx.createGain();
       osc1.type = 'sine';
@@ -374,7 +364,6 @@
     try {
       var ctx = getAudioContext();
       var now = ctx.currentTime;
-
       var osc = ctx.createOscillator();
       var gain = ctx.createGain();
       osc.type = 'sawtooth';
@@ -389,23 +378,17 @@
     } catch(e) {}
   }
 
-  /* ========================================================
-     5-CLICK SECRET BACKDOOR INITIALIZATION
-  ======================================================== */
   var secretClickCount = 0;
   var secretClickTimer = null;
 
   document.getElementById("emergencyTrigger").addEventListener("click", function() {
     secretClickCount++;
     clearTimeout(secretClickTimer);
-    
     if (secretClickCount >= 5) {
       secretClickCount = 0;
       openEmergencyModal();
     } else {
-      secretClickTimer = setTimeout(function() {
-        secretClickCount = 0;
-      }, 1500);
+      secretClickTimer = setTimeout(function() { secretClickCount = 0; }, 1500);
     }
   });
 
@@ -428,14 +411,12 @@
       return;
     }
 
-    // 1. Check if order is already present in memory
     var matched = masterOrders.find(function(o) { return o.awb_number === awb; });
     if (matched) {
       setupEmergencyCandidate(matched);
       return;
     }
 
-    // 2. Query through backend Apps Script to bypass CORS block
     try {
       showToast("Searching tracking record via backend...");
       var response = await fetch(API_ENDPOINT + "?action=lookupAwb&awb=" + encodeURIComponent(awb));
@@ -501,12 +482,9 @@
 
     if (!emergencyCandidate) return;
 
-    var payload = Object.assign({}, emergencyCandidate, {
-      custom_log_date: customDate
-    });
-
+    var payload = Object.assign({}, emergencyCandidate, { custom_log_date: customDate });
     closeEmergencyModal();
-    showToast("Saving custom entry for date: " + customDate + "...");
+    showToast("Saving custom entry to Supabase for date: " + customDate + "...");
 
     try {
       var response = await fetch(API_ENDPOINT, {
@@ -518,8 +496,8 @@
 
       if (res.success) {
         playSuccessSound();
-        showToast("Logged successfully for " + customDate);
-        loadOrderData(); // Synchronize view
+        showToast("Logged successfully in Supabase for " + customDate);
+        loadOrderData();
       } else {
         playErrorSound();
         alert(res.duplicate ? ("DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
@@ -530,14 +508,10 @@
     }
   }
 
-  /* ========================================================
-     MAIN ENGINE & DATA FLOW
-  ======================================================== */
   function setSyncButtonState(state) {
     var btn = document.getElementById("mainSyncBtn");
     var icon = document.getElementById("syncIcon");
     var label = document.getElementById("syncLabel");
-
     btn.className = "btn-sync";
 
     if (state === "loading") {
@@ -785,7 +759,7 @@
         var btnUndo = document.createElement("button");
         btnUndo.className = "btn-act btn-act-undo";
         btnUndo.innerText = "↺";
-        btnUndo.title = "Undo from Sheet";
+        btnUndo.title = "Undo from Supabase";
         btnUndo.onclick = (function(targetAwb) {
           return function() { promptUndo(targetAwb); };
         })(o.awb_number);
@@ -886,7 +860,7 @@
     
     if (yes && currentCandidate) {
       var ord = currentCandidate;
-      showToast("Saving #" + (ord.customer_order_number || ord.order_number) + " to Sheet...");
+      showToast("Saving #" + (ord.customer_order_number || ord.order_number) + " to Supabase...");
 
       ord.is_picked_up = true;
       updateCounters();
@@ -919,7 +893,7 @@
           updateKpiDisplay();
 
           if (res.payment_reconciled) showToast("Auto-Paid via " + res.gateway + ": ₹" + res.payment_amount);
-          else showToast("Order #" + (ord.customer_order_number || ord.order_number) + " Saved in Sheet");
+          else showToast("Order #" + (ord.customer_order_number || ord.order_number) + " Saved in Supabase");
         } else {
           playErrorSound();
           ord.is_picked_up = false;
@@ -955,7 +929,7 @@
     document.getElementById("modalUndo").style.display = "none";
     if (yes && currentCandidate) {
       var ord = currentCandidate;
-      showToast("Reverting #" + (ord.customer_order_number || ord.order_number) + " from Sheet...");
+      showToast("Reverting #" + (ord.customer_order_number || ord.order_number) + " from Supabase...");
 
       ord.is_picked_up = false;
       updateCounters();
@@ -970,7 +944,7 @@
         var res = await response.json();
 
         if (res.success) {
-          showToast("Reverted successfully!");
+          showToast("Reverted successfully from Supabase!");
         } else {
           ord.is_picked_up = true;
           updateCounters();
