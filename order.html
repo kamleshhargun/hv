@@ -4,46 +4,82 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Order Reconciliation - Harsidhi ERP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4;
-      --text: #1e293b; --muted: #64748b; --jelly-blue: #3b82f6; --jelly-green: #10b981;
-      --jelly-red: #ef4444; --radius-jelly: 20px; --radius-pill: 30px;
+      --bg: #f4f6fb;
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --card-border: #e8ecf4;
+      --text: #1e293b;
+      --muted: #64748b;
+      --jelly-blue: #3b82f6;
+      --jelly-blue-tint: #eff6ff;
+      --jelly-green: #10b981;
+      --jelly-green-tint: #ecfdf5;
+      --jelly-amber: #f59e0b;
+      --jelly-amber-tint: #fffbeb;
+      --jelly-red: #ef4444;
+      --jelly-red-tint: #fef2f2;
+      --jelly-purple: #8b5cf6;
+      --jelly-purple-tint: #f5f3ff;
+      --radius-jelly: 20px;
+      --radius-pill: 30px;
+      --shadow-jelly: 0 10px 25px -5px rgba(100, 116, 139, 0.08);
+      --shadow-bubble: 0 4px 14px 0 rgba(0, 0, 0, 0.04);
     }
+
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
-    .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; border: 1.5px solid var(--card-border); padding: 22px; box-shadow: 0 10px 25px rgba(100,116,139,0.08); }
-    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-    .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; }
-    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
-    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; }
-
-    .tabs-strip { display: flex; gap: 8px; margin: 15px 0; overflow-x: auto; }
-    .tab-pill { background: #f8fafc; border: 1.5px solid var(--card-border); color: #475569; padding: 7px 16px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-    .tab-pill.active { background: #1e1b4b; color: #fff; }
-
-    .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); margin-top: 10px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    th { background: #f8fafc; color: #475569; padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); }
-    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); vertical-align: top; }
+    .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: var(--shadow-jelly); }
     
-    .cust-badge { background: #eff6ff; color: #3b82f6; border: 1.5px solid #bfdbfe; font-size: 13px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; }
-    .wh-pill { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+    .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; }
+    .brand span { font-size: 24px; }
+    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
+    .nav-btn:hover { background: #312e81; }
+
+    /* JELLY TABS */
+    .tabs-strip { display: flex; gap: 8px; margin: 15px 0 18px 0; overflow-x: auto; padding-bottom: 6px; }
+    .tab-pill { background: #ffffff; border: 1.5px solid var(--card-border); color: #475569; padding: 8px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+    .tab-pill:hover { transform: translateY(-2px); border-color: #cbd5e1; }
+    .tab-pill.active { background: #1e1b4b; color: #fff; border-color: #1e1b4b; box-shadow: 0 4px 14px rgba(30, 27, 75, 0.25); }
+    .tab-badge { background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 20px; font-weight: 800; }
+    .tab-pill.active .tab-badge { background: rgba(255,255,255,0.22); color: #fff; }
+
+    /* TABLE */
+    .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
+    th { background: #f8fafc; color: #475569; padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); letter-spacing: 0.5px; }
+    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); vertical-align: top; }
+    tr:hover td { background: #fafcff; }
+
+    .cust-badge { background: var(--jelly-blue-tint); color: var(--jelly-blue); border: 1.5px solid #bfdbfe; font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; display: inline-block; }
+    
+    .wh-pill { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; letter-spacing: 0.5px; margin-top: 2px; }
     .wh-gs { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
     .wh-uc { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
     .wh-other { background: #f1f5f9; color: #475569; }
 
     .sku-bubble { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 6px; font-size: 11px; margin-bottom: 3px; }
-    .btn-act { border: none; padding: 6px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-    .btn-act-pick { background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; }
+    
+    .badge-status { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; }
+    .st-transit { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .st-delivered { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .st-picked { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+    .st-failed { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    /* ACTION BUTTONS */
+    .btn-act { border: none; padding: 6px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow-bubble); }
+    .btn-act:hover { transform: translateY(-1px); }
+    .btn-act-pick { background: var(--jelly-green-tint); color: #047857; border: 1.5px solid #a7f3d0; }
     .btn-act-pick:hover { background: #10b981; color: #fff; }
-    .btn-act-undo { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
+    .btn-act-undo { background: var(--jelly-red-tint); color: #b91c1c; border: 1.5px solid #fecaca; }
     .btn-act-undo:hover { background: #ef4444; color: #fff; }
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 440px; text-align: center; border: 1px solid var(--card-border); }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 440px; text-align: center; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
     .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
     .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
@@ -53,19 +89,23 @@
 <body>
 <div class="app-box">
   <div class="header">
-    <div class="brand">📦 Order Reconciliation & Dispatches</div>
+    <div class="brand"><span>📦</span> Order Reconciliation & Dispatches</div>
     <div class="nav-links">
       <a href="index.html" class="nav-btn">Dashboard</a>
       <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>
       <a href="rto.html" class="nav-btn">Return Recon</a>
       <a href="payment.html" class="nav-btn">Payment Recon</a>
+      <button onclick="loadOrderData()" style="background:#f1f5f9; border:1.5px solid var(--card-border); padding:8px 14px; border-radius:var(--radius-pill); font-weight:700; cursor:pointer;">↻ Refresh</button>
     </div>
   </div>
 
+  <!-- EXACT 5 TABS AS SPECIFIED -->
   <div class="tabs-strip">
-    <button class="tab-pill active" id="tabToday" onclick="filterTab('today_new')">📦 Today New (<span id="cToday">0</span>)</button>
+    <button class="tab-pill active" id="tabAll" onclick="filterTab('all_orders')">📦 All Orders (<span id="cAll">0</span>)</button>
     <button class="tab-pill" id="tabFailed" onclick="filterTab('pickup_failed')">⚠️ Pickup Failed (<span id="cFailed">0</span>)</button>
-    <button class="tab-pill" id="tabPicked" onclick="filterTab('picked_up')">✅ Picked Up In Sheet (<span id="cPicked">0</span>)</button>
+    <button class="tab-pill" id="tabPicked" onclick="filterTab('picked_up')">✅ Picked Up (<span id="cPicked">0</span>)</button>
+    <button class="tab-pill" id="tabTransit" onclick="filterTab('in_transit')">🚚 In-Transit (<span id="cTransit">0</span>)</button>
+    <button class="tab-pill" id="tabDelivered" onclick="filterTab('delivered')">🎯 Delivered (<span id="cDelivered">0</span>)</button>
   </div>
 
   <div class="table-viewport">
@@ -78,11 +118,11 @@
           <th>Products (SKU, Qty)</th>
           <th>Payment & 5% GST</th>
           <th>Customer & City</th>
-          <th>Action</th>
+          <th>Live Status / Action</th>
         </tr>
       </thead>
       <tbody id="orderTableBody">
-        <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">Loading orders...</td></tr>
+        <tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Connecting to live backend & tracking engine...</td></tr>
       </tbody>
     </table>
   </div>
@@ -94,7 +134,7 @@
     <div style="font-size:36px; margin-bottom:6px;">📦</div>
     <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Order <b id="pCustOrder"></b> (Warehouse: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) ko Picked Up mark karke Google Sheet Column C, Supabase aur Razorpay/GoKwik Auto-Recon me save karein?
+      Order <b id="pCustOrder"></b> (Warehouse: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) ko Picked Up mark karke Google Sheet, Supabase aur Razorpay/GoKwik Auto-Recon me save karein?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" onclick="commitPickup(true)">Yes, Mark Picked Up</button>
@@ -109,7 +149,7 @@
     <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
     <h3 style="color:var(--jelly-red); font-size:17px; font-weight:800;">Warning: Undo Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) ko Sheet & Database se delete karke active queue me layein?
+      Order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) ko Sheet & Database se delete karke wapis active queue me layein?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" style="background:var(--jelly-red);" onclick="commitUndo(true)">Yes, Undo & Remove</button>
@@ -119,33 +159,68 @@
 </div>
 
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz77WUMlZrhMFQeHQdw1MPFI3Lb4I27CqAhijmhLk5ufkJAXZePRHhdyGY8IWWmFXgJ/exec";
+  // YAHAN APNA APPS SCRIPT WEB APP DEPLOYMENT URL DALEIN
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxBMaz8S3dzsdl_fVFa_JiB3pUuX9kQEff6ZV-rWT-85d9ecW2T49yL6LVJlG237pO1/exec";
+  
   let masterOrders = [];
-  let activeTab = "today_new";
+  let activeTab = "all_orders";
   let currentCandidate = null;
 
   async function loadOrderData() {
+    const tbody = document.getElementById("orderTableBody");
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Fetching live orders...</td></tr>';
+
     try {
-      const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
-      if (!res.success) return alert("Error: " + res.error);
+      // Robust JSON fetch handling redirect
+      const response = await fetch(API_ENDPOINT + "?action=fetchStation", {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+      
+      const res = await response.json();
+      if (!res.success) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:25px; color:red;">Server Error: ${res.error}</td></tr>`;
+        return;
+      }
 
       masterOrders = res.orders || [];
-      document.getElementById("cToday").innerText = res.counts.today_new;
-      document.getElementById("cFailed").innerText = res.counts.pickup_failed;
-      document.getElementById("cPicked").innerText = res.counts.picked_up;
+
+      // Update counters for all 5 tabs
+      let cAll = 0, cFail = 0, cPick = 0, cTransit = 0, cDelivered = 0;
+      masterOrders.forEach(o => {
+        if (!o.is_picked_up) {
+          cAll++;
+          if (o.cohort === "pickup_failed") cFail++;
+        } else {
+          cPick++;
+          if (o.is_delivered) cDelivered++;
+          else if (o.is_in_transit) cTransit++;
+        }
+      });
+
+      document.getElementById("cAll").innerText = cAll;
+      document.getElementById("cFailed").innerText = cFail;
+      document.getElementById("cPicked").innerText = cPick;
+      document.getElementById("cTransit").innerText = cTransit;
+      document.getElementById("cDelivered").innerText = cDelivered;
 
       renderTable();
     } catch(err) {
-      document.getElementById("orderTableBody").innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:red;">Error: ${err.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:25px; color:red;">Connection Error: ${err.message}. Please check if the Web App is deployed as 'Anyone'.</td></tr>`;
     }
   }
 
   function filterTab(tab) {
     activeTab = tab;
     document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
-    if (tab === "today_new") document.getElementById("tabToday").classList.add("active");
-    if (tab === "pickup_failed") document.getElementById("tabFailed").classList.add("active");
-    if (tab === "picked_up") document.getElementById("tabPicked").classList.add("active");
+    const map = {
+      "all_orders": "tabAll",
+      "pickup_failed": "tabFailed",
+      "picked_up": "tabPicked",
+      "in_transit": "tabTransit",
+      "delivered": "tabDelivered"
+    };
+    if (map[tab]) document.getElementById(map[tab]).classList.add("active");
     renderTable();
   }
 
@@ -154,14 +229,26 @@
     tbody.innerHTML = "";
 
     const list = masterOrders.filter(o => {
-      if (activeTab === "picked_up") return o.is_picked_up;
-      if (activeTab === "today_new") return !o.is_picked_up && o.cohort === "today_new";
+      // 1. All Orders (All active unpicked queue: Today New + Pickup Failed)
+      if (activeTab === "all_orders") return !o.is_picked_up;
+
+      // 2. Pickup Failed (Only rolling window unpicked)
       if (activeTab === "pickup_failed") return !o.is_picked_up && o.cohort === "pickup_failed";
+
+      // 3. Picked Up (All marked picked up orders in Sheet/DB)
+      if (activeTab === "picked_up") return o.is_picked_up;
+
+      // 4. In-Transit (Only AFTER marked picked up + physically in-transit)
+      if (activeTab === "in_transit") return o.is_picked_up && o.is_in_transit && !o.is_delivered;
+
+      // 5. Delivered (Only AFTER marked picked up + tracking delivered)
+      if (activeTab === "delivered") return o.is_picked_up && o.is_delivered;
+
       return false;
     });
 
     if (list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">No orders in this tab.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">No orders in this tab queue.</td></tr>';
       return;
     }
 
@@ -175,9 +262,23 @@
       else if (o.warehouse_tag === "UC") whBadge = '<span class="wh-pill wh-uc">🏬 UC (127)</span>';
 
       const gstText = o.igst_amount > 0 ? 'IGST: ₹' + o.igst_amount : 'CGST: ₹' + o.cgst_amount + ' | SGST: ₹' + o.sgst_amount;
-      const actionBtn = o.is_picked_up
-        ? '<button class="btn-act btn-act-undo" onclick="promptUndo(\\'' + o.awb_number + '\\')">↺ Undo</button>'
-        : '<button class="btn-act btn-act-pick" onclick="promptPickup(\\'' + o.awb_number + '\\')">✓ Picked Up</button>';
+
+      // Determine Action Column or Live Badge
+      let actionColumn = "";
+      if (!o.is_picked_up) {
+        actionColumn = '<button class="btn-act btn-act-pick" onclick="promptPickup(\\'' + o.awb_number + '\\')">✓ Picked Up</button>';
+      } else {
+        let liveBadge = '<span class="badge-status st-picked">Picked Up</span>';
+        if (o.is_delivered) liveBadge = '<span class="badge-status st-delivered">Delivered</span>';
+        else if (o.is_in_transit) liveBadge = '<span class="badge-status st-transit">In-Transit</span>';
+
+        actionColumn = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${liveBadge}
+            <button class="btn-act btn-act-undo" onclick="promptUndo('${o.awb_number}')" title="Undo from Sheet">↺</button>
+          </div>
+        `;
+      }
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -187,7 +288,7 @@
         <td>${prodsHtml || '-'}</td>
         <td><b>₹${o.total_amount}</b> (${o.payment_mode})<div style="font-size:10.5px; color:var(--muted); margin-top:2px;">${gstText}</div></td>
         <td><b>${o.shipping_name}</b><br><span style="font-size:11px; color:var(--muted);">${o.shipping_city}, ${o.shipping_state} (${o.shipping_pincode})</span></td>
-        <td>${actionBtn}</td>
+        <td>${actionColumn}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -207,7 +308,7 @@
     document.getElementById("modalPick").style.display = "none";
     if (yes && currentCandidate) {
       const ord = currentCandidate;
-      showToast("Logging #" + ord.customer_order_number + " & auto-verifying gateway...");
+      showToast("Saving #" + ord.customer_order_number + " & checking Razorpay/GoKwik...");
 
       ord.is_picked_up = true;
       renderTable();
@@ -242,7 +343,7 @@
     document.getElementById("modalUndo").style.display = "none";
     if (yes && currentCandidate) {
       const ord = currentCandidate;
-      showToast("Reverting #" + ord.customer_order_number + "...");
+      showToast("Reverting #" + ord.customer_order_number + " from Sheet...");
 
       ord.is_picked_up = false;
       renderTable();
