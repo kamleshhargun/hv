@@ -8,16 +8,17 @@
   <style>
     :root {
       --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4;
-      --text: #1e293b; --muted: #64748b; --jelly-green: #10b981; --jelly-red: #ef4444;
-      --radius-jelly: 20px;
+      --text: #1e293b; --muted: #64748b; --jelly-green: #10b981; --jelly-red: #ef4444; --jelly-blue: #3b82f6;
+      --radius-jelly: 20px; --radius-pill: 30px;
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
     .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: 20px; border: 1.5px solid var(--card-border); padding: 22px; box-shadow: 0 10px 25px rgba(100,116,139,0.08); }
     .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; }
-    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 700; }
+    .btn-bulk { background: #10b981; color: #fff; border: none; padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 800; cursor: pointer; }
 
     .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); margin-top: 15px; }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
@@ -27,43 +28,73 @@
     .pay-badge { background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; }
     .pend-badge { background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; }
     .gateway-tag { font-size: 11px; font-weight: 800; color: #6366f1; }
+    .btn-mark-pay { background: #eff6ff; border: 1.5px solid #bfdbfe; color: #2563eb; padding: 5px 12px; border-radius: 20px; font-weight: 800; cursor: pointer; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--card-border); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: 30px; font-weight: 800; cursor: pointer; }
+    .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: 30px; font-weight: 800; cursor: pointer; }
+    .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
   </style>
 </head>
 <body>
 <div class="app-box">
   <div class="header">
-    <div class="brand">💳 Payment Reconciliation & Gateway Ledger</div>
+    <div class="brand">💳 Payment Reconciliation & Settlement Ledger</div>
     <div class="nav-links">
       <a href="index.html" class="nav-btn">Dashboard</a>
       <a href="order.html" class="nav-btn">Order Recon</a>
       <a href="rto.html" class="nav-btn">Return Recon</a>
       <a href="payment.html" class="nav-btn" style="background:#3b82f6;">Payment Recon</a>
+      <button class="btn-bulk" onclick="document.getElementById('modalPay').style.display='flex'">📥 Bulk Remittance</button>
     </div>
   </div>
-  <p style="color:var(--muted); font-size:13px;">Synchronized ledger from Google Sheet & Supabase: Auto-verified via Razorpay, GoKwik, or COD Remittances.</p>
+  <p style="color:var(--muted); font-size:13px;">Direct Supabase Ledger: Reconciles Prepaid (Bank/Razorpay/GoKwik) and COD Remittances.</p>
   
   <div class="table-viewport">
     <table>
       <thead>
         <tr>
           <th>AWB Number</th>
-          <th>Customer Order #</th>
+          <th>Cust Order #</th>
           <th>Customer Name</th>
           <th>Payment Mode & Gateway</th>
-          <th>Transaction / Gateway ID</th>
-          <th>Received Amount</th>
+          <th>Tx ID</th>
+          <th>Order Amount</th>
           <th>Status</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="payTableBody">
-        <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--muted);">Loading payment records...</td></tr>
+        <tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">Loading payment records from Supabase...</td></tr>
       </tbody>
     </table>
   </div>
 </div>
 
+<!-- BULK PAYMENT REMITTANCE MODAL -->
+<div id="modalPay" class="modal-overlay">
+  <div class="modal-sheet">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="color:var(--jelly-green); font-size:16px; font-weight:800;">💳 Bulk Payment Remittance (Supabase)</h3>
+      <button onclick="document.getElementById('modalPay').style.display='none'" style="background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer;">✕</button>
+    </div>
+    <label style="font-size:11px; font-weight:700; color:var(--muted);">Remittance Date:</label>
+    <input type="date" id="remitDate" style="width:100%; padding:9px; border:1.5px solid var(--card-border); border-radius:10px; margin-top:3px; margin-bottom:12px; outline:none;" />
+    <label style="font-size:11px; font-weight:700; color:var(--muted);">Paste AWB & Received Amount (Tab or Space separated):</label>
+    <textarea id="bulkPasteText" placeholder="50845018032080	899&#10;50845018032091	1250" style="width:100%; height:130px; padding:10px; border:1.5px solid var(--card-border); border-radius:10px; font-family:monospace; font-size:12px; margin-top:3px; outline:none;"></textarea>
+    <div class="modal-actions">
+      <button class="btn-m-confirm" onclick="submitRemittance()">Reconcile All in Supabase</button>
+      <button class="btn-m-cancel" onclick="document.getElementById('modalPay').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz77WUMlZrhMFQeHQdw1MPFI3Lb4I27CqAhijmhLk5ufkJAXZePRHhdyGY8IWWmFXgJ/exec";
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyLSzdwcT2YPPHzHHlAG9imeKaWBpfmus4ihVYdZ_jNjHtCMykgAM0U0mUGZ7Y1ItJ3/exec";
+  document.getElementById("remitDate").value = new Date().toISOString().slice(0, 10);
 
   async function loadPaymentData() {
     try {
@@ -73,19 +104,23 @@
 
       const savedList = res.saved_picked_orders || [];
       if (savedList.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--muted);">No payment records in database yet.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--muted);">No payment records in Supabase yet.</td></tr>';
         return;
       }
 
       savedList.forEach(s => {
-        const isPaid = s.payment_status === "RECEIVED";
+        const isPaid = (s.payment_status === "RECEIVED");
         const statusBadge = isPaid 
-          ? `<span class="pay-badge">PAID: ₹${s.payment_received_amount} (${s.payment_received_date || 'Reconciled'})</span>` 
-          : `<span class="pend-badge">PENDING: ₹${s.total_amount}</span>`;
+          ? `<span class="pay-badge">RECEIVED (₹${s.payment_received_amount})</span>` 
+          : `<span class="pend-badge">PENDING</span>`;
 
         const gatewayDisplay = s.gateway 
           ? `<span class="gateway-tag">${s.gateway}</span> (${s.payment_mode})` 
           : s.payment_mode;
+
+        const actionBtn = isPaid 
+          ? `<span style="color:#10b981; font-weight:800; font-size:11px;">✓ Done</span>` 
+          : `<button class="btn-mark-pay" onclick="markSinglePayment('${s.awb_number}', ${s.total_amount}, '${s.payment_mode}')">Mark ${s.payment_mode === 'COD' ? 'Boxd COD' : 'Bank'} Received</button>`;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -94,14 +129,71 @@
           <td><b>${s.customer_name}</b> (${s.city || '-'})</td>
           <td>${gatewayDisplay}</td>
           <td><code style="color:#64748b;">${s.tx_id || '-'}</code></td>
-          <td>₹${s.payment_received_amount || 0}</td>
+          <td>₹${s.total_amount || 0}</td>
           <td>${statusBadge}</td>
+          <td>${actionBtn}</td>
         `;
         tbody.appendChild(tr);
       });
     } catch(err) {
-      document.getElementById("payTableBody").innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:red;">Error: ${err.message}</td></tr>`;
+      document.getElementById("payTableBody").innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:red;">Error: ${err.message}</td></tr>`;
     }
+  }
+
+  async function markSinglePayment(awb, amt, mode) {
+    const gateway = (mode === 'COD') ? 'BOXD_COD' : 'BANK_DIRECT';
+    if (!confirm(`Mark payment of ₹${amt} received for AWB ${awb} via ${gateway}?`)) return;
+
+    showToast("Updating Supabase payment status...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "markPaymentReceived",
+          payload: { awb: awb, amount: amt, gateway: gateway }
+        })
+      }).then(r => r.json());
+
+      if (res.success) {
+        showToast("Payment status updated in Supabase!");
+        loadPaymentData();
+      } else {
+        alert("Error: " + res.error);
+      }
+    } catch(e) {
+      alert("Network Error: " + e.message);
+    }
+  }
+
+  async function submitRemittance() {
+    const date = document.getElementById("remitDate").value;
+    const text = document.getElementById("bulkPasteText").value;
+    if (!text.trim()) return alert("Paste AWB and amount rows.");
+
+    document.getElementById("modalPay").style.display = "none";
+    showToast("Reconciling remittance in Supabase...");
+
+    const res = await fetch(API_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "bulkReconcile", payload: { date: date, text: text } })
+    }).then(r => r.json());
+
+    if (res.success) {
+      showToast("Matched: " + res.matched + " | Skipped: " + res.skipped);
+      loadPaymentData();
+    } else {
+      alert("Error: " + res.error);
+    }
+  }
+
+  function showToast(msg) {
+    const el = document.createElement("div");
+    el.className = "toast-pill";
+    el.innerText = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
   }
 
   window.onload = loadPaymentData;
