@@ -33,8 +33,10 @@
     .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: var(--shadow-jelly); }
     
     .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-    .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; }
-    .brand span { font-size: 24px; }
+    .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; user-select: none; }
+    .secret-trigger { font-size: 24px; cursor: pointer; transition: transform 0.15s ease; display: inline-block; }
+    .secret-trigger:active { transform: scale(1.3); }
+
     .nav-links { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
     .nav-btn:hover { background: #312e81; }
@@ -130,17 +132,28 @@
     .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
+
+    /* EMERGENCY MODAL FORM */
+    .form-group { text-align: left; margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+    .form-group input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--card-border); border-radius: 10px; font-size: 13px; outline: none; }
+    .form-group input:focus { border-color: var(--jelly-blue); }
+    .lookup-box { background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 12px; margin-top: 10px; text-align: left; display: none; }
   </style>
 </head>
 <body>
 <div class="app-box">
   <div class="header">
-    <div class="brand"><span>📦</span> Order Reconciliation & Dispatches</div>
+    <div class="brand">
+      <!-- 5-CLICK SECRET EMERGENCY TRIGGER -->
+      <span class="secret-trigger" id="emergencyTrigger" title="System Controls">📦</span>
+      Order Reconciliation & Dispatches
+    </div>
     <div class="nav-links">
-      <a href="index.html" class="nav-btn">Dashboard</a>[cite: 3]
-      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>[cite: 4]
-      <a href="rto.html" class="nav-btn">Return Recon</a>[cite: 2]
-      <a href="payment.html" class="nav-btn">Payment Recon</a>[cite: 1]
+      <a href="index.html" class="nav-btn">Dashboard</a>
+      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>
+      <a href="rto.html" class="nav-btn">Return Recon</a>
+      <a href="payment.html" class="nav-btn">Payment Recon</a>
       
       <div class="sync-wrap">
         <button id="mainSyncBtn" class="btn-sync btn-sync-loading" onclick="loadOrderData()">
@@ -151,10 +164,10 @@
     </div>
   </div>
 
-  <!-- SHEET ANALYTICS KPI CARDS (Column A Logged Date Driven) -->
+  <!-- SHEET ANALYTICS KPI CARDS -->
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-title">📅 Today Picked in Sheet</div>
+      <div class="kpi-title">Today Picked in Sheet</div>
       <div class="kpi-main-val">
         <span id="kpiTodayCount">0</span>
         <span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span>
@@ -166,7 +179,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-title">⏮️ Yesterday Picked in Sheet</div>
+      <div class="kpi-title">Yesterday Picked in Sheet</div>
       <div class="kpi-main-val">
         <span id="kpiYestCount">0</span>
         <span class="kpi-sub-amt" id="kpiYestAmt">₹0</span>
@@ -178,7 +191,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-title">📊 Total Picked (Current Month)</div>
+      <div class="kpi-title">Total Picked (Current Month)</div>
       <div class="kpi-main-val">
         <span id="kpiTotalCount">0</span>
         <span class="kpi-sub-amt" id="kpiTotalAmt">₹0</span>
@@ -221,6 +234,39 @@
   </div>
 </div>
 
+<!-- SECRET EMERGENCY MANUAL DISPATCH MODAL -->
+<div id="modalEmergency" class="modal-overlay" onclick="onModalBgClick(event, 'modalEmergency')">
+  <div class="modal-sheet" style="max-width:500px;">
+    <div style="font-size:32px; margin-bottom:6px;">🚨</div>
+    <h3 style="color:#1e1b4b; font-size:17px; font-weight:800;">Emergency Manual Dispatch Entry</h3>
+    <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Directly log historical or untracked orders into the sheet with a custom date.</p>
+
+    <div class="form-group">
+      <label>Target Log Date:</label>
+      <input type="date" id="emDateInput">
+    </div>
+    <div class="form-group">
+      <label>AWB Number:</label>
+      <input type="text" id="emAwbInput" placeholder="Enter full AWB Number...">
+    </div>
+
+    <button type="button" class="btn-m-confirm" style="width:100%; background:var(--jelly-blue); margin-top:4px;" onclick="lookupEmergencyOrder()">
+      🔍 Lookup Order Data
+    </button>
+
+    <div id="emResultBox" class="lookup-box">
+      <div style="font-size:12px; font-weight:700; color:#1e1b4b;" id="emCustomerName">-</div>
+      <div style="font-size:11.5px; color:var(--muted); margin-top:2px;" id="emOrderDetails">-</div>
+      <div style="font-size:11.5px; color:var(--jelly-green); font-weight:700; margin-top:4px;" id="emAmount">-</div>
+      
+      <div class="modal-actions" style="margin-top:10px;">
+        <button class="btn-m-confirm" onclick="commitEmergencyPickup()">Confirm & Log Picked Up</button>
+        <button class="btn-m-cancel" onclick="closeEmergencyModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- CONTINUOUS CAMERA SCANNER -->
 <div id="modalCamera" class="modal-overlay" onclick="onModalBgClick(event, 'modalCamera')">
   <div class="modal-sheet" style="max-width:500px;">
@@ -229,7 +275,7 @@
       <button onclick="closeCameraScanner()" style="background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer;">✕</button>
     </div>
     <div id="cameraReader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
-    <div style="font-size:12px; color:var(--muted); margin-top:10px;">Parcel scan karein, auto confirmation aayega. Modal band karne ke liye [✕] ya bahar touch karein.</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:10px;">Align parcel barcode or QR code with camera view.</div>
   </div>
 </div>
 
@@ -239,7 +285,7 @@
     <div style="font-size:36px; margin-bottom:6px;">📦</div>
     <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Order <b id="pCustOrder"></b> (Store: <span id="pStore" style="font-weight:800;"></span> | Tag: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) ko Picked Up mark karke Google Sheet me save karein?
+      Log order <b id="pCustOrder"></b> (Store: <span id="pStore" style="font-weight:800;"></span> | Tag: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) as Picked Up to Google Sheet?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" onclick="commitPickup(true)">Yes, Mark Picked Up</button>
@@ -254,7 +300,7 @@
     <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
     <h3 style="color:var(--jelly-red); font-size:17px; font-weight:800;">Warning: Undo Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) ko Sheet se delete karke wapis active queue me layein?
+      Revert order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) and remove it from Google Sheet?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" style="background:var(--jelly-red);" onclick="commitUndo(true)">Yes, Undo & Remove</button>
@@ -264,12 +310,13 @@
 </div>
 
 <script>
-  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzNyARWA_NAfj-leK6-T0SmxfbosrHCvdl6Iv29NJoNuN3L3aCVtqqWO3PH3l2shVZv/exec";
+  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwUo7bDJi9Yc2k75HGW3t4QNfN3ICTa6pIuVUd2iJwFrtWmnvYz0xnrVnH7QamrWaSd/exec";
   var TRACKING_DIRECT_URL = "https://api.boxdlogistics.com/api/v1/shipments/track-shipment/?awb_number=";
 
   var masterOrders = [];
   var activeTab = "all_orders";
   var currentCandidate = null;
+  var emergencyCandidate = null;
   var html5QrCodeScanner = null;
   var isCameraActive = false;
   var isScanPaused = false;
@@ -281,7 +328,7 @@
   };
 
   /* ========================================================
-     AUDIO SYNTHESIZER (Pleasant Chime & Warning Buzz)
+     AUDIO EFFECTS (Pleasant Chime & Warning Buzz)
   ======================================================== */
   var audioCtx = null;
   function getAudioContext() {
@@ -294,7 +341,6 @@
     return audioCtx;
   }
 
-  // Soft Positive Double-Bell (880Hz -> 1320Hz)
   function playSuccessSound() {
     try {
       var ctx = getAudioContext();
@@ -303,7 +349,7 @@
       var osc1 = ctx.createOscillator();
       var gain1 = ctx.createGain();
       osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(880, now); // Tone A5
+      osc1.frequency.setValueAtTime(880, now);
       gain1.gain.setValueAtTime(0.18, now);
       gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
       osc1.connect(gain1);
@@ -314,7 +360,7 @@
       var osc2 = ctx.createOscillator();
       var gain2 = ctx.createGain();
       osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(1320, now + 0.12); // Tone E6
+      osc2.frequency.setValueAtTime(1320, now + 0.12);
       gain2.gain.setValueAtTime(0.22, now + 0.12);
       gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
       osc2.connect(gain2);
@@ -324,7 +370,6 @@
     } catch(e) {}
   }
 
-  // Low Warning Buzz Tone (220Hz -> 150Hz Sawtooth)
   function playErrorSound() {
     try {
       var ctx = getAudioContext();
@@ -344,6 +389,138 @@
     } catch(e) {}
   }
 
+  /* ========================================================
+     5-CLICK SECRET BACKDOOR INITIALIZATION
+  ======================================================== */
+  var secretClickCount = 0;
+  var secretClickTimer = null;
+
+  document.getElementById("emergencyTrigger").addEventListener("click", function() {
+    secretClickCount++;
+    clearTimeout(secretClickTimer);
+    
+    if (secretClickCount >= 5) {
+      secretClickCount = 0;
+      openEmergencyModal();
+    } else {
+      secretClickTimer = setTimeout(function() {
+        secretClickCount = 0;
+      }, 1500);
+    }
+  });
+
+  function openEmergencyModal() {
+    document.getElementById("emDateInput").value = new Date().toISOString().slice(0, 10);
+    document.getElementById("emAwbInput").value = "";
+    document.getElementById("emResultBox").style.display = "none";
+    emergencyCandidate = null;
+    document.getElementById("modalEmergency").style.display = "flex";
+  }
+
+  function closeEmergencyModal() {
+    document.getElementById("modalEmergency").style.display = "none";
+  }
+
+  async function lookupEmergencyOrder() {
+    var awb = document.getElementById("emAwbInput").value.trim();
+    if (!awb) {
+      alert("Please enter a valid AWB number.");
+      return;
+    }
+
+    // Try finding locally first
+    var matched = masterOrders.find(function(o) { return o.awb_number === awb; });
+
+    if (matched) {
+      setupEmergencyCandidate(matched);
+      return;
+    }
+
+    // Otherwise, perform direct lookup via Tracking API
+    try {
+      showToast("Searching tracking record...");
+      var res = await fetch(TRACKING_DIRECT_URL + encodeURIComponent(awb)).then(function(r) { return r.json(); });
+      var data = res.data || res.shipment || res;
+
+      if (!data || !data.awb_number) {
+        playErrorSound();
+        alert("No shipment record found for this AWB.");
+        return;
+      }
+
+      var customCandidate = {
+        awb_number: data.awb_number || awb,
+        customer_order_number: data.customer_order_number || data.order_number || "-",
+        order_number: data.order_number || "-",
+        shipping_name: data.shipping_name || data.customer_name || "Direct Log Customer",
+        customer_phone_number: data.phone || data.customer_phone_number || "",
+        shipping_city: data.city || data.shipping_city || "",
+        shipping_state: data.state || data.shipping_state || "",
+        shipping_pincode: data.pincode || data.shipping_pincode || "",
+        payment_mode: data.payment_mode || "PREPAID",
+        is_cod: Boolean(data.is_cod),
+        total_amount: Number(data.total_amount || 0),
+        store_name: data.store_name || "GULABISHEHAR",
+        warehouse_tag: (String(data.store_name || "").toLowerCase().includes("uncluttered") || String(data.channel_id) === "127") ? "UC" : "GS",
+        products: []
+      };
+
+      setupEmergencyCandidate(customCandidate);
+    } catch(err) {
+      playErrorSound();
+      alert("Lookup failed: " + err.message);
+    }
+  }
+
+  function setupEmergencyCandidate(order) {
+    emergencyCandidate = order;
+    document.getElementById("emCustomerName").innerText = order.shipping_name + " (" + order.warehouse_tag + ")";
+    document.getElementById("emOrderDetails").innerText = "Order #" + (order.customer_order_number || order.order_number) + " | AWB: " + order.awb_number;
+    document.getElementById("emAmount").innerText = "Amount: ₹" + (order.total_amount || 0) + " (" + order.payment_mode + ")";
+    document.getElementById("emResultBox").style.display = "block";
+  }
+
+  async function commitEmergencyPickup() {
+    var customDate = document.getElementById("emDateInput").value;
+    if (!customDate) {
+      alert("Please select a target log date.");
+      return;
+    }
+
+    if (!emergencyCandidate) return;
+
+    var payload = Object.assign({}, emergencyCandidate, {
+      custom_log_date: customDate
+    });
+
+    closeEmergencyModal();
+    showToast("Saving custom entry for date: " + customDate + "...");
+
+    try {
+      var response = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "savePickedUp", payload: payload })
+      });
+      var res = await response.json();
+
+      if (res.success) {
+        playSuccessSound();
+        showToast("Logged successfully for " + customDate);
+        loadOrderData(); // Synchronize view
+      } else {
+        playErrorSound();
+        alert(res.duplicate ? ("DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
+      }
+    } catch(e) {
+      playErrorSound();
+      alert("Network Error: " + e.message);
+    }
+  }
+
+  /* ========================================================
+     MAIN ENGINE & DATA FLOW
+  ======================================================== */
   function setSyncButtonState(state) {
     var btn = document.getElementById("mainSyncBtn");
     var icon = document.getElementById("syncIcon");
@@ -492,7 +669,7 @@
     });
 
     if (list.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">No orders in this tab queue.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">No orders in this queue.</td></tr>';
       return;
     }
 
@@ -686,7 +863,7 @@
     
     var dispNum = order.cust_order_loaded ? order.customer_order_number : order.order_number;
     document.getElementById("pCustOrder").innerText = "#" + dispNum;
-    document.getElementById("pStore").innerText = order.store_name || "Shopify";
+    document.getElementById("pStore").innerText = order.store_name || "GULABISHEHAR";
     document.getElementById("pWh").innerText = order.warehouse_tag;
     document.getElementById("pAwb").innerText = order.awb_number;
     document.getElementById("modalPick").style.display = "flex";
@@ -712,7 +889,7 @@
         var res = await response.json();
 
         if (res.success) {
-          playSuccessSound(); // Soft pleasant chime!
+          playSuccessSound();
 
           var amt = ord.total_amount || 0;
           sheetKpis.today.count++;
@@ -732,12 +909,11 @@
           if (res.payment_reconciled) showToast("Auto-Paid via " + res.gateway + ": ₹" + res.payment_amount);
           else showToast("Order #" + (ord.customer_order_number || ord.order_number) + " Saved in Sheet");
         } else {
-          playErrorSound(); // Duplicate / Error warning buzz!
-
+          playErrorSound();
           ord.is_picked_up = false;
           updateCounters();
           renderTable();
-          alert(res.duplicate ? ("⚠️ DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
+          alert(res.duplicate ? ("DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
         }
       } catch(e) {
         playErrorSound();
