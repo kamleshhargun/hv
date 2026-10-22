@@ -6,7 +6,7 @@
   <title>Order Reconciliation - Harsidhi ERP</title>
   <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- HTML5 QR / Barcode Scanner Library -->
+  <!-- HTML5 QR / Barcode Scanner -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   
   <style>
@@ -43,7 +43,8 @@
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
     .nav-btn:hover { background: #312e81; }
 
-    /* DYNAMIC REFRESH BUTTON (Yellow -> Green -> Red) */
+    /* SYNC BUTTON + HELPER NOTICE */
+    .sync-wrap { display: flex; flex-direction: column; align-items: flex-end; }
     .btn-sync {
       border: none;
       padding: 8px 18px;
@@ -58,20 +59,11 @@
       box-shadow: var(--shadow-bubble);
       color: #fff;
     }
-    .btn-sync-loading {
-      background: #f59e0b !important;
-      color: #0f172a !important;
-      animation: pulseGlow 1.2s infinite alternate;
-    }
-    .btn-sync-success {
-      background: #10b981 !important;
-      color: #ffffff !important;
-    }
-    .btn-sync-error {
-      background: #ef4444 !important;
-      color: #ffffff !important;
-      animation: shake 0.4s ease-in-out;
-    }
+    .btn-sync-loading { background: #f59e0b !important; color: #0f172a !important; animation: pulseGlow 1.2s infinite alternate; }
+    .btn-sync-success { background: #10b981 !important; color: #ffffff !important; }
+    .btn-sync-error { background: #ef4444 !important; color: #ffffff !important; animation: shake 0.4s ease-in-out; }
+    .sync-tip { font-size: 10.5px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+    
     @keyframes pulseGlow {
       from { box-shadow: 0 0 4px #f59e0b; transform: scale(0.98); }
       to { box-shadow: 0 0 16px #f59e0b; transform: scale(1.02); }
@@ -82,7 +74,17 @@
       40%, 80% { transform: translateX(4px); }
     }
 
-    /* TABS STRIP + CAMERA SCANNER */
+    /* SHEET ANALYTICS KPI CARDS */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .kpi-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 16px; padding: 14px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .kpi-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-main-val { font-size: 20px; font-weight: 800; color: #0f172a; margin: 4px 0; display: flex; align-items: baseline; gap: 8px; }
+    .kpi-sub-amt { font-size: 13.5px; font-weight: 700; color: var(--jelly-green); }
+    .kpi-wh-tags { display: flex; gap: 6px; margin-top: 6px; font-size: 11px; font-weight: 700; }
+    .kpi-wh-gs { background: #ecfdf5; color: #065f46; padding: 2px 7px; border-radius: 6px; border: 1px solid #a7f3d0; }
+    .kpi-wh-uc { background: #f5f3ff; color: #5b21b6; padding: 2px 7px; border-radius: 6px; border: 1px solid #ddd6fe; }
+
+    /* TOOLBAR: TABS + CAMERA */
     .toolbar-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 18px 0; flex-wrap: wrap; gap: 12px; }
     .tabs-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
     .tab-pill { background: #ffffff; border: 1.5px solid var(--card-border); color: #475569; padding: 8px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
@@ -91,7 +93,6 @@
     .tab-badge { background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 20px; font-weight: 800; }
     .tab-pill.active .tab-badge { background: rgba(255,255,255,0.22); color: #fff; }
 
-    /* CAMERA BUTTON (Placed right after Delivered tab) */
     .btn-camera {
       background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
       color: #fff;
@@ -116,7 +117,6 @@
     td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); vertical-align: top; }
     tr:hover td { background: #fafcff; }
 
-    /* LOAD BUTTON ON DEMAND */
     .btn-fetch-tracking {
       background: #eff6ff;
       border: 1.5px solid #bfdbfe;
@@ -137,7 +137,6 @@
     .wh-other { background: #f1f5f9; color: #475569; }
 
     .sku-bubble { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 6px; font-size: 11px; margin-bottom: 3px; }
-    
     .badge-status { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; }
     .st-transit { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
     .st-delivered { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
@@ -152,7 +151,7 @@
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 460px; text-align: center; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 480px; text-align: center; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.12); position: relative; }
     .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
     .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
@@ -164,18 +163,60 @@
   <div class="header">
     <div class="brand"><span>📦</span> Order Reconciliation & Dispatches</div>
     <div class="nav-links">
-      <a href="index.html" class="nav-btn">Dashboard</a>
-      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>
-      <a href="rto.html" class="nav-btn">Return Recon</a>
-      <a href="payment.html" class="nav-btn">Payment Recon</a>
-      <!-- DYNAMIC STATUS BUTTON -->
-      <button id="mainSyncBtn" class="btn-sync btn-sync-loading" onclick="loadOrderData()">
-        <span id="syncIcon">↻</span> <span id="syncLabel">Connecting...</span>
-      </button>
+      <a href="index.html" class="nav-btn">Dashboard</a>[cite: 3]
+      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>[cite: 4]
+      <a href="rto.html" class="nav-btn">Return Recon</a>[cite: 2]
+      <a href="payment.html" class="nav-btn">Payment Recon</a>[cite: 1]
+      
+      <div class="sync-wrap">
+        <button id="mainSyncBtn" class="btn-sync btn-sync-loading" onclick="loadOrderData()">
+          <span id="syncIcon">↻</span> <span id="syncLabel">Connecting...</span>
+        </button>
+        <span class="sync-tip" id="syncTip">Kuchh naya ho toh hi sync karein, baar-baar zaroorat nahi</span>
+      </div>
     </div>
   </div>
 
-  <!-- TOOLBAR: TABS + CAMERA BUTTON (Right after Delivered) -->
+  <!-- GOOGLE SHEET ANALYTICS KPI CARDS (Today, Yesterday, Total) -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-title">📅 Today Picked in Sheet</div>
+      <div class="kpi-main-val">
+        <span id="kpiTodayCount">0</span>
+        <span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span>
+      </div>
+      <div class="kpi-wh-tags">
+        <span class="kpi-wh-gs" id="kpiTodayGs">GS: 0</span>
+        <span class="kpi-wh-uc" id="kpiTodayUc">UC: 0</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-title">⏮️ Yesterday Picked in Sheet</div>
+      <div class="kpi-main-val">
+        <span id="kpiYestCount">0</span>
+        <span class="kpi-sub-amt" id="kpiYestAmt">₹0</span>
+      </div>
+      <div class="kpi-wh-tags">
+        <span class="kpi-wh-gs" id="kpiYestGs">GS: 0</span>
+        <span class="kpi-wh-uc" id="kpiYestUc">UC: 0</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-title">📊 Total Picked in Sheet</div>
+      <div class="kpi-main-val">
+        <span id="kpiTotalCount">0</span>
+        <span class="kpi-sub-amt" id="kpiTotalAmt">₹0</span>
+      </div>
+      <div class="kpi-wh-tags">
+        <span class="kpi-wh-gs" id="kpiTotalGs">GS: 0</span>
+        <span class="kpi-wh-uc" id="kpiTotalUc">UC: 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR: TABS + CAMERA BUTTON -->
   <div class="toolbar-row">
     <div class="tabs-strip">
       <button class="tab-pill active" id="tabAll" onclick="filterTab('all_orders')">📦 All Orders (<span id="cAll">0</span>)</button>
@@ -184,7 +225,7 @@
       <button class="tab-pill" id="tabTransit" onclick="filterTab('in_transit')">🚚 In-Transit (<span id="cTransit">0</span>)</button>
       <button class="tab-pill" id="tabDelivered" onclick="filterTab('delivered')">🎯 Delivered (<span id="cDelivered">0</span>)</button>
       
-      <!-- EXACT POSITION: CAMERA BUTTON RIGHT AFTER DELIVERED TAB -->
+      <!-- CAMERA BUTTON RIGHT AFTER DELIVERED -->
       <button class="btn-camera" onclick="openCameraScanner()">
         📷 Scan Barcode / AWB
       </button>
@@ -211,20 +252,20 @@
   </div>
 </div>
 
-<!-- CAMERA SCANNER MODAL -->
-<div id="modalCamera" class="modal-overlay">
+<!-- CONTINUOUS CAMERA SCANNER MODAL -->
+<div id="modalCamera" class="modal-overlay" onclick="onModalBgClick(event, 'modalCamera')">
   <div class="modal-sheet" style="max-width:500px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">📷 Barcode / AWB Scanner</h3>
+      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">📷 Continuous Barcode / AWB Scanner</h3>
       <button onclick="closeCameraScanner()" style="background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer;">✕</button>
     </div>
     <div id="cameraReader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
-    <div style="font-size:12px; color:var(--muted); margin-top:10px;">Parcel label ke barcode ya AWB ko camera ke saamne laayein.</div>
+    <div style="font-size:12px; color:var(--muted); margin-top:10px;">Parcel scan hote hi confirmation aayega. Modal tabhi band hoga jab aap [✕] ya bahar click karenge.</div>
   </div>
 </div>
 
 <!-- CONFIRM PICKUP MODAL -->
-<div id="modalPick" class="modal-overlay">
+<div id="modalPick" class="modal-overlay" onclick="onModalBgClick(event, 'modalPick')">
   <div class="modal-sheet">
     <div style="font-size:36px; margin-bottom:6px;">📦</div>
     <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Picked Up?</h3>
@@ -233,13 +274,13 @@
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" onclick="commitPickup(true)">Yes, Mark Picked Up</button>
-      <button class="btn-m-cancel" onclick="commitPickup(false)">Cancel</button>
+      <button class="btn-m-cancel" onclick="commitPickup(false)">No / Skip</button>
     </div>
   </div>
 </div>
 
 <!-- CONFIRM UNDO MODAL -->
-<div id="modalUndo" class="modal-overlay">
+<div id="modalUndo" class="modal-overlay" onclick="onModalBgClick(event, 'modalUndo')">
   <div class="modal-sheet">
     <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
     <h3 style="color:var(--jelly-red); font-size:17px; font-weight:800;">Warning: Undo Picked Up?</h3>
@@ -254,16 +295,22 @@
 </div>
 
 <script>
-  // BACKEND API ENDPOINT
-  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxBMaz8S3dzsdl_fVFa_JiB3pUuX9kQEff6ZV-rWT-85d9ecW2T49yL6LVJlG237pO1/exec";
+  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz1MhQDdW_aQwt1L8QJ05OpEgcvDcVqJZCrZH53Kkh8vfOaPJJd5tGVoHBKFQbRJbc4/exec";[cite: 4]
   var TRACKING_DIRECT_URL = "https://api.boxdlogistics.com/api/v1/shipments/track-shipment/?awb_number=";
 
   var masterOrders = [];
   var activeTab = "all_orders";
   var currentCandidate = null;
   var html5QrCodeScanner = null;
+  var isCameraActive = false;
+  var isScanPaused = false;
 
-  // DYNAMIC BUTTON STATE CONTROLLER
+  var sheetKpis = {
+    today: { count: 0, amount: 0, gs: 0, uc: 0 },
+    yesterday: { count: 0, amount: 0, gs: 0, uc: 0 },
+    total: { count: 0, amount: 0, gs: 0, uc: 0 }
+  };
+
   function setSyncButtonState(state) {
     var btn = document.getElementById("mainSyncBtn");
     var icon = document.getElementById("syncIcon");
@@ -286,6 +333,7 @@
     }
   }
 
+  // INITIAL-ONLY FETCH ENGINE
   async function loadOrderData() {
     setSyncButtonState("loading");
     var tbody = document.getElementById("orderTableBody");
@@ -302,38 +350,59 @@
       }
 
       masterOrders = res.orders || [];
+      if (res.sheet_kpis) {
+        sheetKpis = res.sheet_kpis;
+        updateKpiDisplay();
+      }
 
-      // Initially set cust_order_loaded false so it shows "⚡ Load"
       masterOrders.forEach(function(o) {
-        if (!o.cust_order_loaded) {
-          o.cust_order_loaded = false;
-        }
+        if (!o.cust_order_loaded) o.cust_order_loaded = false;
       });
 
-      var cAll = 0, cFail = 0, cPick = 0, cTransit = 0, cDelivered = 0;
-      masterOrders.forEach(function(o) {
-        if (!o.is_picked_up) {
-          cAll++;
-          if (o.cohort === "pickup_failed") cFail++;
-        } else {
-          cPick++;
-          if (o.is_delivered) cDelivered++;
-          else if (o.is_in_transit) cTransit++;
-        }
-      });
-
-      document.getElementById("cAll").innerText = cAll;
-      document.getElementById("cFailed").innerText = cFail;
-      document.getElementById("cPicked").innerText = cPick;
-      document.getElementById("cTransit").innerText = cTransit;
-      document.getElementById("cDelivered").innerText = cDelivered;
-
+      updateCounters();
       setSyncButtonState("success");
       renderTable();
     } catch(err) {
       setSyncButtonState("error");
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:red;">Connection Error: ' + err.message + '</td></tr>';
     }
+  }
+
+  function updateKpiDisplay() {
+    document.getElementById("kpiTodayCount").innerText = sheetKpis.today.count;
+    document.getElementById("kpiTodayAmt").innerText = "₹" + sheetKpis.today.amount.toLocaleString('en-IN');
+    document.getElementById("kpiTodayGs").innerText = "GS: " + sheetKpis.today.gs;
+    document.getElementById("kpiTodayUc").innerText = "UC: " + sheetKpis.today.uc;
+
+    document.getElementById("kpiYestCount").innerText = sheetKpis.yesterday.count;
+    document.getElementById("kpiYestAmt").innerText = "₹" + sheetKpis.yesterday.amount.toLocaleString('en-IN');
+    document.getElementById("kpiYestGs").innerText = "GS: " + sheetKpis.yesterday.gs;
+    document.getElementById("kpiYestUc").innerText = "UC: " + sheetKpis.yesterday.uc;
+
+    document.getElementById("kpiTotalCount").innerText = sheetKpis.total.count;
+    document.getElementById("kpiTotalAmt").innerText = "₹" + sheetKpis.total.amount.toLocaleString('en-IN');
+    document.getElementById("kpiTotalGs").innerText = "GS: " + sheetKpis.total.gs;
+    document.getElementById("kpiTotalUc").innerText = "UC: " + sheetKpis.total.uc;
+  }
+
+  function updateCounters() {
+    var cAll = 0, cFail = 0, cPick = 0, cTransit = 0, cDelivered = 0;
+    masterOrders.forEach(function(o) {
+      if (!o.is_picked_up) {
+        cAll++;
+        if (o.cohort === "pickup_failed") cFail++;
+      } else {
+        cPick++;
+        if (o.is_delivered) cDelivered++;
+        else if (o.is_in_transit) cTransit++;
+      }
+    });
+
+    document.getElementById("cAll").innerText = cAll;
+    document.getElementById("cFailed").innerText = cFail;
+    document.getElementById("cPicked").innerText = cPick;
+    document.getElementById("cTransit").innerText = cTransit;
+    document.getElementById("cDelivered").innerText = cDelivered;
   }
 
   function filterTab(tab) {
@@ -350,7 +419,6 @@
     renderTable();
   }
 
-  // ON-DEMAND LIVE TRACKING CUST ORDER FETCH
   async function loadSingleTrackingOrder(awb, btnElem) {
     btnElem.innerText = "...";
     btnElem.disabled = true;
@@ -405,7 +473,6 @@
 
       var tr = document.createElement("tr");
       
-      // COL 1: ON-DEMAND LOAD BUTTON OR LOADED BADGE
       var tdCust = document.createElement("td");
       if (o.cust_order_loaded && o.customer_order_number) {
         tdCust.innerHTML = '<span class="cust-badge">#' + o.customer_order_number + '</span>';
@@ -424,7 +491,7 @@
       tdOrder.innerHTML = '<b>#' + o.order_number + '</b><br>' + whBadge;
 
       var tdAwb = document.createElement("td");
-      tdAwb.innerHTML = '<code style="font-weight:700;">' + o.awb_number + '</code><br><span style="font-size:11px; color:var(--muted);">${o.courier_name}</span>';
+      tdAwb.innerHTML = '<code style="font-weight:700;">' + o.awb_number + '</code><br><span style="font-size:11px; color:var(--muted);">' + o.courier_name + '</span>';
 
       var tdProd = document.createElement("td");
       tdProd.innerHTML = prodsHtml || '-';
@@ -441,7 +508,7 @@
         btnPick.className = "btn-act btn-act-pick";
         btnPick.innerText = "✓ Picked Up";
         btnPick.onclick = (function(targetAwb) {
-          return function() { promptPickup(targetAwb); };
+          return function() { promptPickup(targetAwb, false); };
         })(o.awb_number);
         tdAct.appendChild(btnPick);
       } else {
@@ -488,12 +555,15 @@
     });
   }
 
-  /* BARCODE / QR SCANNER ENGINE */
+  /* CONTINUOUS CAMERA SCANNER ENGINE */
   function openCameraScanner() {
     document.getElementById("modalCamera").style.display = "flex";
-    html5QrCodeScanner = new Html5Qrcode("cameraReader");
+    isCameraActive = true;
+    isScanPaused = false;
     
+    html5QrCodeScanner = new Html5Qrcode("cameraReader");
     var config = { fps: 15, qrbox: { width: 280, height: 160 } };
+
     html5QrCodeScanner.start(
       { facingMode: "environment" },
       config,
@@ -506,6 +576,8 @@
   }
 
   function closeCameraScanner() {
+    isCameraActive = false;
+    isScanPaused = false;
     if (html5QrCodeScanner) {
       html5QrCodeScanner.stop().then(function() {
         html5QrCodeScanner.clear();
@@ -519,25 +591,35 @@
   }
 
   function onScanSuccess(decodedText) {
+    if (isScanPaused) return; // Prevent multiple triggers on single scan
+
     var scannedAwb = String(decodedText || "").trim();
     if (!scannedAwb) return;
 
     var matched = masterOrders.find(function(o) {
-      return o.awb_number === scannedAwb || o.order_number === scannedAwb;
+      return (o.awb_number === scannedAwb || o.order_number === scannedAwb) && !o.is_picked_up;
     });
 
     if (matched) {
-      closeCameraScanner();
-      promptPickup(matched.awb_number);
+      isScanPaused = true; // Pause scanner while prompt is active
+      promptPickup(matched.awb_number, true);
     } else {
-      showToast("AWB Not Found in Active List: " + scannedAwb);
+      showToast("AWB Not Found or Already Picked: " + scannedAwb);
     }
   }
 
-  function promptPickup(awb) {
+  function onModalBgClick(e, modalId) {
+    if (e.target.id === modalId) {
+      if (modalId === "modalCamera") closeCameraScanner();
+      else document.getElementById(modalId).style.display = "none";
+    }
+  }
+
+  function promptPickup(awb, fromCamera) {
     var order = masterOrders.find(function(o) { return o.awb_number === awb; });
     if (!order) return;
     currentCandidate = order;
+    currentCandidate.fromCamera = !!fromCamera;
     
     var dispNum = order.cust_order_loaded ? order.customer_order_number : order.order_number;
     document.getElementById("pCustOrder").innerText = "#" + dispNum;
@@ -548,11 +630,14 @@
 
   async function commitPickup(yes) {
     document.getElementById("modalPick").style.display = "none";
+    
     if (yes && currentCandidate) {
       var ord = currentCandidate;
       showToast("Saving #" + (ord.customer_order_number || ord.order_number) + " to Sheet & DB...");
 
+      // Optimistic UI Update (No full page reload!)
       ord.is_picked_up = true;
+      updateCounters();
       renderTable();
 
       try {
@@ -564,15 +649,42 @@
         var res = await response.json();
 
         if (res.success) {
+          // Increment Local KPI Card Stats
+          var amt = ord.total_amount || 0;
+          sheetKpis.today.count++;
+          sheetKpis.today.amount += amt;
+          sheetKpis.total.count++;
+          sheetKpis.total.amount += amt;
+
+          if (ord.warehouse_tag === "GS") {
+            sheetKpis.today.gs++;
+            sheetKpis.total.gs++;
+          } else if (ord.warehouse_tag === "UC") {
+            sheetKpis.today.uc++;
+            sheetKpis.total.uc++;
+          }
+          updateKpiDisplay();
+
           if (res.payment_reconciled) showToast("Auto-Paid via " + res.gateway + ": ₹" + res.payment_amount);
           else showToast("Order #" + (ord.customer_order_number || ord.order_number) + " Saved in Sheet");
-          loadOrderData();
         } else {
-          alert("Save Error: " + res.error);
+          // Revert optimistic update if duplicate or server error
+          ord.is_picked_up = false;
+          updateCounters();
+          renderTable();
+          alert(res.duplicate ? ("⚠️ DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
         }
       } catch(e) {
+        ord.is_picked_up = false;
+        updateCounters();
+        renderTable();
         alert("Network Error: " + e.message);
       }
+    }
+
+    // IF FROM CAMERA: Resume scanning for next parcel!
+    if (currentCandidate && currentCandidate.fromCamera && isCameraActive) {
+      setTimeout(function() { isScanPaused = false; }, 800);
     }
     currentCandidate = null;
   }
@@ -592,7 +704,9 @@
       var ord = currentCandidate;
       showToast("Reverting #" + (ord.customer_order_number || ord.order_number) + " from Sheet...");
 
+      // Optimistic UI Revert
       ord.is_picked_up = false;
+      updateCounters();
       renderTable();
 
       try {
@@ -605,11 +719,16 @@
 
         if (res.success) {
           showToast("Reverted successfully!");
-          loadOrderData();
         } else {
+          ord.is_picked_up = true;
+          updateCounters();
+          renderTable();
           alert("Undo Error: " + res.error);
         }
       } catch(e) {
+        ord.is_picked_up = true;
+        updateCounters();
+        renderTable();
         alert("Network Error: " + e.message);
       }
     }
