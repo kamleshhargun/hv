@@ -6,6 +6,9 @@
   <title>Order Reconciliation - Harsidhi ERP</title>
   <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- HTML5 QR / Barcode Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  
   <style>
     :root {
       --bg: #f4f6fb;
@@ -36,17 +39,75 @@
     .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
     .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; }
     .brand span { font-size: 24px; }
-    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav-links { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
     .nav-btn:hover { background: #312e81; }
 
-    /* JELLY TABS */
-    .tabs-strip { display: flex; gap: 8px; margin: 15px 0 18px 0; overflow-x: auto; padding-bottom: 6px; }
+    /* DYNAMIC REFRESH BUTTON (Yellow -> Green -> Red) */
+    .btn-sync {
+      border: none;
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: var(--shadow-bubble);
+      color: #fff;
+    }
+    .btn-sync-loading {
+      background: #f59e0b !important;
+      color: #0f172a !important;
+      animation: pulseGlow 1.2s infinite alternate;
+    }
+    .btn-sync-success {
+      background: #10b981 !important;
+      color: #ffffff !important;
+    }
+    .btn-sync-error {
+      background: #ef4444 !important;
+      color: #ffffff !important;
+      animation: shake 0.4s ease-in-out;
+    }
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 4px #f59e0b; transform: scale(0.98); }
+      to { box-shadow: 0 0 16px #f59e0b; transform: scale(1.02); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-4px); }
+      40%, 80% { transform: translateX(4px); }
+    }
+
+    /* TABS STRIP + CAMERA SCANNER */
+    .toolbar-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 18px 0; flex-wrap: wrap; gap: 12px; }
+    .tabs-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
     .tab-pill { background: #ffffff; border: 1.5px solid var(--card-border); color: #475569; padding: 8px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
     .tab-pill:hover { transform: translateY(-2px); border-color: #cbd5e1; }
     .tab-pill.active { background: #1e1b4b; color: #fff; border-color: #1e1b4b; box-shadow: 0 4px 14px rgba(30, 27, 75, 0.25); }
     .tab-badge { background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 20px; font-weight: 800; }
     .tab-pill.active .tab-badge { background: rgba(255,255,255,0.22); color: #fff; }
+
+    /* CAMERA BUTTON (Placed right after Delivered tab) */
+    .btn-camera {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      color: #fff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+    }
+    .btn-camera:hover { transform: translateY(-2px) scale(1.02); }
 
     /* TABLE */
     .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); }
@@ -55,8 +116,21 @@
     td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); vertical-align: top; }
     tr:hover td { background: #fafcff; }
 
+    /* LOAD BUTTON ON DEMAND */
+    .btn-fetch-tracking {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      color: #2563eb;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-fetch-tracking:hover { background: #2563eb; color: #fff; }
     .cust-badge { background: var(--jelly-blue-tint); color: var(--jelly-blue); border: 1.5px solid #bfdbfe; font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; display: inline-block; }
-    
+
     .wh-pill { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; letter-spacing: 0.5px; margin-top: 2px; }
     .wh-gs { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
     .wh-uc { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
@@ -68,9 +142,7 @@
     .st-transit { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
     .st-delivered { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
     .st-picked { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
-    .st-failed { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
-    /* ACTION BUTTONS */
     .btn-act { border: none; padding: 6px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; box-shadow: var(--shadow-bubble); }
     .btn-act:hover { transform: translateY(-1px); }
     .btn-act-pick { background: var(--jelly-green-tint); color: #047857; border: 1.5px solid #a7f3d0; }
@@ -80,7 +152,7 @@
 
     /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 440px; text-align: center; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 460px; text-align: center; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
     .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
     .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
@@ -96,24 +168,34 @@
       <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>
       <a href="rto.html" class="nav-btn">Return Recon</a>
       <a href="payment.html" class="nav-btn">Payment Recon</a>
-      <button onclick="loadOrderData()" style="background:#f1f5f9; border:1.5px solid var(--card-border); padding:8px 14px; border-radius:var(--radius-pill); font-weight:700; cursor:pointer;">↻ Refresh</button>
+      <!-- DYNAMIC STATUS BUTTON -->
+      <button id="mainSyncBtn" class="btn-sync btn-sync-loading" onclick="loadOrderData()">
+        <span id="syncIcon">↻</span> <span id="syncLabel">Connecting...</span>
+      </button>
     </div>
   </div>
 
-  <!-- EXACT 5 TABS -->
-  <div class="tabs-strip">
-    <button class="tab-pill active" id="tabAll" onclick="filterTab('all_orders')">📦 All Orders (<span id="cAll">0</span>)</button>
-    <button class="tab-pill" id="tabFailed" onclick="filterTab('pickup_failed')">⚠️ Pickup Failed (<span id="cFailed">0</span>)</button>
-    <button class="tab-pill" id="tabPicked" onclick="filterTab('picked_up')">✅ Picked Up (<span id="cPicked">0</span>)</button>
-    <button class="tab-pill" id="tabTransit" onclick="filterTab('in_transit')">🚚 In-Transit (<span id="cTransit">0</span>)</button>
-    <button class="tab-pill" id="tabDelivered" onclick="filterTab('delivered')">🎯 Delivered (<span id="cDelivered">0</span>)</button>
+  <!-- TOOLBAR: TABS + CAMERA BUTTON (Right after Delivered) -->
+  <div class="toolbar-row">
+    <div class="tabs-strip">
+      <button class="tab-pill active" id="tabAll" onclick="filterTab('all_orders')">📦 All Orders (<span id="cAll">0</span>)</button>
+      <button class="tab-pill" id="tabFailed" onclick="filterTab('pickup_failed')">⚠️ Pickup Failed (<span id="cFailed">0</span>)</button>
+      <button class="tab-pill" id="tabPicked" onclick="filterTab('picked_up')">✅ Picked Up (<span id="cPicked">0</span>)</button>
+      <button class="tab-pill" id="tabTransit" onclick="filterTab('in_transit')">🚚 In-Transit (<span id="cTransit">0</span>)</button>
+      <button class="tab-pill" id="tabDelivered" onclick="filterTab('delivered')">🎯 Delivered (<span id="cDelivered">0</span>)</button>
+      
+      <!-- EXACT POSITION: CAMERA BUTTON RIGHT AFTER DELIVERED TAB -->
+      <button class="btn-camera" onclick="openCameraScanner()">
+        📷 Scan Barcode / AWB
+      </button>
+    </div>
   </div>
 
   <div class="table-viewport">
     <table>
       <thead>
         <tr>
-          <th>Cust Order # (Tracking)</th>
+          <th style="min-width:140px;">Cust Order # (Tracking)</th>
           <th>Order # & Warehouse</th>
           <th>AWB & Courier</th>
           <th>Products (SKU, Qty)</th>
@@ -126,6 +208,18 @@
         <tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Connecting to live backend & tracking engine...</td></tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- CAMERA SCANNER MODAL -->
+<div id="modalCamera" class="modal-overlay">
+  <div class="modal-sheet" style="max-width:500px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">📷 Barcode / AWB Scanner</h3>
+      <button onclick="closeCameraScanner()" style="background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer;">✕</button>
+    </div>
+    <div id="cameraReader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
+    <div style="font-size:12px; color:var(--muted); margin-top:10px;">Parcel label ke barcode ya AWB ko camera ke saamne laayein.</div>
   </div>
 </div>
 
@@ -160,13 +254,40 @@
 </div>
 
 <script>
+  // BACKEND API ENDPOINT
   var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxBMaz8S3dzsdl_fVFa_JiB3pUuX9kQEff6ZV-rWT-85d9ecW2T49yL6LVJlG237pO1/exec";
-  
+  var TRACKING_DIRECT_URL = "https://api.boxdlogistics.com/api/v1/shipments/track-shipment/?awb_number=";
+
   var masterOrders = [];
   var activeTab = "all_orders";
   var currentCandidate = null;
+  var html5QrCodeScanner = null;
+
+  // DYNAMIC BUTTON STATE CONTROLLER
+  function setSyncButtonState(state) {
+    var btn = document.getElementById("mainSyncBtn");
+    var icon = document.getElementById("syncIcon");
+    var label = document.getElementById("syncLabel");
+
+    btn.className = "btn-sync";
+
+    if (state === "loading") {
+      btn.className += " btn-sync-loading";
+      icon.innerText = "↻";
+      label.innerText = "Syncing...";
+    } else if (state === "success") {
+      btn.className += " btn-sync-success";
+      icon.innerText = "✓";
+      label.innerText = "Synced";
+    } else if (state === "error") {
+      btn.className += " btn-sync-error";
+      icon.innerText = "✕";
+      label.innerText = "Failed";
+    }
+  }
 
   async function loadOrderData() {
+    setSyncButtonState("loading");
     var tbody = document.getElementById("orderTableBody");
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Fetching live orders...</td></tr>';
 
@@ -175,11 +296,19 @@
       var res = await response.json();
       
       if (!res.success) {
+        setSyncButtonState("error");
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:red;">Server Error: ' + res.error + '</td></tr>';
         return;
       }
 
       masterOrders = res.orders || [];
+
+      // Initially set cust_order_loaded false so it shows "⚡ Load"
+      masterOrders.forEach(function(o) {
+        if (!o.cust_order_loaded) {
+          o.cust_order_loaded = false;
+        }
+      });
 
       var cAll = 0, cFail = 0, cPick = 0, cTransit = 0, cDelivered = 0;
       masterOrders.forEach(function(o) {
@@ -199,8 +328,10 @@
       document.getElementById("cTransit").innerText = cTransit;
       document.getElementById("cDelivered").innerText = cDelivered;
 
+      setSyncButtonState("success");
       renderTable();
     } catch(err) {
+      setSyncButtonState("error");
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:red;">Connection Error: ' + err.message + '</td></tr>';
     }
   }
@@ -217,6 +348,30 @@
     };
     if (map[tab]) document.getElementById(map[tab]).classList.add("active");
     renderTable();
+  }
+
+  // ON-DEMAND LIVE TRACKING CUST ORDER FETCH
+  async function loadSingleTrackingOrder(awb, btnElem) {
+    btnElem.innerText = "...";
+    btnElem.disabled = true;
+
+    try {
+      var res = await fetch(TRACKING_DIRECT_URL + encodeURIComponent(awb)).then(function(r) { return r.json(); });
+      var custOrd = res.customer_order_number || (res.data && res.data.customer_order_number) || (res.shipment && res.shipment.customer_order_number) || "";
+      
+      var order = masterOrders.find(function(o) { return o.awb_number === awb; });
+      if (order) {
+        order.customer_order_number = custOrd || order.order_number || "-";
+        order.cust_order_loaded = true;
+      }
+
+      var parentTd = btnElem.parentElement;
+      parentTd.innerHTML = '<span class="cust-badge">#' + (custOrd || "-") + '</span>';
+    } catch(e) {
+      btnElem.innerText = "⚡ Load";
+      btnElem.disabled = false;
+      alert("Tracking fetch error: " + e.message);
+    }
   }
 
   function renderTable() {
@@ -250,14 +405,26 @@
 
       var tr = document.createElement("tr");
       
+      // COL 1: ON-DEMAND LOAD BUTTON OR LOADED BADGE
       var tdCust = document.createElement("td");
-      tdCust.innerHTML = '<span class="cust-badge">#' + o.customer_order_number + '</span>';
+      if (o.cust_order_loaded && o.customer_order_number) {
+        tdCust.innerHTML = '<span class="cust-badge">#' + o.customer_order_number + '</span>';
+      } else {
+        var btnLoad = document.createElement("button");
+        btnLoad.className = "btn-fetch-tracking";
+        btnLoad.innerText = "⚡ Load";
+        btnLoad.title = "Click to fetch live Tracking Customer Order #";
+        btnLoad.onclick = (function(targetAwb, targetBtn) {
+          return function() { loadSingleTrackingOrder(targetAwb, targetBtn); };
+        })(o.awb_number, btnLoad);
+        tdCust.appendChild(btnLoad);
+      }
 
       var tdOrder = document.createElement("td");
       tdOrder.innerHTML = '<b>#' + o.order_number + '</b><br>' + whBadge;
 
       var tdAwb = document.createElement("td");
-      tdAwb.innerHTML = '<code style="font-weight:700;">' + o.awb_number + '</code><br><span style="font-size:11px; color:var(--muted);">' + o.courier_name + '</span>';
+      tdAwb.innerHTML = '<code style="font-weight:700;">' + o.awb_number + '</code><br><span style="font-size:11px; color:var(--muted);">${o.courier_name}</span>';
 
       var tdProd = document.createElement("td");
       tdProd.innerHTML = prodsHtml || '-';
@@ -321,11 +488,59 @@
     });
   }
 
+  /* BARCODE / QR SCANNER ENGINE */
+  function openCameraScanner() {
+    document.getElementById("modalCamera").style.display = "flex";
+    html5QrCodeScanner = new Html5Qrcode("cameraReader");
+    
+    var config = { fps: 15, qrbox: { width: 280, height: 160 } };
+    html5QrCodeScanner.start(
+      { facingMode: "environment" },
+      config,
+      onScanSuccess,
+      function(error) { /* Ignore minor frame scan errors */ }
+    ).catch(function(err) {
+      alert("Camera Permission Error: " + err);
+      closeCameraScanner();
+    });
+  }
+
+  function closeCameraScanner() {
+    if (html5QrCodeScanner) {
+      html5QrCodeScanner.stop().then(function() {
+        html5QrCodeScanner.clear();
+        document.getElementById("modalCamera").style.display = "none";
+      }).catch(function() {
+        document.getElementById("modalCamera").style.display = "none";
+      });
+    } else {
+      document.getElementById("modalCamera").style.display = "none";
+    }
+  }
+
+  function onScanSuccess(decodedText) {
+    var scannedAwb = String(decodedText || "").trim();
+    if (!scannedAwb) return;
+
+    var matched = masterOrders.find(function(o) {
+      return o.awb_number === scannedAwb || o.order_number === scannedAwb;
+    });
+
+    if (matched) {
+      closeCameraScanner();
+      promptPickup(matched.awb_number);
+    } else {
+      showToast("AWB Not Found in Active List: " + scannedAwb);
+    }
+  }
+
   function promptPickup(awb) {
     var order = masterOrders.find(function(o) { return o.awb_number === awb; });
     if (!order) return;
     currentCandidate = order;
-    document.getElementById("pCustOrder").innerText = "#" + order.customer_order_number;
+    
+    var dispNum = order.cust_order_loaded ? order.customer_order_number : order.order_number;
+    document.getElementById("pCustOrder").innerText = "#" + dispNum;
     document.getElementById("pWh").innerText = order.warehouse_tag;
     document.getElementById("pAwb").innerText = order.awb_number;
     document.getElementById("modalPick").style.display = "flex";
@@ -335,7 +550,7 @@
     document.getElementById("modalPick").style.display = "none";
     if (yes && currentCandidate) {
       var ord = currentCandidate;
-      showToast("Saving #" + ord.customer_order_number + " & checking Razorpay/GoKwik...");
+      showToast("Saving #" + (ord.customer_order_number || ord.order_number) + " to Sheet & DB...");
 
       ord.is_picked_up = true;
       renderTable();
@@ -350,7 +565,7 @@
 
         if (res.success) {
           if (res.payment_reconciled) showToast("Auto-Paid via " + res.gateway + ": ₹" + res.payment_amount);
-          else showToast("Order #" + ord.customer_order_number + " Saved in Sheet (Pending Payment)");
+          else showToast("Order #" + (ord.customer_order_number || ord.order_number) + " Saved in Sheet");
           loadOrderData();
         } else {
           alert("Save Error: " + res.error);
@@ -366,7 +581,7 @@
     var order = masterOrders.find(function(o) { return o.awb_number === awb; });
     if (!order) return;
     currentCandidate = order;
-    document.getElementById("uCustOrder").innerText = "#" + order.customer_order_number;
+    document.getElementById("uCustOrder").innerText = "#" + (order.customer_order_number || order.order_number);
     document.getElementById("uAwb").innerText = order.awb_number;
     document.getElementById("modalUndo").style.display = "flex";
   }
@@ -375,7 +590,7 @@
     document.getElementById("modalUndo").style.display = "none";
     if (yes && currentCandidate) {
       var ord = currentCandidate;
-      showToast("Reverting #" + ord.customer_order_number + " from Sheet...");
+      showToast("Reverting #" + (ord.customer_order_number || ord.order_number) + " from Sheet...");
 
       ord.is_picked_up = false;
       renderTable();
