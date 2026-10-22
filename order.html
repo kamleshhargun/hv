@@ -92,10 +92,10 @@
   <div class="header">
     <div class="brand"><span>📦</span> Order Reconciliation & Dispatches</div>
     <div class="nav-links">
-      <a href="index.html" class="nav-btn">Dashboard</a>[cite: 3]
-      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>[cite: 4]
-      <a href="rto.html" class="nav-btn">Return Recon</a>[cite: 2]
-      <a href="payment.html" class="nav-btn">Payment Recon</a>[cite: 1]
+      <a href="index.html" class="nav-btn">Dashboard</a>
+      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>
+      <a href="rto.html" class="nav-btn">Return Recon</a>
+      <a href="payment.html" class="nav-btn">Payment Recon</a>
       <button onclick="loadOrderData()" style="background:#f1f5f9; border:1.5px solid var(--card-border); padding:8px 14px; border-radius:var(--radius-pill); font-weight:700; cursor:pointer;">↻ Refresh</button>
     </div>
   </div>
@@ -160,19 +160,19 @@
 </div>
 
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxBMaz8S3dzsdl_fVFa_JiB3pUuX9kQEff6ZV-rWT-85d9ecW2T49yL6LVJlG237pO1/exec";[cite: 4]
+  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxBMaz8S3dzsdl_fVFa_JiB3pUuX9kQEff6ZV-rWT-85d9ecW2T49yL6LVJlG237pO1/exec";
   
-  let masterOrders = [];
-  let activeTab = "all_orders";
-  let currentCandidate = null;
+  var masterOrders = [];
+  var activeTab = "all_orders";
+  var currentCandidate = null;
 
   async function loadOrderData() {
-    const tbody = document.getElementById("orderTableBody");
+    var tbody = document.getElementById("orderTableBody");
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Fetching live orders...</td></tr>';
 
     try {
-      const response = await fetch(API_ENDPOINT + "?action=fetchStation");
-      const res = await response.json();
+      var response = await fetch(API_ENDPOINT + "?action=fetchStation");
+      var res = await response.json();
       
       if (!res.success) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:red;">Server Error: ' + res.error + '</td></tr>';
@@ -181,7 +181,7 @@
 
       masterOrders = res.orders || [];
 
-      let cAll = 0, cFail = 0, cPick = 0, cTransit = 0, cDelivered = 0;
+      var cAll = 0, cFail = 0, cPick = 0, cTransit = 0, cDelivered = 0;
       masterOrders.forEach(function(o) {
         if (!o.is_picked_up) {
           cAll++;
@@ -208,7 +208,7 @@
   function filterTab(tab) {
     activeTab = tab;
     document.querySelectorAll(".tab-pill").forEach(function(b) { b.classList.remove("active"); });
-    const map = {
+    var map = {
       "all_orders": "tabAll",
       "pickup_failed": "tabFailed",
       "picked_up": "tabPicked",
@@ -220,10 +220,10 @@
   }
 
   function renderTable() {
-    const tbody = document.getElementById("orderTableBody");
+    var tbody = document.getElementById("orderTableBody");
     tbody.innerHTML = "";
 
-    const list = masterOrders.filter(function(o) {
+    var list = masterOrders.filter(function(o) {
       if (activeTab === "all_orders") return !o.is_picked_up;
       if (activeTab === "pickup_failed") return !o.is_picked_up && o.cohort === "pickup_failed";
       if (activeTab === "picked_up") return o.is_picked_up;
@@ -238,50 +238,52 @@
     }
 
     list.forEach(function(o) {
-      const prodsHtml = (o.products || []).map(function(p) {
+      var prodsHtml = (o.products || []).map(function(p) {
         return '<div class="sku-bubble"><b>' + (p.sku || p.name) + '</b> <span style="color:var(--muted);">(x' + p.quantity + ' | ₹' + p.unit_price + ')</span></div>';
       }).join("");
 
-      let whBadge = '<span class="wh-pill wh-other">' + o.warehouse_tag + '</span>';
+      var whBadge = '<span class="wh-pill wh-other">' + o.warehouse_tag + '</span>';
       if (o.warehouse_tag === "GS") whBadge = '<span class="wh-pill wh-gs">🏭 GS (128)</span>';
       else if (o.warehouse_tag === "UC") whBadge = '<span class="wh-pill wh-uc">🏬 UC (127)</span>';
 
-      const gstText = (o.igst_amount > 0) ? ('IGST: ₹' + o.igst_amount) : ('CGST: ₹' + o.cgst_amount + ' | SGST: ₹' + o.sgst_amount);
+      var gstText = (o.igst_amount > 0) ? ('IGST: ₹' + o.igst_amount) : ('CGST: ₹' + o.cgst_amount + ' | SGST: ₹' + o.sgst_amount);
 
-      const tr = document.createElement("tr");
+      var tr = document.createElement("tr");
       
-      const tdCust = document.createElement("td");
+      var tdCust = document.createElement("td");
       tdCust.innerHTML = '<span class="cust-badge">#' + o.customer_order_number + '</span>';
 
-      const tdOrder = document.createElement("td");
+      var tdOrder = document.createElement("td");
       tdOrder.innerHTML = '<b>#' + o.order_number + '</b><br>' + whBadge;
 
-      const tdAwb = document.createElement("td");
+      var tdAwb = document.createElement("td");
       tdAwb.innerHTML = '<code style="font-weight:700;">' + o.awb_number + '</code><br><span style="font-size:11px; color:var(--muted);">' + o.courier_name + '</span>';
 
-      const tdProd = document.createElement("td");
+      var tdProd = document.createElement("td");
       tdProd.innerHTML = prodsHtml || '-';
 
-      const tdPay = document.createElement("td");
+      var tdPay = document.createElement("td");
       tdPay.innerHTML = '<b>₹' + o.total_amount + '</b> (' + o.payment_mode + ')<div style="font-size:10.5px; color:var(--muted); margin-top:2px;">' + gstText + '</div>';
 
-      const tdUser = document.createElement("td");
+      var tdUser = document.createElement("td");
       tdUser.innerHTML = '<b>' + o.shipping_name + '</b><br><span style="font-size:11px; color:var(--muted);">' + o.shipping_city + ', ' + o.shipping_state + ' (' + o.shipping_pincode + ')</span>';
 
-      const tdAct = document.createElement("td");
+      var tdAct = document.createElement("td");
       if (!o.is_picked_up) {
-        const btnPick = document.createElement("button");
+        var btnPick = document.createElement("button");
         btnPick.className = "btn-act btn-act-pick";
         btnPick.innerText = "✓ Picked Up";
-        btnPick.onclick = function() { promptPickup(o.awb_number); };
+        btnPick.onclick = (function(targetAwb) {
+          return function() { promptPickup(targetAwb); };
+        })(o.awb_number);
         tdAct.appendChild(btnPick);
       } else {
-        const wrap = document.createElement("div");
+        var wrap = document.createElement("div");
         wrap.style.display = "flex";
         wrap.style.alignItems = "center";
         wrap.style.gap = "8px";
 
-        const badge = document.createElement("span");
+        var badge = document.createElement("span");
         badge.className = "badge-status";
         if (o.is_delivered) {
           badge.className += " st-delivered";
@@ -294,11 +296,13 @@
           badge.innerText = "Picked Up";
         }
 
-        const btnUndo = document.createElement("button");
+        var btnUndo = document.createElement("button");
         btnUndo.className = "btn-act btn-act-undo";
         btnUndo.innerText = "↺";
         btnUndo.title = "Undo from Sheet";
-        btnUndo.onclick = function() { promptUndo(o.awb_number); };
+        btnUndo.onclick = (function(targetAwb) {
+          return function() { promptUndo(targetAwb); };
+        })(o.awb_number);
 
         wrap.appendChild(badge);
         wrap.appendChild(btnUndo);
@@ -318,7 +322,7 @@
   }
 
   function promptPickup(awb) {
-    const order = masterOrders.find(function(o) { return o.awb_number === awb; });
+    var order = masterOrders.find(function(o) { return o.awb_number === awb; });
     if (!order) return;
     currentCandidate = order;
     document.getElementById("pCustOrder").innerText = "#" + order.customer_order_number;
@@ -330,19 +334,19 @@
   async function commitPickup(yes) {
     document.getElementById("modalPick").style.display = "none";
     if (yes && currentCandidate) {
-      const ord = currentCandidate;
+      var ord = currentCandidate;
       showToast("Saving #" + ord.customer_order_number + " & checking Razorpay/GoKwik...");
 
       ord.is_picked_up = true;
       renderTable();
 
       try {
-        const response = await fetch(API_ENDPOINT, {
+        var response = await fetch(API_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "savePickedUp", payload: ord })
         });
-        const res = await response.json();
+        var res = await response.json();
 
         if (res.success) {
           if (res.payment_reconciled) showToast("Auto-Paid via " + res.gateway + ": ₹" + res.payment_amount);
@@ -359,7 +363,7 @@
   }
 
   function promptUndo(awb) {
-    const order = masterOrders.find(function(o) { return o.awb_number === awb; });
+    var order = masterOrders.find(function(o) { return o.awb_number === awb; });
     if (!order) return;
     currentCandidate = order;
     document.getElementById("uCustOrder").innerText = "#" + order.customer_order_number;
@@ -370,19 +374,19 @@
   async function commitUndo(yes) {
     document.getElementById("modalUndo").style.display = "none";
     if (yes && currentCandidate) {
-      const ord = currentCandidate;
+      var ord = currentCandidate;
       showToast("Reverting #" + ord.customer_order_number + " from Sheet...");
 
       ord.is_picked_up = false;
       renderTable();
 
       try {
-        const response = await fetch(API_ENDPOINT, {
+        var response = await fetch(API_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "undoPickedUp", payload: { awb: ord.awb_number } })
         });
-        const res = await response.json();
+        var res = await response.json();
 
         if (res.success) {
           showToast("Reverted successfully!");
@@ -398,7 +402,7 @@
   }
 
   function showToast(msg) {
-    const el = document.createElement("div");
+    var el = document.createElement("div");
     el.className = "toast-pill";
     el.innerText = msg;
     document.body.appendChild(el);
