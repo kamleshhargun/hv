@@ -27,15 +27,6 @@
     .kpi-val { font-size: 22px; font-weight: 800; color: #0f172a; }
     .kpi-lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 5px; }
 
-    .btn-jelly { border: none; padding: 9px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-    .btn-jelly:hover { transform: translateY(-2px); }
-
-    /* MODAL */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--card-border); }
-    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
-    .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
-    .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
   </style>
 </head>
@@ -48,17 +39,16 @@
       <a href="order.html" class="nav-btn">Order Recon</a>
       <a href="rto.html" class="nav-btn">Return Recon</a>
       <a href="payment.html" class="nav-btn">Payment Recon</a>
-      <button class="btn-jelly" style="background:#10b981; color:#fff;" onclick="document.getElementById('modalPay').style.display='flex'">💳 Bulk Remittance</button>
     </div>
   </div>
 
-  <!-- FINANCIAL HEALTH KPIS -->
+  <!-- FINANCIAL HEALTH KPIS FROM SUPABASE -->
   <div class="kpi-row">
-    <div class="kpi-card"><div class="kpi-val" id="totalOrders">0</div><div class="kpi-lbl">Total Dispatches (Target Queue)</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="totalOrders">0</div><div class="kpi-lbl">Total Picked in Supabase</div></div>
     <div class="kpi-card"><div class="kpi-val" id="totalRevenue" style="color:var(--jelly-green);">₹0</div><div class="kpi-lbl">Gross Revenue</div></div>
     <div class="kpi-card"><div class="kpi-val" id="kpiPrepaid" style="color:var(--jelly-blue);">₹0</div><div class="kpi-lbl">Prepaid Volume</div></div>
     <div class="kpi-card"><div class="kpi-val" id="kpiCod" style="color:var(--jelly-amber);">₹0</div><div class="kpi-lbl">COD Pipeline</div></div>
-    <div class="kpi-card"><div class="kpi-val" id="kpiBankRec" style="color:var(--jelly-green);">₹0</div><div class="kpi-lbl">Bank Reconciled</div></div>
+    <div class="kpi-card"><div class="kpi-val" id="kpiBankRec" style="color:var(--jelly-green);">₹0</div><div class="kpi-lbl">Reconciled / Settled</div></div>
     <div class="kpi-card"><div class="kpi-val" id="kpiBankPend" style="color:var(--jelly-red);">₹0</div><div class="kpi-lbl">Payment Outstanding</div></div>
     <div class="kpi-card"><div class="kpi-val" id="kpiGst" style="color:var(--jelly-purple);">₹0</div><div class="kpi-lbl">Est. 5% GST Liability</div></div>
   </div>
@@ -76,92 +66,44 @@
   </div>
 </div>
 
-<!-- BULK PAYMENT REMITTANCE MODAL -->
-<div id="modalPay" class="modal-overlay">
-  <div class="modal-sheet">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h3 style="color:var(--jelly-green); font-size:16px; font-weight:800;">💳 Bulk Payment Remittance</h3>
-      <button onclick="document.getElementById('modalPay').style.display='none'" style="background:none; border:none; font-size:20px; color:var(--muted); cursor:pointer;">✕</button>
-    </div>
-    <label style="font-size:11px; font-weight:700; color:var(--muted);">Remittance Date:</label>
-    <input type="date" id="remitDate" style="width:100%; padding:9px; border:1.5px solid var(--card-border); border-radius:10px; margin-top:3px; margin-bottom:12px; outline:none;" />
-    <label style="font-size:11px; font-weight:700; color:var(--muted);">Paste AWB & Received Amount (2 Columns):</label>
-    <textarea id="bulkPasteText" placeholder="50845018032080	899&#10;50845018032091	1250" style="width:100%; height:130px; padding:10px; border:1.5px solid var(--card-border); border-radius:10px; font-family:monospace; font-size:12px; margin-top:3px; outline:none;"></textarea>
-    <div class="modal-actions">
-      <button class="btn-m-confirm" onclick="submitRemittance()">Reconcile All</button>
-      <button class="btn-m-cancel" onclick="document.getElementById('modalPay').style.display='none'">Cancel</button>
-    </div>
-  </div>
-</div>
-
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbz77WUMlZrhMFQeHQdw1MPFI3Lb4I27CqAhijmhLk5ufkJAXZePRHhdyGY8IWWmFXgJ/exec";
-  document.getElementById("remitDate").value = new Date().toISOString().slice(0, 10);
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyLSzdwcT2YPPHzHHlAG9imeKaWBpfmus4ihVYdZ_jNjHtCMykgAM0U0mUGZ7Y1ItJ3/exec";
 
   async function loadDashboardSummary() {
     try {
       const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
       if (res.success) {
-        const orders = res.orders || [];
         const saved = res.saved_picked_orders || [];
 
-        document.getElementById("totalOrders").innerText = orders.length;
+        document.getElementById("totalOrders").innerText = saved.length;
 
-        let gross = 0, prepaid = 0, cod = 0, gst = 0;
-        orders.forEach(o => {
-          gross += (o.total_amount || 0);
-          gst += ((o.cgst_amount || 0) + (o.sgst_amount || 0) + (o.igst_amount || 0));
-        });
+        let gross = 0, prepaid = 0, cod = 0, bankRec = 0, bankPend = 0;
 
-        let bankRec = 0, bankPend = 0;
         saved.forEach(s => {
-          if (s.payment_mode === "PREPAID") prepaid += (s.total_amount || 0);
-          else cod += (s.total_amount || 0);
+          const amt = (s.total_amount || 0);
+          gross += amt;
 
-          if (s.payment_status === "RECEIVED") bankRec += (s.payment_received_amount || 0);
-          else bankPend += (s.total_amount || 0);
+          if (s.payment_mode === "PREPAID") prepaid += amt;
+          else cod += amt;
+
+          if (s.payment_status === "RECEIVED") bankRec += (s.payment_received_amount || amt);
+          else bankPend += amt;
         });
 
-        document.getElementById("totalRevenue").innerText = "₹" + gross.toLocaleString('en-IN');
-        document.getElementById("kpiPrepaid").innerText = "₹" + prepaid.toLocaleString('en-IN');
-        document.getElementById("kpiCod").innerText = "₹" + cod.toLocaleString('en-IN');
-        document.getElementById("kpiBankRec").innerText = "₹" + bankRec.toLocaleString('en-IN');
-        document.getElementById("kpiBankPend").innerText = "₹" + bankPend.toLocaleString('en-IN');
-        document.getElementById("kpiGst").innerText = "₹" + gst.toFixed(2);
+        // 5% Inclusive GST calculation on Gross Picked
+        const taxable = gross / 1.05;
+        const totalGst = gross - taxable;
+
+        document.getElementById("totalRevenue").innerText = "₹" + Math.round(gross).toLocaleString('en-IN');
+        document.getElementById("kpiPrepaid").innerText = "₹" + Math.round(prepaid).toLocaleString('en-IN');
+        document.getElementById("kpiCod").innerText = "₹" + Math.round(cod).toLocaleString('en-IN');
+        document.getElementById("kpiBankRec").innerText = "₹" + Math.round(bankRec).toLocaleString('en-IN');
+        document.getElementById("kpiBankPend").innerText = "₹" + Math.round(bankPend).toLocaleString('en-IN');
+        document.getElementById("kpiGst").innerText = "₹" + totalGst.toFixed(2);
       }
     } catch (e) {
-      console.error(e);
+      console.error("Dashboard error:", e);
     }
-  }
-
-  async function submitRemittance() {
-    const date = document.getElementById("remitDate").value;
-    const text = document.getElementById("bulkPasteText").value;
-    if (!text.trim()) return alert("Paste AWB and amount rows.");
-
-    document.getElementById("modalPay").style.display = "none";
-    showToast("Reconciling remittance with Google Sheet & Supabase...");
-
-    const res = await fetch(API_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "bulkReconcile", payload: { date: date, text: text } })
-    }).then(r => r.json());
-
-    if (res.success) {
-      showToast("Matched: " + res.matched + " | Skipped: " + res.skipped);
-      loadDashboardSummary();
-    } else {
-      alert("Error: " + res.error);
-    }
-  }
-
-  function showToast(msg) {
-    const el = document.createElement("div");
-    el.className = "toast-pill";
-    el.innerText = msg;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2500);
   }
 
   window.onload = loadDashboardSummary;
