@@ -6,7 +6,6 @@
   <title>Order Reconciliation - Harsidhi ERP</title>
   <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- HTML5 QR / Barcode Scanner -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   
   <style>
@@ -43,8 +42,8 @@
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
     .nav-btn:hover { background: #312e81; }
 
-    /* SYNC BUTTON + HELPER NOTICE */
-    .sync-wrap { display: flex; flex-direction: column; align-items: flex-end; }
+    /* PROFESSIONAL SYNC BUTTON & STATUS */
+    .sync-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
     .btn-sync {
       border: none;
       padding: 8px 18px;
@@ -62,7 +61,7 @@
     .btn-sync-loading { background: #f59e0b !important; color: #0f172a !important; animation: pulseGlow 1.2s infinite alternate; }
     .btn-sync-success { background: #10b981 !important; color: #ffffff !important; }
     .btn-sync-error { background: #ef4444 !important; color: #ffffff !important; animation: shake 0.4s ease-in-out; }
-    .sync-tip { font-size: 10.5px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+    .sync-tip { font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.3px; display: inline-flex; align-items: center; gap: 4px; }
     
     @keyframes pulseGlow {
       from { box-shadow: 0 0 4px #f59e0b; transform: scale(0.98); }
@@ -172,7 +171,7 @@
         <button id="mainSyncBtn" class="btn-sync btn-sync-loading" onclick="loadOrderData()">
           <span id="syncIcon">↻</span> <span id="syncLabel">Connecting...</span>
         </button>
-        <span class="sync-tip" id="syncTip">Kuchh naya ho toh hi sync karein, baar-baar zaroorat nahi</span>
+        <span class="sync-tip" id="syncTip">● Auto-Cached (Smart Sync Enabled)</span>
       </div>
     </div>
   </div>
@@ -333,7 +332,6 @@
     }
   }
 
-  // INITIAL-ONLY FETCH ENGINE
   async function loadOrderData() {
     setSyncButtonState("loading");
     var tbody = document.getElementById("orderTableBody");
@@ -555,7 +553,6 @@
     });
   }
 
-  /* CONTINUOUS CAMERA SCANNER ENGINE */
   function openCameraScanner() {
     document.getElementById("modalCamera").style.display = "flex";
     isCameraActive = true;
@@ -568,7 +565,7 @@
       { facingMode: "environment" },
       config,
       onScanSuccess,
-      function(error) { /* Ignore minor frame scan errors */ }
+      function(error) { /* Frame scan bypass */ }
     ).catch(function(err) {
       alert("Camera Permission Error: " + err);
       closeCameraScanner();
@@ -591,7 +588,7 @@
   }
 
   function onScanSuccess(decodedText) {
-    if (isScanPaused) return; // Prevent multiple triggers on single scan
+    if (isScanPaused) return;
 
     var scannedAwb = String(decodedText || "").trim();
     if (!scannedAwb) return;
@@ -601,7 +598,7 @@
     });
 
     if (matched) {
-      isScanPaused = true; // Pause scanner while prompt is active
+      isScanPaused = true;
       promptPickup(matched.awb_number, true);
     } else {
       showToast("AWB Not Found or Already Picked: " + scannedAwb);
@@ -635,7 +632,6 @@
       var ord = currentCandidate;
       showToast("Saving #" + (ord.customer_order_number || ord.order_number) + " to Sheet & DB...");
 
-      // Optimistic UI Update (No full page reload!)
       ord.is_picked_up = true;
       updateCounters();
       renderTable();
@@ -649,7 +645,6 @@
         var res = await response.json();
 
         if (res.success) {
-          // Increment Local KPI Card Stats
           var amt = ord.total_amount || 0;
           sheetKpis.today.count++;
           sheetKpis.today.amount += amt;
@@ -668,7 +663,6 @@
           if (res.payment_reconciled) showToast("Auto-Paid via " + res.gateway + ": ₹" + res.payment_amount);
           else showToast("Order #" + (ord.customer_order_number || ord.order_number) + " Saved in Sheet");
         } else {
-          // Revert optimistic update if duplicate or server error
           ord.is_picked_up = false;
           updateCounters();
           renderTable();
@@ -682,7 +676,6 @@
       }
     }
 
-    // IF FROM CAMERA: Resume scanning for next parcel!
     if (currentCandidate && currentCandidate.fromCamera && isCameraActive) {
       setTimeout(function() { isScanPaused = false; }, 800);
     }
@@ -704,7 +697,6 @@
       var ord = currentCandidate;
       showToast("Reverting #" + (ord.customer_order_number || ord.order_number) + " from Sheet...");
 
-      // Optimistic UI Revert
       ord.is_picked_up = false;
       updateCounters();
       renderTable();
