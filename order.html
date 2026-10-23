@@ -6,65 +6,26 @@
   <title>Order Reconciliation - Harsidhi ERP</title>
   <link rel="icon" href="data:,">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="auth.js"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   
   <style>
     :root {
-      --bg: #f4f6fb;
-      --card-bg: rgba(255, 255, 255, 0.94);
-      --card-border: #e8ecf4;
-      --text: #1e293b;
-      --muted: #64748b;
-      --jelly-blue: #3b82f6;
-      --jelly-blue-tint: #eff6ff;
-      --jelly-green: #10b981;
-      --jelly-green-tint: #ecfdf5;
-      --jelly-amber: #f59e0b;
-      --jelly-red: #ef4444;
-      --jelly-red-tint: #fef2f2;
-      --radius-jelly: 20px;
-      --radius-pill: 30px;
-      --shadow-jelly: 0 10px 25px -5px rgba(100, 116, 139, 0.08);
-      --shadow-bubble: 0 4px 14px 0 rgba(0, 0, 0, 0.04);
+      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.94); --card-border: #e8ecf4;
+      --text: #1e293b; --muted: #64748b; --jelly-blue: #3b82f6; --jelly-green: #10b981;
+      --jelly-amber: #f59e0b; --jelly-red: #ef4444; --radius-jelly: 20px; --radius-pill: 30px;
     }
-
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
-    .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: var(--shadow-jelly); }
-    
+    .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: 0 10px 25px -5px rgba(100, 116, 139, 0.08); }
     .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-    .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; user-select: none; }
-    .secret-trigger { font-size: 24px; cursor: pointer; transition: transform 0.15s ease; display: inline-block; }
-    .secret-trigger:active { transform: scale(1.3); }
-
+    .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; }
     .nav-links { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
-    .nav-btn:hover { background: #312e81; }
+    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; }
 
-    .sync-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
-    .btn-sync {
-      border: none;
-      padding: 8px 18px;
-      border-radius: var(--radius-pill);
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: var(--shadow-bubble);
-      color: #fff;
-      transition: 0.2s;
-    }
-    .btn-sync-loading { background: #f59e0b !important; color: #0f172a !important; }
-    .btn-sync-success { background: #10b981 !important; color: #ffffff !important; }
-    .btn-sync-error { background: #ef4444 !important; color: #ffffff !important; }
-    .sync-tip { font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.3px; }
-
-    /* SUPABASE ANALYTICS KPI CARDS */
     .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 18px; }
     .kpi-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 16px; padding: 14px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-    .kpi-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; }
     .kpi-main-val { font-size: 20px; font-weight: 800; color: #0f172a; margin: 4px 0; display: flex; align-items: baseline; gap: 8px; }
     .kpi-sub-amt { font-size: 13.5px; font-weight: 700; color: var(--jelly-green); }
     .kpi-wh-tags { display: flex; gap: 6px; margin-top: 6px; font-size: 11px; font-weight: 700; }
@@ -73,49 +34,22 @@
 
     .toolbar-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0 18px 0; flex-wrap: wrap; gap: 12px; }
     .tabs-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-    .tab-pill { background: #ffffff; border: 1.5px solid var(--card-border); color: #475569; padding: 8px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
-    .tab-pill:hover { border-color: #cbd5e1; }
+    .tab-pill { background: #ffffff; border: 1.5px solid var(--card-border); color: #475569; padding: 8px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
     .tab-pill.active { background: #1e1b4b; color: #fff; border-color: #1e1b4b; }
     .tab-badge { background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 20px; font-weight: 800; }
     .tab-pill.active .tab-badge { background: rgba(255,255,255,0.22); color: #fff; }
 
-    .btn-camera {
-      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-      color: #fff;
-      border: none;
-      padding: 9px 18px;
-      border-radius: var(--radius-pill);
-      font-size: 12.5px;
-      font-weight: 800;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-    }
+    .btn-camera { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #fff; border: none; padding: 9px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
 
     .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
-    th { background: #f8fafc; color: #475569; padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); letter-spacing: 0.5px; }
+    th { background: #f8fafc; color: #475569; padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); }
     td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); vertical-align: top; }
     tr:hover td { background: #fafcff; }
 
-    .btn-fetch-tracking {
-      background: #eff6ff;
-      border: 1.5px solid #bfdbfe;
-      color: #2563eb;
-      padding: 4px 12px;
-      border-radius: 8px;
-      font-size: 11.5px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-    .cust-badge { background: var(--jelly-blue-tint); color: var(--jelly-blue); border: 1.5px solid #bfdbfe; font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; display: inline-block; }
-
-    .wh-pill { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; letter-spacing: 0.5px; margin-top: 2px; }
+    .wh-pill { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; margin-top: 2px; }
     .wh-gs { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
     .wh-uc { background: #ede9fe; color: #5b21b6; border: 1px solid #ddd6fe; }
-    .wh-other { background: #f1f5f9; color: #475569; }
-
     .sku-bubble { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 6px; font-size: 11px; margin-bottom: 3px; }
     .badge-status { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; }
     .st-transit { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
@@ -123,81 +57,45 @@
     .st-picked { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
 
     .btn-act { border: none; padding: 6px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 800; cursor: pointer; }
-    .btn-act-pick { background: var(--jelly-green-tint); color: #047857; border: 1.5px solid #a7f3d0; }
-    .btn-act-undo { background: var(--jelly-red-tint); color: #b91c1c; border: 1.5px solid #fecaca; }
+    .btn-act-pick { background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; }
+    .btn-act-undo { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
 
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 480px; text-align: center; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.12); position: relative; }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 480px; text-align: center; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
     .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
     .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
     .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
-
-    .form-group { text-align: left; margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
-    .form-group input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--card-border); border-radius: 10px; font-size: 13px; outline: none; }
-    .form-group input:focus { border-color: var(--jelly-blue); }
-    .lookup-box { background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 12px; margin-top: 10px; text-align: left; display: none; }
   </style>
 </head>
 <body>
 <div class="app-box">
   <div class="header">
-    <div class="brand">
-      <span class="secret-trigger" id="emergencyTrigger" title="System Controls">📦</span>
-      Order Reconciliation & Dispatches
-    </div>
+    <div class="brand">📦 Order Reconciliation & Dispatches</div>
     <div class="nav-links">
       <a href="index.html" class="nav-btn">Dashboard</a>
       <a href="order.html" class="nav-btn" style="background:#3b82f6;">Order Recon</a>
       <a href="rto.html" class="nav-btn">Return Recon</a>
       <a href="payment.html" class="nav-btn">Payment Recon</a>
-      
-      <div class="sync-wrap">
-        <button id="mainSyncBtn" class="btn-sync btn-sync-loading" onclick="loadOrderData()">
-          <span id="syncIcon">↻</span> <span id="syncLabel">Connecting...</span>
-        </button>
-        <span class="sync-tip" id="syncTip">Live Supabase Sync</span>
-      </div>
+      <button class="nav-btn" style="background:#10b981;" onclick="loadOrderData()">↻ Sync</button>
     </div>
   </div>
 
-  <!-- KPI CARDS (Calculated from Supabase) -->
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-title">Today Picked in Supabase</div>
-      <div class="kpi-main-val">
-        <span id="kpiTodayCount">0</span>
-        <span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span>
-      </div>
-      <div class="kpi-wh-tags">
-        <span class="kpi-wh-gs" id="kpiTodayGs">GS: 0</span>
-        <span class="kpi-wh-uc" id="kpiTodayUc">UC: 0</span>
-      </div>
+      <div class="kpi-title">Today Picked</div>
+      <div class="kpi-main-val"><span id="kpiTodayCount">0</span><span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span></div>
+      <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiTodayGs">GS: 0</span><span class="kpi-wh-uc" id="kpiTodayUc">UC: 0</span></div>
     </div>
-
     <div class="kpi-card">
-      <div class="kpi-title">Yesterday Picked in Supabase</div>
-      <div class="kpi-main-val">
-        <span id="kpiYestCount">0</span>
-        <span class="kpi-sub-amt" id="kpiYestAmt">₹0</span>
-      </div>
-      <div class="kpi-wh-tags">
-        <span class="kpi-wh-gs" id="kpiYestGs">GS: 0</span>
-        <span class="kpi-wh-uc" id="kpiYestUc">UC: 0</span>
-      </div>
+      <div class="kpi-title">Yesterday Picked</div>
+      <div class="kpi-main-val"><span id="kpiYestCount">0</span><span class="kpi-sub-amt" id="kpiYestAmt">₹0</span></div>
+      <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiYestGs">GS: 0</span><span class="kpi-wh-uc" id="kpiYestUc">UC: 0</span></div>
     </div>
-
     <div class="kpi-card">
       <div class="kpi-title">Total Picked (Current Month)</div>
-      <div class="kpi-main-val">
-        <span id="kpiTotalCount">0</span>
-        <span class="kpi-sub-amt" id="kpiTotalAmt">₹0</span>
-      </div>
-      <div class="kpi-wh-tags">
-        <span class="kpi-wh-gs" id="kpiTotalGs">GS: 0</span>
-        <span class="kpi-wh-uc" id="kpiTotalUc">UC: 0</span>
-      </div>
+      <div class="kpi-main-val"><span id="kpiTotalCount">0</span><span class="kpi-sub-amt" id="kpiTotalAmt">₹0</span></div>
+      <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiTotalGs">GS: 0</span><span class="kpi-wh-uc" id="kpiTotalUc">UC: 0</span></div>
     </div>
   </div>
 
@@ -216,13 +114,13 @@
     <table>
       <thead>
         <tr>
-          <th style="min-width:140px;">Cust Order # (Tracking)</th>
+          <th>Cust Order #</th>
           <th>Order # & Warehouse</th>
           <th>AWB & Courier</th>
-          <th>Products (SKU, Qty)</th>
-          <th>Payment & 5% GST</th>
-          <th>Customer & City</th>
-          <th>Live Status / Action</th>
+          <th>Products</th>
+          <th>Payment & GST</th>
+          <th>Customer & Destination</th>
+          <th>Status / Action</th>
         </tr>
       </thead>
       <tbody id="orderTableBody">
@@ -232,58 +130,36 @@
   </div>
 </div>
 
-<!-- SECRET EMERGENCY MANUAL DISPATCH MODAL -->
-<div id="modalEmergency" class="modal-overlay" onclick="onModalBgClick(event, 'modalEmergency')">
-  <div class="modal-sheet" style="max-width:500px;">
-    <div style="font-size:32px; margin-bottom:6px;">🚨</div>
-    <h3 style="color:#1e1b4b; font-size:17px; font-weight:800;">Emergency Manual Dispatch Entry</h3>
-    <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Directly log historical or untracked orders into Supabase with a custom date.</p>
-
-    <div class="form-group">
-      <label>Target Log Date:</label>
-      <input type="date" id="emDateInput">
-    </div>
-    <div class="form-group">
-      <label>AWB Number:</label>
-      <input type="text" id="emAwbInput" placeholder="Enter full AWB Number...">
-    </div>
-
-    <button type="button" class="btn-m-confirm" style="width:100%; background:var(--jelly-blue); margin-top:4px;" onclick="lookupEmergencyOrder()">
-      🔍 Lookup Order Data
-    </button>
-
-    <div id="emResultBox" class="lookup-box">
-      <div style="font-size:12px; font-weight:700; color:#1e1b4b;" id="emCustomerName">-</div>
-      <div style="font-size:11.5px; color:var(--muted); margin-top:2px;" id="emOrderDetails">-</div>
-      <div style="font-size:11.5px; color:var(--jelly-green); font-weight:700; margin-top:4px;" id="emAmount">-</div>
-      
-      <div class="modal-actions" style="margin-top:10px;">
-        <button class="btn-m-confirm" onclick="commitEmergencyPickup()">Confirm & Log Picked Up</button>
-        <button class="btn-m-cancel" onclick="closeEmergencyModal()">Cancel</button>
-      </div>
+<!-- DUPLICATE SCAN PAUSE WARNING MODAL -->
+<div id="modalDuplicate" class="modal-overlay">
+  <div class="modal-sheet">
+    <div style="font-size:38px; margin-bottom:6px;">⚠️</div>
+    <h3 style="color:#ef4444; font-size:18px; font-weight:800;">Duplicate AWB Detected</h3>
+    <p style="font-size:13px; color:var(--muted); margin-top:8px;" id="dupModalMsg">This parcel has already been logged or is already processed.</p>
+    <div class="modal-actions">
+      <button class="btn-m-confirm" style="background:#1e1b4b;" onclick="closeDuplicateModal()">Close & Scan Next</button>
     </div>
   </div>
 </div>
 
 <!-- CONTINUOUS CAMERA SCANNER -->
-<div id="modalCamera" class="modal-overlay" onclick="onModalBgClick(event, 'modalCamera')">
+<div id="modalCamera" class="modal-overlay">
   <div class="modal-sheet" style="max-width:500px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">Continuous Barcode / AWB Scanner</h3>
-      <button onclick="closeCameraScanner()" style="background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer;">✕</button>
+      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">Barcode / AWB Camera Scanner</h3>
+      <button onclick="closeCameraScanner()" style="background:none; border:none; font-size:22px; cursor:pointer;">✕</button>
     </div>
     <div id="cameraReader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
-    <div style="font-size:12px; color:var(--muted); margin-top:10px;">Align parcel barcode or QR code with camera view.</div>
   </div>
 </div>
 
 <!-- CONFIRM PICKUP MODAL -->
-<div id="modalPick" class="modal-overlay" onclick="onModalBgClick(event, 'modalPick')">
+<div id="modalPick" class="modal-overlay">
   <div class="modal-sheet">
     <div style="font-size:36px; margin-bottom:6px;">📦</div>
     <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Picked Up?</h3>
     <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Log order <b id="pCustOrder"></b> (Store: <span id="pStore" style="font-weight:800;"></span> | Tag: <span id="pWh" style="color:var(--jelly-green); font-weight:800;"></span> | AWB: <span id="pAwb" style="font-family:monospace;"></span>) as Picked Up to Supabase?
+      Log order <b id="pCustOrder"></b> (<span id="pStore"></span> | Tag: <b id="pWh"></b>) to Supabase?
     </p>
     <div class="modal-actions">
       <button class="btn-m-confirm" onclick="commitPickup(true)">Yes, Mark Picked Up</button>
@@ -292,307 +168,92 @@
   </div>
 </div>
 
-<!-- CONFIRM UNDO MODAL -->
-<div id="modalUndo" class="modal-overlay" onclick="onModalBgClick(event, 'modalUndo')">
-  <div class="modal-sheet">
-    <div style="font-size:36px; margin-bottom:6px;">⚠️</div>
-    <h3 style="color:var(--jelly-red); font-size:17px; font-weight:800;">Warning: Undo Picked Up?</h3>
-    <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Revert order <b id="uCustOrder"></b> (AWB: <span id="uAwb" style="font-family:monospace; color:var(--jelly-red);"></span>) and remove it from Supabase?
-    </p>
-    <div class="modal-actions">
-      <button class="btn-m-confirm" style="background:var(--jelly-red);" onclick="commitUndo(true)">Yes, Undo & Remove</button>
-      <button class="btn-m-cancel" onclick="commitUndo(false)">Cancel</button>
-    </div>
-  </div>
-</div>
-
 <script>
-  var API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyLSzdwcT2YPPHzHHlAG9imeKaWBpfmus4ihVYdZ_jNjHtCMykgAM0U0mUGZ7Y1ItJ3/exec";
-  var TRACKING_DIRECT_URL = "https://api.boxdlogistics.com/api/v1/shipments/track-shipment/?awb_number=";
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxPgOIVLl5ORE9pNjw-4PoKiNJ3MEkZ1ZhpZc4EDhp_3zyGDnGEKkwDFIxEBk8ACYop/exec";
+  let masterOrders = [];
+  let activeTab = "all_orders";
+  let currentCandidate = null;
+  let html5QrCodeScanner = null;
+  let isCameraActive = false;
+  let isScanPaused = false;
 
-  var masterOrders = [];
-  var activeTab = "all_orders";
-  var currentCandidate = null;
-  var emergencyCandidate = null;
-  var html5QrCodeScanner = null;
-  var isCameraActive = false;
-  var isScanPaused = false;
-
-  var sheetKpis = {
-    today: { count: 0, amount: 0, gs: 0, uc: 0 },
-    yesterday: { count: 0, amount: 0, gs: 0, uc: 0 },
-    total: { count: 0, amount: 0, gs: 0, uc: 0 }
-  };
-
-  var audioCtx = null;
+  let audioCtx = null;
   function getAudioContext() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
-
   function playSuccessSound() {
     try {
-      var ctx = getAudioContext();
-      var now = ctx.currentTime;
-      var osc1 = ctx.createOscillator();
-      var gain1 = ctx.createGain();
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(880, now);
-      gain1.gain.setValueAtTime(0.18, now);
-      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-      osc1.start(now);
-      osc1.stop(now + 0.35);
-
-      var osc2 = ctx.createOscillator();
-      var gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(1320, now + 0.12);
-      gain2.gain.setValueAtTime(0.22, now + 0.12);
-      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(now + 0.12);
-      osc2.stop(now + 0.55);
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
     } catch(e) {}
   }
-
   function playErrorSound() {
     try {
-      var ctx = getAudioContext();
-      var now = ctx.currentTime;
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(220, now);
-      osc.frequency.linearRampToValueAtTime(150, now + 0.35);
-      gain.gain.setValueAtTime(0.25, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.4);
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
     } catch(e) {}
-  }
-
-  var secretClickCount = 0;
-  var secretClickTimer = null;
-
-  document.getElementById("emergencyTrigger").addEventListener("click", function() {
-    secretClickCount++;
-    clearTimeout(secretClickTimer);
-    if (secretClickCount >= 5) {
-      secretClickCount = 0;
-      openEmergencyModal();
-    } else {
-      secretClickTimer = setTimeout(function() { secretClickCount = 0; }, 1500);
-    }
-  });
-
-  function openEmergencyModal() {
-    document.getElementById("emDateInput").value = new Date().toISOString().slice(0, 10);
-    document.getElementById("emAwbInput").value = "";
-    document.getElementById("emResultBox").style.display = "none";
-    emergencyCandidate = null;
-    document.getElementById("modalEmergency").style.display = "flex";
-  }
-
-  function closeEmergencyModal() {
-    document.getElementById("modalEmergency").style.display = "none";
-  }
-
-  async function lookupEmergencyOrder() {
-    var awb = document.getElementById("emAwbInput").value.trim();
-    if (!awb) {
-      alert("Please enter a valid AWB number.");
-      return;
-    }
-
-    var matched = masterOrders.find(function(o) { return o.awb_number === awb; });
-    if (matched) {
-      setupEmergencyCandidate(matched);
-      return;
-    }
-
-    try {
-      showToast("Searching tracking record via backend...");
-      var response = await fetch(API_ENDPOINT + "?action=lookupAwb&awb=" + encodeURIComponent(awb));
-      var res = await response.json();
-
-      if (!res.success || !res.data) {
-        playErrorSound();
-        alert("No shipment record found for this AWB: " + (res.error || ""));
-        return;
-      }
-
-      var data = res.data;
-      var brand = resolveStoreDetails(data.store_name, data.channel_name, data.channel_id);
-
-      var customCandidate = {
-        awb_number: data.awb_number || awb,
-        customer_order_number: data.customer_order_number || data.order_number || "-",
-        order_number: data.order_number || "-",
-        shipping_name: data.shipping_name || data.customer_name || "Direct Log Customer",
-        customer_phone_number: data.phone || data.customer_phone_number || "",
-        shipping_city: data.city || data.shipping_city || "",
-        shipping_state: data.state || data.shipping_state || "",
-        shipping_pincode: data.pincode || data.shipping_pincode || "",
-        payment_mode: data.payment_mode || "PREPAID",
-        is_cod: Boolean(data.is_cod),
-        total_amount: Number(data.total_amount || 0),
-        store_name: brand.storeName,
-        warehouse_tag: brand.tag,
-        products: []
-      };
-
-      setupEmergencyCandidate(customCandidate);
-    } catch(err) {
-      playErrorSound();
-      alert("Lookup failed: " + err.message);
-    }
-  }
-
-  function resolveStoreDetails(rawStoreName, rawChannelName, rawChannelId) {
-    var combined = (String(rawStoreName || "") + " " + String(rawChannelName || "") + " " + String(rawChannelId || "")).toLowerCase();
-    if (combined.includes("gulabi") || combined.includes("128") || combined.includes("gs")) {
-      return { tag: "GS", storeName: "GULABISHEHAR" };
-    } else if (combined.includes("uncluttered") || combined.includes("127") || combined.includes("uc")) {
-      return { tag: "UC", storeName: "UNCLUTTERED CLOSET" };
-    }
-    return { tag: "OTHER", storeName: rawStoreName || "Shopify" };
-  }
-
-  function setupEmergencyCandidate(order) {
-    emergencyCandidate = order;
-    document.getElementById("emCustomerName").innerText = order.shipping_name + " (" + order.warehouse_tag + ")";
-    document.getElementById("emOrderDetails").innerText = "Order #" + (order.customer_order_number || order.order_number) + " | AWB: " + order.awb_number;
-    document.getElementById("emAmount").innerText = "Amount: ₹" + (order.total_amount || 0) + " (" + order.payment_mode + ")";
-    document.getElementById("emResultBox").style.display = "block";
-  }
-
-  async function commitEmergencyPickup() {
-    var customDate = document.getElementById("emDateInput").value;
-    if (!customDate) {
-      alert("Please select a target log date.");
-      return;
-    }
-
-    if (!emergencyCandidate) return;
-
-    var payload = Object.assign({}, emergencyCandidate, { custom_log_date: customDate });
-    closeEmergencyModal();
-    showToast("Saving custom entry to Supabase for date: " + customDate + "...");
-
-    try {
-      var response = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "savePickedUp", payload: payload })
-      });
-      var res = await response.json();
-
-      if (res.success) {
-        playSuccessSound();
-        showToast("Logged successfully in Supabase for " + customDate);
-        loadOrderData();
-      } else {
-        playErrorSound();
-        alert(res.duplicate ? ("DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
-      }
-    } catch(e) {
-      playErrorSound();
-      alert("Network Error: " + e.message);
-    }
-  }
-
-  function setSyncButtonState(state) {
-    var btn = document.getElementById("mainSyncBtn");
-    var icon = document.getElementById("syncIcon");
-    var label = document.getElementById("syncLabel");
-    btn.className = "btn-sync";
-
-    if (state === "loading") {
-      btn.className += " btn-sync-loading";
-      icon.innerText = "↻";
-      label.innerText = "Syncing...";
-    } else if (state === "success") {
-      btn.className += " btn-sync-success";
-      icon.innerText = "✓";
-      label.innerText = "Synced";
-    } else if (state === "error") {
-      btn.className += " btn-sync-error";
-      icon.innerText = "✕";
-      label.innerText = "Failed";
-    }
   }
 
   async function loadOrderData() {
-    setSyncButtonState("loading");
-    var tbody = document.getElementById("orderTableBody");
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Fetching live orders...</td></tr>';
-
+    const tbody = document.getElementById("orderTableBody");
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:35px; color:var(--muted);">Loading orders...</td></tr>';
     try {
-      var response = await fetch(API_ENDPOINT + "?action=fetchStation");
-      var res = await response.json();
-      
-      if (!res.success) {
-        setSyncButtonState("error");
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:red;">Server Error: ' + res.error + '</td></tr>';
-        return;
-      }
+      const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
+      if (!res.success) return alert("Server Error: " + res.error);
 
-      masterOrders = res.orders || [];
+      // Filter out RTO completely from order.html
+      masterOrders = (res.orders || []).filter(o => !o.is_rto);
+
       if (res.sheet_kpis) {
-        sheetKpis = res.sheet_kpis;
-        updateKpiDisplay();
+        document.getElementById("kpiTodayCount").innerText = res.sheet_kpis.today.count;
+        document.getElementById("kpiTodayAmt").innerText = "₹" + res.sheet_kpis.today.amount.toLocaleString('en-IN');
+        document.getElementById("kpiTodayGs").innerText = "GS: " + res.sheet_kpis.today.gs;
+        document.getElementById("kpiTodayUc").innerText = "UC: " + res.sheet_kpis.today.uc;
+
+        document.getElementById("kpiYestCount").innerText = res.sheet_kpis.yesterday.count;
+        document.getElementById("kpiYestAmt").innerText = "₹" + res.sheet_kpis.yesterday.amount.toLocaleString('en-IN');
+        document.getElementById("kpiYestGs").innerText = "GS: " + res.sheet_kpis.yesterday.gs;
+        document.getElementById("kpiYestUc").innerText = "UC: " + res.sheet_kpis.yesterday.uc;
+
+        document.getElementById("kpiTotalCount").innerText = res.sheet_kpis.total.count;
+        document.getElementById("kpiTotalAmt").innerText = "₹" + res.sheet_kpis.total.amount.toLocaleString('en-IN');
+        document.getElementById("kpiTotalGs").innerText = "GS: " + res.sheet_kpis.total.gs;
+        document.getElementById("kpiTotalUc").innerText = "UC: " + res.sheet_kpis.total.uc;
       }
-
-      masterOrders.forEach(function(o) {
-        if (!o.cust_order_loaded) o.cust_order_loaded = false;
-      });
-
       updateCounters();
-      setSyncButtonState("success");
       renderTable();
-    } catch(err) {
-      setSyncButtonState("error");
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:red;">Connection Error: ' + err.message + '</td></tr>';
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:red;">${e.message}</td></tr>`;
     }
   }
 
-  function updateKpiDisplay() {
-    document.getElementById("kpiTodayCount").innerText = sheetKpis.today.count;
-    document.getElementById("kpiTodayAmt").innerText = "₹" + Number(sheetKpis.today.amount).toLocaleString('en-IN');
-    document.getElementById("kpiTodayGs").innerText = "GS: " + sheetKpis.today.gs;
-    document.getElementById("kpiTodayUc").innerText = "UC: " + sheetKpis.today.uc;
-
-    document.getElementById("kpiYestCount").innerText = sheetKpis.yesterday.count;
-    document.getElementById("kpiYestAmt").innerText = "₹" + Number(sheetKpis.yesterday.amount).toLocaleString('en-IN');
-    document.getElementById("kpiYestGs").innerText = "GS: " + sheetKpis.yesterday.gs;
-    document.getElementById("kpiYestUc").innerText = "UC: " + sheetKpis.yesterday.uc;
-
-    document.getElementById("kpiTotalCount").innerText = sheetKpis.total.count;
-    document.getElementById("kpiTotalAmt").innerText = "₹" + Number(sheetKpis.total.amount).toLocaleString('en-IN');
-    document.getElementById("kpiTotalGs").innerText = "GS: " + sheetKpis.total.gs;
-    document.getElementById("kpiTotalUc").innerText = "UC: " + sheetKpis.total.uc;
-  }
-
   function updateCounters() {
-    var cAll = 0, cFail = 0, cPick = 0, cTransit = 0, cDelivered = 0;
-    masterOrders.forEach(function(o) {
+    let cAll = 0, cFail = 0, cPick = 0, cTransit = 0, cDelivered = 0;
+    masterOrders.forEach(o => {
       if (!o.is_picked_up) {
         cAll++;
         if (o.cohort === "pickup_failed") cFail++;
       } else {
-        cPick++;
-        if (o.is_delivered) cDelivered++;
+        if (o.is_picked_today && !o.is_delivered) cPick++;
+        else if (o.is_delivered) cDelivered++;
         else if (o.is_in_transit) cTransit++;
       }
     });
-
     document.getElementById("cAll").innerText = cAll;
     document.getElementById("cFailed").innerText = cFail;
     document.getElementById("cPicked").innerText = cPick;
@@ -602,53 +263,20 @@
 
   function filterTab(tab) {
     activeTab = tab;
-    document.querySelectorAll(".tab-pill").forEach(function(b) { b.classList.remove("active"); });
-    var map = {
-      "all_orders": "tabAll",
-      "pickup_failed": "tabFailed",
-      "picked_up": "tabPicked",
-      "in_transit": "tabTransit",
-      "delivered": "tabDelivered"
-    };
+    document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
+    const map = { "all_orders":"tabAll", "pickup_failed":"tabFailed", "picked_up":"tabPicked", "in_transit":"tabTransit", "delivered":"tabDelivered" };
     if (map[tab]) document.getElementById(map[tab]).classList.add("active");
     renderTable();
   }
 
-  async function loadSingleTrackingOrder(awb, btnElem) {
-    btnElem.innerText = "...";
-    btnElem.disabled = true;
-
-    try {
-      var res = await fetch(TRACKING_DIRECT_URL + encodeURIComponent(awb)).then(function(r) { return r.json(); });
-      var custOrd = res.customer_order_number || (res.data && res.data.customer_order_number) || (res.shipment && res.shipment.customer_order_number) || "";
-      
-      var order = masterOrders.find(function(o) { return o.awb_number === awb; });
-      if (order) {
-        order.customer_order_number = custOrd || order.order_number || "-";
-        order.cust_order_loaded = true;
-      }
-
-      var parentTd = btnElem.parentElement;
-      parentTd.innerHTML = "";
-      var span = document.createElement("span");
-      span.className = "cust-badge";
-      span.innerText = "#" + (custOrd || "-");
-      parentTd.appendChild(span);
-    } catch(e) {
-      btnElem.innerText = "Load";
-      btnElem.disabled = false;
-      alert("Tracking fetch error: " + e.message);
-    }
-  }
-
   function renderTable() {
-    var tbody = document.getElementById("orderTableBody");
+    const tbody = document.getElementById("orderTableBody");
     tbody.innerHTML = "";
 
-    var list = masterOrders.filter(function(o) {
+    const list = masterOrders.filter(o => {
       if (activeTab === "all_orders") return !o.is_picked_up;
       if (activeTab === "pickup_failed") return !o.is_picked_up && o.cohort === "pickup_failed";
-      if (activeTab === "picked_up") return o.is_picked_up;
+      if (activeTab === "picked_up") return o.is_picked_up && o.is_picked_today && !o.is_delivered;
       if (activeTab === "in_transit") return o.is_picked_up && o.is_in_transit && !o.is_delivered;
       if (activeTab === "delivered") return o.is_picked_up && o.is_delivered;
       return false;
@@ -659,124 +287,28 @@
       return;
     }
 
-    list.forEach(function(o) {
-      var tr = document.createElement("tr");
-      
-      var tdCust = document.createElement("td");
-      if (o.cust_order_loaded && o.customer_order_number) {
-        var spanCust = document.createElement("span");
-        spanCust.className = "cust-badge";
-        spanCust.innerText = "#" + o.customer_order_number;
-        tdCust.appendChild(spanCust);
-      } else {
-        var btnLoad = document.createElement("button");
-        btnLoad.className = "btn-fetch-tracking";
-        btnLoad.innerText = "Load";
-        btnLoad.title = "Click to fetch live Tracking Customer Order #";
-        btnLoad.onclick = (function(targetAwb, targetBtn) {
-          return function() { loadSingleTrackingOrder(targetAwb, targetBtn); };
-        })(o.awb_number, btnLoad);
-        tdCust.appendChild(btnLoad);
-      }
+    list.forEach(o => {
+      const tr = document.createElement("tr");
+      const gstInfo = (o.igst_amount > 0) ? `IGST: ₹${o.igst_amount}` : `CGST: ₹${o.cgst_amount} | SGST: ₹${o.sgst_amount}`;
+      const whPill = (o.warehouse_tag === "GS") ? '<span class="wh-pill wh-gs">GS (128)</span>' : '<span class="wh-pill wh-uc">UC (127)</span>';
 
-      var tdOrder = document.createElement("td");
-      var boldOrder = document.createElement("b");
-      boldOrder.innerText = "#" + o.order_number;
-      tdOrder.appendChild(boldOrder);
-      tdOrder.appendChild(document.createElement("br"));
-
-      var whTag = document.createElement("span");
-      whTag.className = "wh-pill wh-other";
-      whTag.innerText = o.warehouse_tag;
-      if (o.warehouse_tag === "GS") {
-        whTag.className = "wh-pill wh-gs";
-        whTag.innerText = "GS (128)";
-      } else if (o.warehouse_tag === "UC") {
-        whTag.className = "wh-pill wh-uc";
-        whTag.innerText = "UC (127)";
-      }
-      tdOrder.appendChild(whTag);
-
-      var tdAwb = document.createElement("td");
-      var codeAwb = document.createElement("code");
-      codeAwb.style.fontWeight = "700";
-      codeAwb.innerText = o.awb_number;
-      tdAwb.appendChild(codeAwb);
-      tdAwb.appendChild(document.createElement("br"));
-      var spanCourier = document.createElement("span");
-      spanCourier.style.fontSize = "11px";
-      spanCourier.style.color = "var(--muted)";
-      spanCourier.innerText = o.courier_name;
-      tdAwb.appendChild(spanCourier);
-
-      var tdProd = document.createElement("td");
-      if (o.products && o.products.length > 0) {
-        o.products.forEach(function(p) {
-          var pBox = document.createElement("div");
-          pBox.className = "sku-bubble";
-          pBox.innerHTML = "<b>" + (p.sku || p.name) + "</b> (x" + p.quantity + " | ₹" + p.unit_price + ")";
-          tdProd.appendChild(pBox);
-        });
-      } else {
-        tdProd.innerText = "-";
-      }
-
-      var tdPay = document.createElement("td");
-      var gstInfo = (o.igst_amount > 0) ? ("IGST: ₹" + o.igst_amount) : ("CGST: ₹" + o.cgst_amount + " | SGST: ₹" + o.sgst_amount);
-      tdPay.innerHTML = "<b>₹" + o.total_amount + "</b> (" + o.payment_mode + ")<div style='font-size:10.5px; color:var(--muted); margin-top:2px;'>" + gstInfo + "</div>";
-
-      var tdUser = document.createElement("td");
-      tdUser.innerHTML = "<b>" + o.shipping_name + "</b><br><span style='font-size:11px; color:var(--muted);'>" + o.shipping_city + ", " + o.shipping_state + " (" + o.shipping_pincode + ")</span>";
-
-      var tdAct = document.createElement("td");
+      let actHtml = "";
       if (!o.is_picked_up) {
-        var btnPick = document.createElement("button");
-        btnPick.className = "btn-act btn-act-pick";
-        btnPick.innerText = "Picked Up";
-        btnPick.onclick = (function(targetAwb) {
-          return function() { promptPickup(targetAwb, false); };
-        })(o.awb_number);
-        tdAct.appendChild(btnPick);
+        actHtml = `<button class="btn-act btn-act-pick" onclick="promptPickup('${o.awb_number}')">Picked Up</button>`;
       } else {
-        var wrap = document.createElement("div");
-        wrap.style.display = "flex";
-        wrap.style.alignItems = "center";
-        wrap.style.gap = "8px";
-
-        var badge = document.createElement("span");
-        badge.className = "badge-status";
-        if (o.is_delivered) {
-          badge.className += " st-delivered";
-          badge.innerText = "Delivered";
-        } else if (o.is_in_transit) {
-          badge.className += " st-transit";
-          badge.innerText = "In-Transit";
-        } else {
-          badge.className += " st-picked";
-          badge.innerText = "Picked Up";
-        }
-
-        var btnUndo = document.createElement("button");
-        btnUndo.className = "btn-act btn-act-undo";
-        btnUndo.innerText = "↺";
-        btnUndo.title = "Undo from Supabase";
-        btnUndo.onclick = (function(targetAwb) {
-          return function() { promptUndo(targetAwb); };
-        })(o.awb_number);
-
-        wrap.appendChild(badge);
-        wrap.appendChild(btnUndo);
-        tdAct.appendChild(wrap);
+        const badge = o.is_delivered ? '<span class="badge-status st-delivered">Delivered</span>' : (o.is_in_transit ? '<span class="badge-status st-transit">In-Transit</span>' : '<span class="badge-status st-picked">Picked Today</span>');
+        actHtml = `<div style="display:flex; gap:6px; align-items:center;">${badge}<button class="btn-act btn-act-undo" onclick="promptUndo('${o.awb_number}')">↺</button></div>`;
       }
 
-      tr.appendChild(tdCust);
-      tr.appendChild(tdOrder);
-      tr.appendChild(tdAwb);
-      tr.appendChild(tdProd);
-      tr.appendChild(tdPay);
-      tr.appendChild(tdUser);
-      tr.appendChild(tdAct);
-
+      tr.innerHTML = `
+        <td><b>#${o.customer_order_number || o.order_number}</b></td>
+        <td><b>#${o.order_number}</b><br>${whPill}</td>
+        <td><code>${o.awb_number}</code><br><span style="font-size:11px; color:#64748b;">${o.courier_name}</span></td>
+        <td>${(o.products || []).map(p => `<div class="sku-bubble"><b>${p.sku || p.name}</b> (x${p.quantity})</div>`).join('') || '-'}</td>
+        <td><b>₹${o.total_amount}</b> (${o.payment_mode})<div style="font-size:10.5px; color:#64748b;">${gstInfo}</div></td>
+        <td><b>${o.shipping_name}</b><br><span style="font-size:11px; color:#64748b;">${o.shipping_city}, ${o.shipping_state}</span></td>
+        <td>${actHtml}</td>
+      `;
       tbody.appendChild(tr);
     });
   }
@@ -785,31 +317,15 @@
     document.getElementById("modalCamera").style.display = "flex";
     isCameraActive = true;
     isScanPaused = false;
-    
     html5QrCodeScanner = new Html5Qrcode("cameraReader");
-    var config = { fps: 15, qrbox: { width: 280, height: 160 } };
-
-    html5QrCodeScanner.start(
-      { facingMode: "environment" },
-      config,
-      onScanSuccess,
-      function(error) { }
-    ).catch(function(err) {
-      alert("Camera Permission Error: " + err);
-      closeCameraScanner();
-    });
+    html5QrCodeScanner.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 280, height: 160 } }, onScanSuccess, function(){});
   }
 
   function closeCameraScanner() {
     isCameraActive = false;
     isScanPaused = false;
     if (html5QrCodeScanner) {
-      html5QrCodeScanner.stop().then(function() {
-        html5QrCodeScanner.clear();
-        document.getElementById("modalCamera").style.display = "none";
-      }).catch(function() {
-        document.getElementById("modalCamera").style.display = "none";
-      });
+      html5QrCodeScanner.stop().then(() => { html5QrCodeScanner.clear(); document.getElementById("modalCamera").style.display = "none"; }).catch(() => { document.getElementById("modalCamera").style.display = "none"; });
     } else {
       document.getElementById("modalCamera").style.display = "none";
     }
@@ -817,156 +333,98 @@
 
   function onScanSuccess(decodedText) {
     if (isScanPaused) return;
+    const awb = String(decodedText || "").trim();
+    if (!awb) return;
 
-    var scannedAwb = String(decodedText || "").trim();
-    if (!scannedAwb) return;
-
-    var matched = masterOrders.find(function(o) {
-      return (o.awb_number === scannedAwb || o.order_number === scannedAwb) && !o.is_picked_up;
-    });
-
+    // Check duplicate or unmanifested
+    const matched = masterOrders.find(o => o.awb_number === awb || o.order_number === awb);
     if (matched) {
-      isScanPaused = true;
-      promptPickup(matched.awb_number, true);
+      if (matched.is_picked_up) {
+        // DUPLICATE DETECTED: FREEZE SCANNER AND OPEN MODAL
+        isScanPaused = true;
+        playErrorSound();
+        document.getElementById("dupModalMsg").innerText = `AWB ${awb} has already been logged as Picked Up!`;
+        document.getElementById("modalDuplicate").style.display = "flex";
+      } else {
+        isScanPaused = true;
+        promptPickup(matched.awb_number, true);
+      }
     } else {
+      isScanPaused = true;
       playErrorSound();
-      showToast("AWB Not Found or Already Picked: " + scannedAwb);
+      document.getElementById("dupModalMsg").innerText = `AWB ${awb} not found in active order queue!`;
+      document.getElementById("modalDuplicate").style.display = "flex";
     }
   }
 
-  function onModalBgClick(e, modalId) {
-    if (e.target.id === modalId) {
-      if (modalId === "modalCamera") closeCameraScanner();
-      else document.getElementById(modalId).style.display = "none";
-    }
+  function closeDuplicateModal() {
+    document.getElementById("modalDuplicate").style.display = "none";
+    setTimeout(() => { isScanPaused = false; }, 800);
   }
 
   function promptPickup(awb, fromCamera) {
-    var order = masterOrders.find(function(o) { return o.awb_number === awb; });
+    const order = masterOrders.find(o => o.awb_number === awb);
     if (!order) return;
     currentCandidate = order;
     currentCandidate.fromCamera = Boolean(fromCamera);
-    
-    var dispNum = order.cust_order_loaded ? order.customer_order_number : order.order_number;
-    document.getElementById("pCustOrder").innerText = "#" + dispNum;
-    document.getElementById("pStore").innerText = order.store_name || "GULABISHEHAR";
+    document.getElementById("pCustOrder").innerText = "#" + (order.customer_order_number || order.order_number);
+    document.getElementById("pStore").innerText = order.store_name;
     document.getElementById("pWh").innerText = order.warehouse_tag;
-    document.getElementById("pAwb").innerText = order.awb_number;
     document.getElementById("modalPick").style.display = "flex";
   }
 
   async function commitPickup(yes) {
     document.getElementById("modalPick").style.display = "none";
-    
     if (yes && currentCandidate) {
-      var ord = currentCandidate;
-      showToast("Saving #" + (ord.customer_order_number || ord.order_number) + " to Supabase...");
-
-      ord.is_picked_up = true;
-      updateCounters();
-      renderTable();
-
+      const ord = currentCandidate;
+      showToast("Logging #" + (ord.customer_order_number || ord.order_number) + " to Supabase...");
       try {
-        var response = await fetch(API_ENDPOINT, {
+        const res = await fetch(API_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "savePickedUp", payload: ord })
-        });
-        var res = await response.json();
+        }).then(r => r.json());
 
         if (res.success) {
           playSuccessSound();
-
-          var amt = ord.total_amount || 0;
-          sheetKpis.today.count++;
-          sheetKpis.today.amount += amt;
-          sheetKpis.total.count++;
-          sheetKpis.total.amount += amt;
-
-          if (res.warehouse_tag === "GS" || ord.warehouse_tag === "GS") {
-            sheetKpis.today.gs++;
-            sheetKpis.total.gs++;
-          } else if (res.warehouse_tag === "UC" || ord.warehouse_tag === "UC") {
-            sheetKpis.today.uc++;
-            sheetKpis.total.uc++;
-          }
-          updateKpiDisplay();
-
-          if (res.payment_reconciled) showToast("Auto-Paid via " + res.gateway + ": ₹" + res.payment_amount);
-          else showToast("Order #" + (ord.customer_order_number || ord.order_number) + " Saved in Supabase");
+          showToast("Saved Picked Up!");
+          loadOrderData();
         } else {
           playErrorSound();
-          ord.is_picked_up = false;
-          updateCounters();
-          renderTable();
-          alert(res.duplicate ? ("DUPLICATE DETECTED!\n" + res.error) : ("Save Error: " + res.error));
+          alert(res.duplicate ? "DUPLICATE AWB DETECTED!" : ("Error: " + res.error));
         }
       } catch(e) {
         playErrorSound();
-        ord.is_picked_up = false;
-        updateCounters();
-        renderTable();
-        alert("Network Error: " + e.message);
+        alert("Error: " + e.message);
       }
     }
-
     if (currentCandidate && currentCandidate.fromCamera && isCameraActive) {
-      setTimeout(function() { isScanPaused = false; }, 800);
+      setTimeout(() => { isScanPaused = false; }, 800);
     }
     currentCandidate = null;
   }
 
-  function promptUndo(awb) {
-    var order = masterOrders.find(function(o) { return o.awb_number === awb; });
-    if (!order) return;
-    currentCandidate = order;
-    document.getElementById("uCustOrder").innerText = "#" + (order.customer_order_number || order.order_number);
-    document.getElementById("uAwb").innerText = order.awb_number;
-    document.getElementById("modalUndo").style.display = "flex";
-  }
-
-  async function commitUndo(yes) {
-    document.getElementById("modalUndo").style.display = "none";
-    if (yes && currentCandidate) {
-      var ord = currentCandidate;
-      showToast("Reverting #" + (ord.customer_order_number || ord.order_number) + " from Supabase...");
-
-      ord.is_picked_up = false;
-      updateCounters();
-      renderTable();
-
-      try {
-        var response = await fetch(API_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "undoPickedUp", payload: { awb: ord.awb_number } })
-        });
-        var res = await response.json();
-
-        if (res.success) {
-          showToast("Reverted successfully from Supabase!");
-        } else {
-          ord.is_picked_up = true;
-          updateCounters();
-          renderTable();
-          alert("Undo Error: " + res.error);
-        }
-      } catch(e) {
-        ord.is_picked_up = true;
-        updateCounters();
-        renderTable();
-        alert("Network Error: " + e.message);
+  async function promptUndo(awb) {
+    if (!confirm("Undo this order from Supabase?")) return;
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "undoPickedUp", payload: { awb: awb } })
+      }).then(r => r.json());
+      if (res.success) {
+        showToast("Reverted successfully!");
+        loadOrderData();
       }
-    }
-    currentCandidate = null;
+    } catch(e) { alert("Error: " + e.message); }
   }
 
   function showToast(msg) {
-    var el = document.createElement("div");
+    const el = document.createElement("div");
     el.className = "toast-pill";
     el.innerText = msg;
     document.body.appendChild(el);
-    setTimeout(function() { el.remove(); }, 2500);
+    setTimeout(() => el.remove(), 2500);
   }
 
   window.onload = loadOrderData;
