@@ -14,12 +14,12 @@
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 25px; min-height: 100vh; }
-    .container { max-width: 1300px; margin: 0 auto; }
+    .container { max-width: 1400px; margin: 0 auto; }
     .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 25px; }
     .brand { font-size: 20px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
     .badge-dev { background: #312e81; color: #a5b4fc; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
 
-    .grid-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
+    .grid-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; }
     .card-tool { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
     .tool-title { font-size: 16px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #e2e8f0; }
 
@@ -30,7 +30,7 @@
     }
     .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
     .btn-action { width: 100%; padding: 12px; border-radius: var(--pill-rad); font-size: 13.5px; font-weight: 800; cursor: pointer; border: none; transition: 0.2s; color: #fff; }
-    .btn-indigo { background: #4f46e5; } .btn-green { background: #059669; } .btn-purple { background: #7c3aed; }
+    .btn-indigo { background: #4f46e5; } .btn-green { background: #059669; } .btn-purple { background: #7c3aed; } .btn-amber { background: #d97706; }
     .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
 
     .lookup-preview { background: #0f172a; border: 1.5px solid #334155; border-radius: 12px; padding: 14px; margin-top: 12px; font-size: 12px; display: none; }
@@ -50,10 +50,42 @@
   </div>
 
   <div class="grid-tools">
-    <!-- TOOL 1: MANUAL ORDER CREATION (GS# / UC# SERIAL) -->
+    <!-- TOOL 1: BRAND SKU LIST UPLOADER (GS-SKU / UC-SKU) -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🏷️</span> Bulk SKU Mapping (GS-SKU & UC-SKU)</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste list of SKUs from Excel. Orders with matching SKUs will auto-tag as GS or UC in Channel Name.</p>
+
+      <div class="form-group">
+        <label>Select Target Brand Column:</label>
+        <select id="skuBrandSelect">
+          <option value="GS">GS-SKU (Gulabishehar)</option>
+          <option value="UC">UC-SKU (Uncluttered Closet)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Paste SKUs from Excel (One per line):</label>
+        <textarea id="skuPasteArea" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="LimeGreen-Culotte-Set-Long-Co-Ord-S&#10;Blue-Cotton-Shirt-M"></textarea>
+      </div>
+      <button class="btn-action btn-indigo" onclick="commitSkuUpload()">Upload & Merge SKUs</button>
+    </div>
+
+    <!-- TOOL 2: REPAIR EMPTY COLUMNS IN SUPABASE -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🛠️</span> Repair Missing / Blank Columns</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Enter Single AWB or Paste Multiple AWBs to fetch complete fresh details from Boxd and refill blank columns in Supabase.</p>
+
+      <div class="form-group">
+        <label>Paste AWBs to Repair (One per line):</label>
+        <textarea id="repairAwbs" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
+      </div>
+      <button class="btn-action btn-amber" onclick="commitRepairData()">Refetch & Fill Blank Columns</button>
+    </div>
+
+    <!-- TOOL 3: MANUAL ORDER CREATION (GS# / UC# SERIAL) -->
     <div class="card-tool">
       <div class="tool-title"><span>🛒</span> Create Manual Dispatch (GS# & UC#)</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Fetch full order data from Boxd by Shopify Channel Order ID and assign custom brand serial.</p>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Fetch full order data by Shopify Channel Order ID and assign custom sequential numbering.</p>
       
       <div class="form-group">
         <label>Select Brand Serial:</label>
@@ -64,7 +96,7 @@
       </div>
 
       <div class="form-group">
-        <label>Channel Order ID (from Shopify / Boxd):</label>
+        <label>Channel Order ID (Shopify / Boxd):</label>
         <div style="display:flex; gap:8px;">
           <input type="text" id="manChannelId" placeholder="e.g. 5824982498214" />
           <button class="btn-action btn-indigo" style="width:100px;" onclick="lookupChannelOrder()">Fetch</button>
@@ -94,35 +126,10 @@
       </div>
     </div>
 
-    <!-- TOOL 2: SINGLE EMERGENCY AWB ENTRY (FULL DATA) -->
+    <!-- TOOL 4: EMERGENCY ENTRY (SINGLE & BULK) -->
     <div class="card-tool">
-      <div class="tool-title"><span>🚨</span> Emergency Single AWB Entry</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Directly log past or untracked parcels with full address and GST into Supabase.</p>
-
-      <div class="form-group">
-        <label>Target Dispatch Date:</label>
-        <input type="date" id="emDate" />
-      </div>
-      <div class="form-group">
-        <label>AWB Number:</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="emAwb" placeholder="Enter AWB Number..." />
-          <button class="btn-action btn-indigo" style="width:100px;" onclick="lookupEmAwb()">Lookup</button>
-        </div>
-      </div>
-
-      <div id="emPreview" class="lookup-preview">
-        <div style="font-weight:800; color:#38bdf8;" id="emCust">-</div>
-        <div style="color:var(--muted); margin-top:2px;" id="emDetails">-</div>
-        <div style="color:#34d399; font-weight:800; margin-top:4px;" id="emAmt">-</div>
-        <button class="btn-action btn-green" style="margin-top:12px;" onclick="commitSingleEmergency()">Save to Supabase</button>
-      </div>
-    </div>
-
-    <!-- TOOL 3: BULK EMERGENCY ENTRY -->
-    <div class="card-tool">
-      <div class="tool-title"><span>📑</span> Bulk Emergency Dispatch Entry</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste multiple AWBs (one per line). Backend will pull full details and log them under custom date.</p>
+      <div class="tool-title"><span>🚨</span> Bulk Emergency Dispatch Entry</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste AWBs and assign a custom past date. All columns will be automatically fetched.</p>
 
       <div class="form-group">
         <label>Target Dispatch Date:</label>
@@ -130,12 +137,12 @@
       </div>
       <div class="form-group">
         <label>Paste AWBs (One per line):</label>
-        <textarea id="bulkEmAwbs" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
+        <textarea id="bulkEmAwbs" style="height:100px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
       </div>
-      <button class="btn-action btn-purple" onclick="commitBulkEmergency()">Process & Log All</button>
+      <button class="btn-action btn-purple" onclick="commitBulkEmergency()">Process & Log to Supabase</button>
     </div>
 
-    <!-- TOOL 4: MASTER PASSWORD MANAGER -->
+    <!-- TOOL 5: MASTER PASSWORD MANAGER -->
     <div class="card-tool">
       <div class="tool-title"><span>🔑</span> Security & Password Manager</div>
       <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Update the global ERP master authorization access password.</p>
@@ -155,11 +162,53 @@
 
 <script>
   const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxPgOIVLl5ORE9pNjw-4PoKiNJ3MEkZ1ZhpZc4EDhp_3zyGDnGEKkwDFIxEBk8ACYop/exec";
-  document.getElementById("emDate").value = new Date().toISOString().slice(0, 10);
   document.getElementById("bulkEmDate").value = new Date().toISOString().slice(0, 10);
-
   let activeFetchedOrder = null;
-  let activeEmCandidate = null;
+
+  async function commitSkuUpload() {
+    const brand = document.getElementById("skuBrandSelect").value;
+    const text = document.getElementById("skuPasteArea").value;
+    const skus = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (skus.length === 0) return alert("Paste at least one SKU.");
+
+    showToast("Uploading SKUs to Supabase...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "uploadSkus", payload: { brand: brand, skus: skus } })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert(`Success! ${res.count} SKUs mapped to ${brand}.`);
+        document.getElementById("skuPasteArea").value = "";
+      } else {
+        alert("Upload Error: " + res.error);
+      }
+    } catch(e) { alert("Network Error: " + e.message); }
+  }
+
+  async function commitRepairData() {
+    const text = document.getElementById("repairAwbs").value;
+    const awbs = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (awbs.length === 0) return alert("Enter at least one AWB.");
+
+    showToast("Refetching fresh order data and updating blank columns...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "repairMissingColumns", payload: { awbs: awbs } })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert(`Repair Completed!\nUpdated Rows: ${res.updated}\nFailed / Not Found: ${res.failed}`);
+        document.getElementById("repairAwbs").value = "";
+      } else {
+        alert("Repair Error: " + res.error);
+      }
+    } catch(e) { alert("Network Error: " + e.message); }
+  }
 
   async function lookupChannelOrder() {
     const cid = document.getElementById("manChannelId").value.trim();
@@ -176,9 +225,7 @@
       document.getElementById("manItems").innerText = "Products: " + (items || "Item Summary");
       document.getElementById("manTotalAmt").innerText = "Total: ₹" + (activeFetchedOrder.total_amount || 0) + " (" + (activeFetchedOrder.payment_mode || "PREPAID") + ")";
       document.getElementById("manOrderPreview").style.display = "block";
-    } catch(e) {
-      alert("Error: " + e.message);
-    }
+    } catch(e) { alert("Error: " + e.message); }
   }
 
   async function commitManualOrder() {
@@ -208,54 +255,7 @@
       } else {
         alert("Creation Error: " + res.error);
       }
-    } catch(e) {
-      alert("Network Error: " + e.message);
-    }
-  }
-
-  async function lookupEmAwb() {
-    const awb = document.getElementById("emAwb").value.trim();
-    if (!awb) return alert("Enter AWB.");
-    showToast("Pulling full order tracking from Boxd...");
-
-    try {
-      const res = await fetch(API_ENDPOINT + "?action=lookupAwb&awb=" + encodeURIComponent(awb)).then(r => r.json());
-      if (!res.success || !res.data) return alert(res.error || "AWB Not Found");
-
-      activeEmCandidate = res.data;
-      document.getElementById("emCust").innerText = (activeEmCandidate.shipping_name || activeEmCandidate.customer_name || "Customer") + " (" + (activeEmCandidate.city || "") + ")";
-      document.getElementById("emDetails").innerText = "Order: #" + (activeEmCandidate.customer_order_number || activeEmCandidate.order_number) + " | Courier: " + (activeEmCandidate.courier_name || "-");
-      document.getElementById("emAmt").innerText = "Amount: ₹" + (activeEmCandidate.total_amount || 0);
-      document.getElementById("emPreview").style.display = "block";
-    } catch(e) {
-      alert("Error: " + e.message);
-    }
-  }
-
-  async function commitSingleEmergency() {
-    if (!activeEmCandidate) return;
-    const date = document.getElementById("emDate").value;
-
-    const payload = Object.assign({}, activeEmCandidate, { custom_log_date: date });
-    showToast("Saving entry under date " + date + "...");
-
-    try {
-      const res = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "savePickedUp", payload: payload })
-      }).then(r => r.json());
-
-      if (res.success) {
-        alert("Emergency order logged successfully into Supabase!");
-        document.getElementById("emPreview").style.display = "none";
-        document.getElementById("emAwb").value = "";
-      } else {
-        alert(res.duplicate ? "Duplicate detected!" : ("Error: " + res.error));
-      }
-    } catch(e) {
-      alert("Network Error: " + e.message);
-    }
+    } catch(e) { alert("Network Error: " + e.message); }
   }
 
   async function commitBulkEmergency() {
@@ -272,14 +272,12 @@
       }).then(r => r.json());
 
       if (res.success) {
-        alert(`Bulk Entry Completed!\nProcessed: ${res.processed} | Failed/NotFound: ${res.failed}`);
+        alert(`Bulk Entry Completed!\nProcessed: ${res.processed} | Failed: ${res.failed}`);
         document.getElementById("bulkEmAwbs").value = "";
       } else {
         alert("Bulk Error: " + res.error);
       }
-    } catch(e) {
-      alert("Network Error: " + e.message);
-    }
+    } catch(e) { alert("Network Error: " + e.message); }
   }
 
   async function commitPasswordChange() {
@@ -302,9 +300,7 @@
       } else {
         alert("Password Error: " + res.error);
       }
-    } catch(e) {
-      alert("Network Error: " + e.message);
-    }
+    } catch(e) { alert("Network Error: " + e.message); }
   }
 
   function showToast(msg) {
