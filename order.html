@@ -12,8 +12,9 @@
   <style>
     :root {
       --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.94); --card-border: #e8ecf4;
-      --text: #1e293b; --muted: #64748b; --jelly-blue: #3b82f6; --jelly-green: #10b981;
-      --jelly-amber: #f59e0b; --jelly-red: #ef4444; --radius-jelly: 20px; --radius-pill: 30px;
+      --text: #1e293b; --muted: #64748b; --jelly-blue: #3b82f6; --jelly-blue-tint: #eff6ff;
+      --jelly-green: #10b981; --jelly-amber: #f59e0b; --jelly-red: #ef4444;
+      --radius-jelly: 20px; --radius-pill: 30px;
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
@@ -46,6 +47,9 @@
     th { background: #f8fafc; color: #475569; padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); }
     td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; color: var(--text); vertical-align: top; }
     tr:hover td { background: #fafcff; }
+
+    .btn-fetch-tracking { background: #eff6ff; border: 1.5px solid #bfdbfe; color: #2563eb; padding: 4px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 800; cursor: pointer; }
+    .cust-badge { background: var(--jelly-blue-tint); color: var(--jelly-blue); border: 1.5px solid #bfdbfe; font-size: 13px; font-weight: 800; padding: 3px 9px; border-radius: 8px; display: inline-block; }
 
     .wh-pill { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 8px; display: inline-block; margin-top: 2px; }
     .wh-gs { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
@@ -114,13 +118,13 @@
     <table>
       <thead>
         <tr>
-          <th>Cust Order #</th>
+          <th style="min-width:140px;">Cust Order # (Tracking)</th>
           <th>Order # & Warehouse</th>
           <th>AWB & Courier</th>
           <th>Products</th>
-          <th>Payment & GST</th>
+          <th>Payment & 5% GST</th>
           <th>Customer & Destination</th>
-          <th>Status / Action</th>
+          <th>Live Status / Action</th>
         </tr>
       </thead>
       <tbody id="orderTableBody">
@@ -146,7 +150,7 @@
 <div id="modalCamera" class="modal-overlay">
   <div class="modal-sheet" style="max-width:500px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">Barcode / AWB Camera Scanner</h3>
+      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">Continuous Barcode / AWB Scanner</h3>
       <button onclick="closeCameraScanner()" style="background:none; border:none; font-size:22px; cursor:pointer;">✕</button>
     </div>
     <div id="cameraReader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
@@ -207,6 +211,37 @@
       osc.connect(gain); gain.connect(ctx.destination);
       osc.start(); osc.stop(ctx.currentTime + 0.3);
     } catch(e) {}
+  }
+
+  // Robust Tracking load through backend proxy (fixes CORS & missing number)
+  async function loadSingleTrackingOrder(awb, btnElem) {
+    btnElem.innerText = "...";
+    btnElem.disabled = true;
+
+    try {
+      const res = await fetch(API_ENDPOINT + "?action=lookupAwb&awb=" + encodeURIComponent(awb)).then(r => r.json());
+      let custOrd = "";
+      if (res.success && res.data) {
+        custOrd = res.customer_order_number || res.data.customer_order_number || res.data.order_number || "";
+      }
+
+      const order = masterOrders.find(o => o.awb_number === awb);
+      if (order) {
+        order.customer_order_number = custOrd || order.order_number || "-";
+        order.cust_order_loaded = true;
+      }
+
+      const parentTd = btnElem.parentElement;
+      parentTd.innerHTML = "";
+      const span = document.createElement("span");
+      span.className = "cust-badge";
+      span.innerText = "#" + (custOrd || order.order_number || "-");
+      parentTd.appendChild(span);
+    } catch(e) {
+      btnElem.innerText = "Load";
+      btnElem.disabled = false;
+      alert("Tracking fetch error: " + e.message);
+    }
   }
 
   async function loadOrderData() {
@@ -292,6 +327,13 @@
       const gstInfo = (o.igst_amount > 0) ? `IGST: ₹${o.igst_amount}` : `CGST: ₹${o.cgst_amount} | SGST: ₹${o.sgst_amount}`;
       const whPill = (o.warehouse_tag === "GS") ? '<span class="wh-pill wh-gs">GS (128)</span>' : '<span class="wh-pill wh-uc">UC (127)</span>';
 
+      let tdCustHtml = "";
+      if (o.cust_order_loaded || (o.customer_order_number && o.customer_order_number !== "-")) {
+        tdCustHtml = `<span class="cust-badge">#${o.customer_order_number}</span>`;
+      } else {
+        tdCustHtml = `<button class="btn-fetch-tracking" onclick="loadSingleTrackingOrder('${o.awb_number}', this)">Load</button>`;
+      }
+
       let actHtml = "";
       if (!o.is_picked_up) {
         actHtml = `<button class="btn-act btn-act-pick" onclick="promptPickup('${o.awb_number}')">Picked Up</button>`;
@@ -301,7 +343,7 @@
       }
 
       tr.innerHTML = `
-        <td><b>#${o.customer_order_number || o.order_number}</b></td>
+        <td>${tdCustHtml}</td>
         <td><b>#${o.order_number}</b><br>${whPill}</td>
         <td><code>${o.awb_number}</code><br><span style="font-size:11px; color:#64748b;">${o.courier_name}</span></td>
         <td>${(o.products || []).map(p => `<div class="sku-bubble"><b>${p.sku || p.name}</b> (x${p.quantity})</div>`).join('') || '-'}</td>
@@ -336,11 +378,9 @@
     const awb = String(decodedText || "").trim();
     if (!awb) return;
 
-    // Check duplicate or unmanifested
     const matched = masterOrders.find(o => o.awb_number === awb || o.order_number === awb);
     if (matched) {
       if (matched.is_picked_up) {
-        // DUPLICATE DETECTED: FREEZE SCANNER AND OPEN MODAL
         isScanPaused = true;
         playErrorSound();
         document.getElementById("dupModalMsg").innerText = `AWB ${awb} has already been logged as Picked Up!`;
