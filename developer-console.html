@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer ERP Engine & Core Dispatcher</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="auth.js"></script>
+  <style>
+    :root {
+      --bg: #0b0f19; --card-bg: rgba(22, 27, 46, 0.9); --card-border: #2d3748;
+      --text: #f8fafc; --muted: #94a3b8; --accent: #6366f1; --accent-glow: rgba(99, 102, 241, 0.2);
+      --green: #10b981; --red: #ef4444; --pill-rad: 30px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 25px; min-height: 100vh; }
+    .container { max-width: 1300px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 25px; }
+    .brand { font-size: 20px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .badge-dev { background: #312e81; color: #a5b4fc; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+
+    .grid-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px; }
+    .card-tool { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+    .tool-title { font-size: 16px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #e2e8f0; }
+
+    .form-group { margin-bottom: 14px; text-align: left; }
+    .form-group label { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 11px 14px; background: #0f172a; border: 1.5px solid var(--card-border); border-radius: 12px; color: #fff; font-size: 13px; outline: none; transition: 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+    .btn-action { width: 100%; padding: 12px; border-radius: var(--pill-rad); font-size: 13.5px; font-weight: 800; cursor: pointer; border: none; transition: 0.2s; color: #fff; }
+    .btn-indigo { background: #4f46e5; } .btn-green { background: #059669; } .btn-purple { background: #7c3aed; }
+    .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .lookup-preview { background: #0f172a; border: 1.5px solid #334155; border-radius: 12px; padding: 14px; margin-top: 12px; font-size: 12px; display: none; }
+    .toast-pill { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #1e1b4b; border: 1px solid #4f46e5; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="brand">
+      <span>⚙️</span> Developer Core Dispatch Engine
+      <span class="badge-dev">STATION-ROOT</span>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <a href="order.html" style="color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; padding:8px 14px; background:#1e293b; border-radius:20px;">← Back to App</a>
+    </div>
+  </div>
+
+  <div class="grid-tools">
+    <!-- TOOL 1: MANUAL ORDER CREATION (GS# / UC# SERIAL) -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🛒</span> Create Manual Dispatch (GS# & UC#)</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Fetch full order data from Boxd by Shopify Channel Order ID and assign custom brand serial.</p>
+      
+      <div class="form-group">
+        <label>Select Brand Serial:</label>
+        <select id="manBrand">
+          <option value="GS">GULABISHEHAR (Starts GS#001)</option>
+          <option value="UC">UNCLUTTERED CLOSET (Starts UC#001)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Channel Order ID (from Shopify / Boxd):</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="manChannelId" placeholder="e.g. 5824982498214" />
+          <button class="btn-action btn-indigo" style="width:100px;" onclick="lookupChannelOrder()">Fetch</button>
+        </div>
+      </div>
+
+      <div id="manOrderPreview" class="lookup-preview">
+        <div style="font-weight:800; color:#38bdf8;" id="manCustName">-</div>
+        <div style="color:var(--muted); margin-top:2px;" id="manItems">-</div>
+        <div style="color:#34d399; font-weight:800; margin-top:4px;" id="manTotalAmt">-</div>
+        <hr style="border-color:#334155; margin:10px 0;">
+
+        <div class="form-group">
+          <label>Assign Courier Partner Name:</label>
+          <input type="text" id="manCourier" placeholder="e.g. DTDC, Tirupati, Self Porter" value="DTDC Local" />
+        </div>
+        <div class="form-group">
+          <label>Local Tracking / AWB Number:</label>
+          <input type="text" id="manTrackingAwb" placeholder="Enter AWB or Local Tracking Ref..." />
+        </div>
+        <div class="form-group">
+          <label>Tracking URL:</label>
+          <input type="text" id="manTrackingUrl" placeholder="https://dtdc.in/tracking/..." />
+        </div>
+
+        <button class="btn-action btn-green" onclick="commitManualOrder()">Confirm & Push to All Orders</button>
+      </div>
+    </div>
+
+    <!-- TOOL 2: SINGLE EMERGENCY AWB ENTRY (FULL DATA) -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🚨</span> Emergency Single AWB Entry</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Directly log past or untracked parcels with full address and GST into Supabase.</p>
+
+      <div class="form-group">
+        <label>Target Dispatch Date:</label>
+        <input type="date" id="emDate" />
+      </div>
+      <div class="form-group">
+        <label>AWB Number:</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="emAwb" placeholder="Enter AWB Number..." />
+          <button class="btn-action btn-indigo" style="width:100px;" onclick="lookupEmAwb()">Lookup</button>
+        </div>
+      </div>
+
+      <div id="emPreview" class="lookup-preview">
+        <div style="font-weight:800; color:#38bdf8;" id="emCust">-</div>
+        <div style="color:var(--muted); margin-top:2px;" id="emDetails">-</div>
+        <div style="color:#34d399; font-weight:800; margin-top:4px;" id="emAmt">-</div>
+        <button class="btn-action btn-green" style="margin-top:12px;" onclick="commitSingleEmergency()">Save to Supabase</button>
+      </div>
+    </div>
+
+    <!-- TOOL 3: BULK EMERGENCY ENTRY -->
+    <div class="card-tool">
+      <div class="tool-title"><span>📑</span> Bulk Emergency Dispatch Entry</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste multiple AWBs (one per line). Backend will pull full details and log them under custom date.</p>
+
+      <div class="form-group">
+        <label>Target Dispatch Date:</label>
+        <input type="date" id="bulkEmDate" />
+      </div>
+      <div class="form-group">
+        <label>Paste AWBs (One per line):</label>
+        <textarea id="bulkEmAwbs" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
+      </div>
+      <button class="btn-action btn-purple" onclick="commitBulkEmergency()">Process & Log All</button>
+    </div>
+
+    <!-- TOOL 4: MASTER PASSWORD MANAGER -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🔑</span> Security & Password Manager</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Update the global ERP master authorization access password.</p>
+
+      <div class="form-group">
+        <label>Current Master Password:</label>
+        <input type="password" id="oldPass" placeholder="Enter old password..." />
+      </div>
+      <div class="form-group">
+        <label>New Master Password:</label>
+        <input type="password" id="newPass" placeholder="Enter new strong password..." />
+      </div>
+      <button class="btn-action btn-indigo" onclick="commitPasswordChange()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxPgOIVLl5ORE9pNjw-4PoKiNJ3MEkZ1ZhpZc4EDhp_3zyGDnGEKkwDFIxEBk8ACYop/exec";
+  document.getElementById("emDate").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("bulkEmDate").value = new Date().toISOString().slice(0, 10);
+
+  let activeFetchedOrder = null;
+  let activeEmCandidate = null;
+
+  async function lookupChannelOrder() {
+    const cid = document.getElementById("manChannelId").value.trim();
+    if (!cid) return alert("Enter Channel Order ID.");
+
+    showToast("Searching in Boxd Store Records...");
+    try {
+      const res = await fetch(API_ENDPOINT + "?action=lookupChannelOrder&channel_order_id=" + encodeURIComponent(cid)).then(r => r.json());
+      if (!res.success || !res.order) return alert(res.error || "Order not found");
+
+      activeFetchedOrder = res.order;
+      document.getElementById("manCustName").innerText = (activeFetchedOrder.shipping_name || activeFetchedOrder.customer_name) + " (" + (activeFetchedOrder.shipping_city || "") + ")";
+      const items = (activeFetchedOrder.products || []).map(p => p.name || p.sku).join(", ");
+      document.getElementById("manItems").innerText = "Products: " + (items || "Item Summary");
+      document.getElementById("manTotalAmt").innerText = "Total: ₹" + (activeFetchedOrder.total_amount || 0) + " (" + (activeFetchedOrder.payment_mode || "PREPAID") + ")";
+      document.getElementById("manOrderPreview").style.display = "block";
+    } catch(e) {
+      alert("Error: " + e.message);
+    }
+  }
+
+  async function commitManualOrder() {
+    if (!activeFetchedOrder) return;
+    const trackingAwb = document.getElementById("manTrackingAwb").value.trim();
+    if (!trackingAwb) return alert("Tracking AWB is required for dispatch identification.");
+
+    const payload = Object.assign({}, activeFetchedOrder, {
+      brand: document.getElementById("manBrand").value,
+      courier_name: document.getElementById("manCourier").value,
+      awb_number: trackingAwb,
+      tracking_url: document.getElementById("manTrackingUrl").value
+    });
+
+    showToast("Generating serial & saving to dispatches...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "createManualOrder", payload: payload })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert("Success! Order Created with ID: " + res.order_id);
+        document.getElementById("manOrderPreview").style.display = "none";
+        document.getElementById("manChannelId").value = "";
+      } else {
+        alert("Creation Error: " + res.error);
+      }
+    } catch(e) {
+      alert("Network Error: " + e.message);
+    }
+  }
+
+  async function lookupEmAwb() {
+    const awb = document.getElementById("emAwb").value.trim();
+    if (!awb) return alert("Enter AWB.");
+    showToast("Pulling full order tracking from Boxd...");
+
+    try {
+      const res = await fetch(API_ENDPOINT + "?action=lookupAwb&awb=" + encodeURIComponent(awb)).then(r => r.json());
+      if (!res.success || !res.data) return alert(res.error || "AWB Not Found");
+
+      activeEmCandidate = res.data;
+      document.getElementById("emCust").innerText = (activeEmCandidate.shipping_name || activeEmCandidate.customer_name || "Customer") + " (" + (activeEmCandidate.city || "") + ")";
+      document.getElementById("emDetails").innerText = "Order: #" + (activeEmCandidate.customer_order_number || activeEmCandidate.order_number) + " | Courier: " + (activeEmCandidate.courier_name || "-");
+      document.getElementById("emAmt").innerText = "Amount: ₹" + (activeEmCandidate.total_amount || 0);
+      document.getElementById("emPreview").style.display = "block";
+    } catch(e) {
+      alert("Error: " + e.message);
+    }
+  }
+
+  async function commitSingleEmergency() {
+    if (!activeEmCandidate) return;
+    const date = document.getElementById("emDate").value;
+
+    const payload = Object.assign({}, activeEmCandidate, { custom_log_date: date });
+    showToast("Saving entry under date " + date + "...");
+
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "savePickedUp", payload: payload })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert("Emergency order logged successfully into Supabase!");
+        document.getElementById("emPreview").style.display = "none";
+        document.getElementById("emAwb").value = "";
+      } else {
+        alert(res.duplicate ? "Duplicate detected!" : ("Error: " + res.error));
+      }
+    } catch(e) {
+      alert("Network Error: " + e.message);
+    }
+  }
+
+  async function commitBulkEmergency() {
+    const date = document.getElementById("bulkEmDate").value;
+    const awbs = document.getElementById("bulkEmAwbs").value.split(/\r?\n/).filter(Boolean);
+    if (awbs.length === 0) return alert("Paste at least one AWB.");
+
+    showToast("Processing bulk AWBs with full data...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "bulkEmergencyEntry", payload: { date: date, awbs: awbs } })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert(`Bulk Entry Completed!\nProcessed: ${res.processed} | Failed/NotFound: ${res.failed}`);
+        document.getElementById("bulkEmAwbs").value = "";
+      } else {
+        alert("Bulk Error: " + res.error);
+      }
+    } catch(e) {
+      alert("Network Error: " + e.message);
+    }
+  }
+
+  async function commitPasswordChange() {
+    const oldP = document.getElementById("oldPass").value;
+    const newP = document.getElementById("newPass").value;
+    if (!oldP || !newP) return alert("Enter both current and new password.");
+
+    showToast("Updating password...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "updatePassword", payload: { old_pass: oldP, new_pass: newP } })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert("Master password updated successfully! Please re-login.");
+        sessionStorage.removeItem("erp_auth_active");
+        location.reload();
+      } else {
+        alert("Password Error: " + res.error);
+      }
+    } catch(e) {
+      alert("Network Error: " + e.message);
+    }
+  }
+
+  function showToast(msg) {
+    const el = document.createElement("div");
+    el.className = "toast-pill";
+    el.innerText = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2500);
+  }
+</script>
+</body>
+</html>
