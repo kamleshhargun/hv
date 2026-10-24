@@ -1,5 +1,5 @@
 // auth.js - Master ERP Shield & Session Gate
-const ERP_AUTH_API = "https://script.google.com/macros/s/AKfycbxNwrlJG55QJjIAr18ARSbl0pt_azeboO1434_Fx3Erw6QIdFK_i2EGMjvDNF-cb_4p/exec";
+const ERP_AUTH_API = "https://script.google.com/macros/s/AKfycbzHamCURK5iXdE_X_rdG8YtfWO7WqTN1FS1euppgAgIsNYzbG-U28Ko9UasE-Db1Fkq/exec";
 
 (function checkERPAuthentication() {
   const isAuth = sessionStorage.getItem("erp_auth_active");
