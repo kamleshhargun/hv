@@ -70,19 +70,35 @@
       <button class="btn-action btn-indigo" onclick="commitSkuUpload()">Upload & Merge SKUs</button>
     </div>
 
-    <!-- TOOL 2: REPAIR EMPTY COLUMNS IN SUPABASE -->
+    <!-- TOOL 2: REPAIR EMPTY COLUMNS IN SUPABASE (FULL DATA) -->
     <div class="card-tool">
       <div class="tool-title"><span>🛠️</span> Repair Missing / Blank Columns</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Enter Single AWB or Paste Multiple AWBs to fetch complete fresh details from Boxd and refill blank columns in Supabase.</p>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste AWBs to fetch full order manifest (Address, Email, GST, Products JSON) from Boxd and refill blank columns in Supabase.</p>
 
       <div class="form-group">
         <label>Paste AWBs to Repair (One per line):</label>
         <textarea id="repairAwbs" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
       </div>
-      <button class="btn-action btn-amber" onclick="commitRepairData()">Refetch & Fill Blank Columns</button>
+      <button class="btn-action btn-amber" onclick="commitRepairData()">Refetch 100% Data & Fill Columns</button>
     </div>
 
-    <!-- TOOL 3: MANUAL ORDER CREATION (GS# / UC# SERIAL) -->
+    <!-- TOOL 3: BULK EMERGENCY ENTRY (100% COMPLETE MANIFEST) -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🚨</span> Bulk Emergency Dispatch Entry</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste AWBs and assign a custom past date. All 35+ columns will be fetched from Boxd and logged to Supabase.</p>
+
+      <div class="form-group">
+        <label>Target Dispatch Date:</label>
+        <input type="date" id="bulkEmDate" />
+      </div>
+      <div class="form-group">
+        <label>Paste AWBs (One per line):</label>
+        <textarea id="bulkEmAwbs" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
+      </div>
+      <button class="btn-action btn-purple" onclick="commitBulkEmergency()">Process & Log to Supabase</button>
+    </div>
+
+    <!-- TOOL 4: MANUAL ORDER CREATION (GS# / UC# SERIAL) -->
     <div class="card-tool">
       <div class="tool-title"><span>🛒</span> Create Manual Dispatch (GS# & UC#)</div>
       <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Fetch full order data by Shopify Channel Order ID and assign custom sequential numbering.</p>
@@ -126,22 +142,6 @@
       </div>
     </div>
 
-    <!-- TOOL 4: EMERGENCY ENTRY (SINGLE & BULK) -->
-    <div class="card-tool">
-      <div class="tool-title"><span>🚨</span> Bulk Emergency Dispatch Entry</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste AWBs and assign a custom past date. All columns will be automatically fetched.</p>
-
-      <div class="form-group">
-        <label>Target Dispatch Date:</label>
-        <input type="date" id="bulkEmDate" />
-      </div>
-      <div class="form-group">
-        <label>Paste AWBs (One per line):</label>
-        <textarea id="bulkEmAwbs" style="height:100px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
-      </div>
-      <button class="btn-action btn-purple" onclick="commitBulkEmergency()">Process & Log to Supabase</button>
-    </div>
-
     <!-- TOOL 5: MASTER PASSWORD MANAGER -->
     <div class="card-tool">
       <div class="tool-title"><span>🔑</span> Security & Password Manager</div>
@@ -161,7 +161,7 @@
 </div>
 
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbxNwrlJG55QJjIAr18ARSbl0pt_azeboO1434_Fx3Erw6QIdFK_i2EGMjvDNF-cb_4p/exec";
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzHamCURK5iXdE_X_rdG8YtfWO7WqTN1FS1euppgAgIsNYzbG-U28Ko9UasE-Db1Fkq/exec";
   document.getElementById("bulkEmDate").value = new Date().toISOString().slice(0, 10);
   let activeFetchedOrder = null;
 
@@ -176,7 +176,11 @@
       const res = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "uploadSkus", payload: { brand: brand, skus: skus } })
+        body: JSON.stringify({
+          token: getAuthToken(),
+          action: "uploadSkus",
+          payload: { brand: brand, skus: skus }
+        })
       }).then(r => r.json());
 
       if (res.success) {
@@ -193,12 +197,16 @@
     const awbs = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
     if (awbs.length === 0) return alert("Enter at least one AWB.");
 
-    showToast("Refetching fresh order data and updating blank columns...");
+    showToast("Fetching 100% fresh order data & updating columns...");
     try {
       const res = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "repairMissingColumns", payload: { awbs: awbs } })
+        body: JSON.stringify({
+          token: getAuthToken(),
+          action: "repairMissingColumns",
+          payload: { awbs: awbs }
+        })
       }).then(r => r.json());
 
       if (res.success) {
@@ -210,13 +218,44 @@
     } catch(e) { alert("Network Error: " + e.message); }
   }
 
+  async function commitBulkEmergency() {
+    const date = document.getElementById("bulkEmDate").value;
+    const awbs = document.getElementById("bulkEmAwbs").value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (!date) return alert("Select target dispatch date.");
+    if (awbs.length === 0) return alert("Paste at least one AWB.");
+
+    showToast("Processing complete order manifests from Boxd...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          token: getAuthToken(),
+          action: "bulkEmergencyEntry",
+          payload: { date: date, awbs: awbs }
+        })
+      }).then(r => r.json());
+
+      if (res.success) {
+        let msg = `Bulk Processing Completed!\nSuccessfully Logged: ${res.processed}\nFailed / Not Found: ${res.failed}`;
+        if (res.errors && res.errors.length > 0) {
+          msg += "\n\nErrors:\n" + res.errors.join("\n");
+        }
+        alert(msg);
+        document.getElementById("bulkEmAwbs").value = "";
+      } else {
+        alert("Bulk Error: " + res.error);
+      }
+    } catch(e) { alert("Network Error: " + e.message); }
+  }
+
   async function lookupChannelOrder() {
     const cid = document.getElementById("manChannelId").value.trim();
     if (!cid) return alert("Enter Channel Order ID.");
 
     showToast("Searching in Boxd Store Records...");
     try {
-      const res = await fetch(API_ENDPOINT + "?action=lookupChannelOrder&channel_order_id=" + encodeURIComponent(cid)).then(r => r.json());
+      const res = await fetch(API_ENDPOINT + "?action=lookupChannelOrder&channel_order_id=" + encodeURIComponent(cid) + "&token=" + encodeURIComponent(getAuthToken())).then(r => r.json());
       if (!res.success || !res.order) return alert(res.error || "Order not found");
 
       activeFetchedOrder = res.order;
@@ -245,7 +284,11 @@
       const res = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "createManualOrder", payload: payload })
+        body: JSON.stringify({
+          token: getAuthToken(),
+          action: "createManualOrder",
+          payload: payload
+        })
       }).then(r => r.json());
 
       if (res.success) {
@@ -254,28 +297,6 @@
         document.getElementById("manChannelId").value = "";
       } else {
         alert("Creation Error: " + res.error);
-      }
-    } catch(e) { alert("Network Error: " + e.message); }
-  }
-
-  async function commitBulkEmergency() {
-    const date = document.getElementById("bulkEmDate").value;
-    const awbs = document.getElementById("bulkEmAwbs").value.split(/\r?\n/).filter(Boolean);
-    if (awbs.length === 0) return alert("Paste at least one AWB.");
-
-    showToast("Processing bulk AWBs with full data...");
-    try {
-      const res = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "bulkEmergencyEntry", payload: { date: date, awbs: awbs } })
-      }).then(r => r.json());
-
-      if (res.success) {
-        alert(`Bulk Entry Completed!\nProcessed: ${res.processed} | Failed: ${res.failed}`);
-        document.getElementById("bulkEmAwbs").value = "";
-      } else {
-        alert("Bulk Error: " + res.error);
       }
     } catch(e) { alert("Network Error: " + e.message); }
   }
@@ -290,12 +311,16 @@
       const res = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "updatePassword", payload: { old_pass: oldP, new_pass: newP } })
+        body: JSON.stringify({
+          token: getAuthToken(),
+          action: "updatePassword",
+          payload: { old_pass: oldP, new_pass: newP }
+        })
       }).then(r => r.json());
 
       if (res.success) {
         alert("Master password updated successfully! Please re-login.");
-        sessionStorage.removeItem("erp_auth_active");
+        sessionStorage.removeItem("erp_session_token");
         location.reload();
       } else {
         alert("Password Error: " + res.error);
