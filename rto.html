@@ -121,7 +121,7 @@
 </div>
 
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzHamCURK5iXdE_X_rdG8YtfWO7WqTN1FS1euppgAgIsNYzbG-U28Ko9UasE-Db1Fkq/exec";
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwh3xCXfKQ10s9D3KfICvdh9exuWYcC2bbotWpDz4NrOzcKS5tSnGwRfji0uZdbFLmo/exec"; // <-- Apne naye Code.gs ka Web App URL yahan daalein
   let masterReturns = [];
   let activeTab = "all";
   let currentCandidate = null;
@@ -130,10 +130,13 @@
   let isScanPaused = false;
 
   async function loadReturnsData() {
+    const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
+    if (!token) return;
+
     const tbody = document.getElementById("rtoTableBody");
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">Loading returns from Supabase & Delhivery...</td></tr>';
     try {
-      const res = await fetch(API_ENDPOINT + "?action=fetchReturnsStation&token=" + encodeURIComponent(getAuthToken())).then(r => r.json());
+      const res = await fetch(API_ENDPOINT + "?action=fetchReturnsStation&token=" + encodeURIComponent(token)).then(r => r.json());
       if (!res.success) return alert("Server Error: " + res.error);
 
       masterReturns = res.returns || [];
@@ -255,11 +258,12 @@
       const item = currentCandidate;
       showToast("Marking physical inward in Supabase...");
       try {
+        const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
         const res = await fetch(API_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
-            token: getAuthToken(),
+            token: token,
             action: "markRtoReceived",
             payload: { awb: item.awb_number, type: item.return_type }
           })
