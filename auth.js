@@ -2,7 +2,7 @@
 // auth.js - Master ERP Shield & Session Token Gateway
 // ===================================================================
 
-const ERP_AUTH_API = "https://script.google.com/macros/s/AKfycbwh3xCXfKQ10s9D3KfICvdh9exuWYcC2bbotWpDz4NrOzcKS5tSnGwRfji0uZdbFLmo/exec"; // <-- Apne naye Code.gs ka Web App URL yahan daalein
+const ERP_AUTH_API = "https://script.google.com/macros/s/AKfycbxN5691sn-Xd2JujwABkuoYxO8HoAlGccGobno19eXYOfO598SRKK4UJfgKTepFyxhz/exec"; // <-- Apne naye Code.gs ka Web App URL yahan daalein
 
 // 1. Global Session Token Getter
 window.getAuthToken = function() {
