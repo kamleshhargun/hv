@@ -4,36 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Harsidhi Logistics & Financial Health ERP - Dashboard</title>
-  <link rel="icon" href="data:,">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-  <script src="auth.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+   <script src="auth.js"></script>
   <style>
     :root {
-      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.94); --card-border: #e8ecf4;
+      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4;
       --text: #1e293b; --muted: #64748b; --jelly-blue: #3b82f6; --jelly-green: #10b981;
       --jelly-amber: #f59e0b; --jelly-red: #ef4444; --jelly-purple: #8b5cf6;
       --radius-jelly: 20px; --radius-pill: 30px;
+      --shadow-jelly: 0 10px 25px -5px rgba(100, 116, 139, 0.08);
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
-    .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: 0 10px 25px -5px rgba(100, 116, 139, 0.08); }
+    .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: var(--shadow-jelly); }
     .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; }
-    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
+    .nav-btn:hover { background: #312e81; }
 
-    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 25px; }
     .kpi-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 16px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
     .kpi-val { font-size: 22px; font-weight: 800; color: #0f172a; }
     .kpi-lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 5px; }
-
-    .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 10px; }
-    .hub-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 18px; padding: 22px; text-decoration: none; color: inherit; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-    .hub-card:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0,0,0,0.06); border-color: var(--jelly-blue); }
-    .hub-icon { font-size: 32px; margin-bottom: 12px; }
-    .hub-title { font-size: 17px; font-weight: 800; color: #1e1b4b; margin-bottom: 6px; }
-    .hub-desc { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-bottom: 16px; }
-    .hub-action { font-size: 12.5px; font-weight: 800; color: var(--jelly-blue); display: flex; align-items: center; gap: 6px; }
 
     .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
   </style>
@@ -41,18 +34,16 @@
 <body>
 <div class="app-box">
   <div class="header">
-    <div class="brand"><span>📦</span> HARSIDHI ENTERPRISE ERP - MASTER DASHBOARD</div>
+    <div class="brand"><span>📦</span> HARSIDHI ENTERPRISE ERP - DASHBOARD</div>
     <div class="nav-links">
       <a href="index.html" class="nav-btn" style="background:#3b82f6;">Dashboard</a>
       <a href="order.html" class="nav-btn">Order Recon</a>
       <a href="rto.html" class="nav-btn">Return Recon</a>
       <a href="payment.html" class="nav-btn">Payment Recon</a>
-      <a href="developer-console.html" class="nav-btn" style="background:#4f46e5;">Developer Engine</a>
-      <button class="nav-btn" style="background:#10b981; border:none; cursor:pointer;" onclick="loadDashboardSummary()">↻ Refresh</button>
     </div>
   </div>
 
-  <!-- FINANCIAL & LOGISTICS HEALTH METRICS -->
+  <!-- FINANCIAL HEALTH KPIS FROM SUPABASE -->
   <div class="kpi-row">
     <div class="kpi-card"><div class="kpi-val" id="totalOrders">0</div><div class="kpi-lbl">Total Picked in Supabase</div></div>
     <div class="kpi-card"><div class="kpi-val" id="totalRevenue" style="color:var(--jelly-green);">₹0</div><div class="kpi-lbl">Gross Revenue</div></div>
@@ -63,78 +54,44 @@
     <div class="kpi-card"><div class="kpi-val" id="kpiGst" style="color:var(--jelly-purple);">₹0</div><div class="kpi-lbl">Est. 5% GST Liability</div></div>
   </div>
 
-  <!-- CONTROL STATION MODULES -->
-  <div class="hub-grid">
-    <a href="order.html" class="hub-card">
-      <div>
-        <div class="hub-icon">📦</div>
-        <div class="hub-title">Order Reconciliation Station</div>
-        <div class="hub-desc">Boxd parallel sync, barcode scanner pickup logging, 7-day duplicate check aur same-day dispatch lifecycle management.</div>
-      </div>
-      <div class="hub-action">Open Order Recon →</div>
-    </a>
-
-    <a href="rto.html" class="hub-card">
-      <div>
-        <div class="hub-icon">🔄</div>
-        <div class="hub-title">Return & Reverse Station (RTO / DTO)</div>
-        <div class="hub-desc">Delhivery reverse customer pickups (DTO) + Boxd RTO undelivered queue with barcode camera physical inward verification.</div>
-      </div>
-      <div class="hub-action" style="color:var(--jelly-red);">Open Return Station →</div>
-    </a>
-
-    <a href="payment.html" class="hub-card">
-      <div>
-        <div class="hub-icon">💳</div>
-        <div class="hub-title">Payment Settlement Ledger</div>
-        <div class="hub-desc">COD remittance bulk batching, single AWB barcode scan settlement aur prepaid direct-bank verified ledger.</div>
-      </div>
-      <div class="hub-action" style="color:var(--jelly-green);">Open Payment Ledger →</div>
-    </a>
-
-    <a href="developer-console.html" class="hub-card">
-      <div>
-        <div class="hub-icon">⚙️</div>
-        <div class="hub-title">Developer Core Engine</div>
-        <div class="hub-desc">Shopify URL manual order creation (GS#/UC#), bulk emergency dispatch entries, column repairs, aur SKU brand dictionary mapping.</div>
-      </div>
-      <div class="hub-action" style="color:#6366f1;">Open Developer Engine →</div>
-    </a>
+  <div style="background:#fff; padding:30px; border-radius:16px; border:1.5px solid var(--card-border); text-align:center;">
+    <h3 style="color:#1e1b4b; margin-bottom:10px;">Welcome to Harsidhi Logistics Live Control Station</h3>
+    <p style="color:var(--muted); font-size:14px; margin-bottom:15px;">
+      Live synchronization active with <b>Boxd Parallel Gateway</b>, <b>Supabase Cloud DB</b>, <b>Razorpay API</b>, and <b>GoKwik Order Verify</b>.
+    </p>
+    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Open Order Recon</a>
+      <a href="rto.html" class="nav-btn" style="background:#ef4444;">Review 30-Day RTO</a>
+      <a href="payment.html" class="nav-btn" style="background:#10b981;">Review Payment Ledger</a>
+    </div>
   </div>
 </div>
 
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwh3xCXfKQ10s9D3KfICvdh9exuWYcC2bbotWpDz4NrOzcKS5tSnGwRfji0uZdbFLmo/exec"; // <-- Apne naye Code.gs ka Web App URL yahan daalein
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyEfXteKr6ERdGR1x1IMLguXHpQuYN1ASE6Ebpoo2w2frgyWbKBp_6WKt9u6ELvUPXr/exec";
 
   async function loadDashboardSummary() {
-    const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
-    if (!token) return;
-
-    showToast("Syncing ledger metrics from Supabase...");
     try {
-      const res = await fetch(API_ENDPOINT + "?action=fetchStation&token=" + encodeURIComponent(token)).then(r => r.json());
+      const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
       if (res.success) {
         const saved = res.saved_picked_orders || [];
-        document.getElementById("totalOrders").innerText = saved.length.toLocaleString('en-IN');
+
+        document.getElementById("totalOrders").innerText = saved.length;
 
         let gross = 0, prepaid = 0, cod = 0, bankRec = 0, bankPend = 0;
-        saved.forEach(s => {
-          const amt = parseFloat(s.total_amount || 0);
-          gross += amt;
-          if (String(s.payment_mode || "").toUpperCase() === "PREPAID") {
-            prepaid += amt;
-          } else {
-            cod += amt;
-          }
 
-          if (s.payment_status === "RECEIVED") {
-            bankRec += parseFloat(s.payment_received_amount || amt);
-          } else {
-            bankPend += amt;
-          }
+        saved.forEach(s => {
+          const amt = (s.total_amount || 0);
+          gross += amt;
+
+          if (s.payment_mode === "PREPAID") prepaid += amt;
+          else cod += amt;
+
+          if (s.payment_status === "RECEIVED") bankRec += (s.payment_received_amount || amt);
+          else bankPend += amt;
         });
 
-        // 5% GST computation (total / 1.05 = taxable, total - taxable = GST)
+        // 5% Inclusive GST calculation on Gross Picked
         const taxable = gross / 1.05;
         const totalGst = gross - taxable;
 
@@ -143,21 +100,11 @@
         document.getElementById("kpiCod").innerText = "₹" + Math.round(cod).toLocaleString('en-IN');
         document.getElementById("kpiBankRec").innerText = "₹" + Math.round(bankRec).toLocaleString('en-IN');
         document.getElementById("kpiBankPend").innerText = "₹" + Math.round(bankPend).toLocaleString('en-IN');
-        document.getElementById("kpiGst").innerText = "₹" + Math.round(totalGst).toLocaleString('en-IN');
-      } else {
-        showToast("Error loading metrics: " + res.error);
+        document.getElementById("kpiGst").innerText = "₹" + totalGst.toFixed(2);
       }
     } catch (e) {
-      showToast("Sync failed: " + e.message);
+      console.error("Dashboard error:", e);
     }
-  }
-
-  function showToast(msg) {
-    const el = document.createElement("div");
-    el.className = "toast-pill";
-    el.innerText = msg;
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2500);
   }
 
   window.onload = loadDashboardSummary;
