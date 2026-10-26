@@ -4,12 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Payment Reconciliation - Harsidhi ERP</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <script src="auth.js"></script>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root {
-      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.94); --card-border: #e8ecf4;
+      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4;
       --text: #1e293b; --muted: #64748b; --jelly-green: #10b981; --jelly-red: #ef4444; --jelly-blue: #3b82f6;
       --radius-jelly: 20px; --radius-pill: 30px;
     }
@@ -21,7 +20,6 @@
     .nav-links { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
     .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 700; }
     .btn-bulk { background: #10b981; color: #fff; border: none; padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 800; cursor: pointer; }
-    .btn-camera { background: #8b5cf6; color: #fff; border: none; padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 800; cursor: pointer; }
 
     .table-viewport { overflow-x: auto; background: #ffffff; border-radius: 16px; border: 1.5px solid var(--card-border); margin-top: 15px; }
     table { width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; }
@@ -33,7 +31,7 @@
     .btn-mark-pay { background: #eff6ff; border: 1.5px solid #bfdbfe; color: #2563eb; padding: 6px 14px; border-radius: 20px; font-weight: 800; cursor: pointer; }
 
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--card-border); text-align: center; }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid var(--card-border); }
     .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
     .btn-m-confirm { flex: 1; padding: 11px; background: #10b981; color: #fff; border: none; border-radius: 30px; font-weight: 800; cursor: pointer; }
     .btn-m-cancel { flex: 1; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: 30px; font-weight: 800; cursor: pointer; }
@@ -49,7 +47,6 @@
       <a href="order.html" class="nav-btn">Order Recon</a>
       <a href="rto.html" class="nav-btn">Return Recon</a>
       <a href="payment.html" class="nav-btn" style="background:#3b82f6;">Payment Recon</a>
-      <button class="btn-camera" onclick="openCameraScanner()">📷 Scan AWB to Verify</button>
       <button class="btn-bulk" onclick="document.getElementById('modalPay').style.display='flex'">📥 Bulk Remittance</button>
     </div>
   </div>
@@ -61,7 +58,7 @@
         <tr>
           <th>AWB Number</th>
           <th>Cust Order #</th>
-          <th>Customer Details</th>
+          <th>Customer Name</th>
           <th>Payment Mode & Tag</th>
           <th>Order Amount</th>
           <th>Status</th>
@@ -75,35 +72,9 @@
   </div>
 </div>
 
-<!-- CONTINUOUS CAMERA SCANNER -->
-<div id="modalCamera" class="modal-overlay">
-  <div class="modal-sheet" style="max-width:500px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-      <h3 style="color:#1e1b4b; font-size:16px; font-weight:800;">Scan AWB to Reconcile Payment</h3>
-      <button onclick="closeCameraScanner()" style="background:none; border:none; font-size:22px; cursor:pointer;">✕</button>
-    </div>
-    <div id="cameraReader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
-  </div>
-</div>
-
-<!-- CONFIRM PAYMENT MODAL -->
-<div id="modalConfirmPay" class="modal-overlay">
-  <div class="modal-sheet">
-    <div style="font-size:36px; margin-bottom:6px;">💰</div>
-    <h3 style="color:#0f172a; font-size:17px; font-weight:800;">Confirm Mark Received?</h3>
-    <p style="font-size:13px; color:var(--muted); margin-top:6px;">
-      Mark payment of <b id="payModalAmt" style="color:#10b981;"></b> received for AWB: <code id="payModalAwb"></code>?
-    </p>
-    <div class="modal-actions">
-      <button class="btn-m-confirm" onclick="commitSinglePayment(true)">Yes, Mark Received</button>
-      <button class="btn-m-cancel" onclick="commitSinglePayment(false)">Cancel</button>
-    </div>
-  </div>
-</div>
-
 <!-- BULK REMITTANCE MODAL -->
 <div id="modalPay" class="modal-overlay">
-  <div class="modal-sheet" style="text-align:left;">
+  <div class="modal-sheet">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
       <h3 style="color:var(--jelly-green); font-size:16px; font-weight:800;">💳 Bulk Payment Remittance</h3>
       <button onclick="document.getElementById('modalPay').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
@@ -111,7 +82,7 @@
     <label style="font-size:11px; font-weight:700; color:var(--muted);">Remittance Date:</label>
     <input type="date" id="remitDate" style="width:100%; padding:9px; border:1.5px solid var(--card-border); border-radius:10px; margin-top:3px; margin-bottom:12px; outline:none;" />
     <label style="font-size:11px; font-weight:700; color:var(--muted);">Paste AWB & Amount (Tab/Space separated):</label>
-    <textarea id="bulkPasteText" placeholder="50845018032080	899&#10;50845018032091	1250" style="width:100%; height:130px; padding:10px; border:1.5px solid var(--card-border); border-radius:10px; font-family:'JetBrains Mono',monospace; font-size:12px; margin-top:3px; outline:none;"></textarea>
+    <textarea id="bulkPasteText" placeholder="50845018032080	899&#10;50845018032091	1250" style="width:100%; height:130px; padding:10px; border:1.5px solid var(--card-border); border-radius:10px; font-family:monospace; font-size:12px; margin-top:3px; outline:none;"></textarea>
     <div class="modal-actions">
       <button class="btn-m-confirm" onclick="submitRemittance()">Reconcile All in Supabase</button>
       <button class="btn-m-cancel" onclick="document.getElementById('modalPay').style.display='none'">Cancel</button>
@@ -120,30 +91,22 @@
 </div>
 
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwh3xCXfKQ10s9D3KfICvdh9exuWYcC2bbotWpDz4NrOzcKS5tSnGwRfji0uZdbFLmo/exec"; // <-- Apne naye Code.gs ka Web App URL yahan daalein
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyEfXteKr6ERdGR1x1IMLguXHpQuYN1ASE6Ebpoo2w2frgyWbKBp_6WKt9u6ELvUPXr/exec";
   document.getElementById("remitDate").value = new Date().toISOString().slice(0, 10);
-  let savedOrders = [];
-  let currentCandidate = null;
-  let html5QrCodeScanner = null;
-  let isCameraActive = false;
-  let isScanPaused = false;
 
   async function loadPaymentData() {
     try {
-      const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
-      if (!token) return;
-
-      const res = await fetch(API_ENDPOINT + "?action=fetchStation&token=" + encodeURIComponent(token)).then(r => r.json());
+      const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
       const tbody = document.getElementById("payTableBody");
       tbody.innerHTML = "";
 
-      savedOrders = res.saved_picked_orders || [];
-      if (savedOrders.length === 0) {
+      const savedList = res.saved_picked_orders || [];
+      if (savedList.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--muted);">No payment records found.</td></tr>';
         return;
       }
 
-      savedOrders.forEach(s => {
+      savedList.forEach(s => {
         const isPaid = (s.payment_status === "RECEIVED");
         const statusBadge = isPaid 
           ? `<span class="pay-badge">RECEIVED (₹${s.payment_received_amount})</span>` 
@@ -151,13 +114,13 @@
 
         const actionBtn = isPaid 
           ? `<span style="color:#10b981; font-weight:800; font-size:12px;">✓ Verified</span>` 
-          : `<button class="btn-mark-pay" onclick="promptPaymentModal('${s.awb_number}', ${s.total_amount}, '${s.payment_mode}')">Mark ${s.payment_mode === 'COD' ? 'COD' : 'Bank'} Received</button>`;
+          : `<button class="btn-mark-pay" onclick="markSinglePayment('${s.awb_number}', ${s.total_amount}, '${s.payment_mode}')">Mark ${s.payment_mode === 'COD' ? 'COD' : 'Bank'} Received</button>`;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><code>${s.awb_number}</code></td>
           <td><b>#${s.customer_order_number}</b></td>
-          <td><b>${s.customer_name}</b><br><span style="font-size:11px; color:#64748b;">${s.phone || '-'}</span></td>
+          <td><b>${s.customer_name}</b> (${s.city || '-'})</td>
           <td><b>${s.payment_mode}</b> (${s.warehouse_tag})</td>
           <td>₹${s.total_amount || 0}</td>
           <td>${statusBadge}</td>
@@ -170,83 +133,28 @@
     }
   }
 
-  function promptPaymentModal(awb, amt, mode) {
-    currentCandidate = { awb: awb, amount: amt, mode: mode };
-    document.getElementById("payModalAmt").innerText = "₹" + amt;
-    document.getElementById("payModalAwb").innerText = awb;
-    document.getElementById("modalConfirmPay").style.display = "flex";
-  }
+  async function markSinglePayment(awb, amt, mode) {
+    const gateway = (mode === 'COD') ? 'BOXD_COD' : 'BANK_DIRECT';
+    if (!confirm(`Mark payment of ₹${amt} as RECEIVED for AWB ${awb}?`)) return;
 
-  async function commitSinglePayment(yes) {
-    document.getElementById("modalConfirmPay").style.display = "none";
-    if (yes && currentCandidate) {
-      const c = currentCandidate;
-      const gateway = (c.mode === 'COD') ? 'BOXD_COD' : 'BANK_DIRECT';
-      showToast("Updating payment status...");
+    showToast("Updating Supabase payment status...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "markPaymentReceived",
+          payload: { awb: awb, amount: amt, gateway: gateway }
+        })
+      }).then(r => r.json());
 
-      try {
-        const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
-        const res = await fetch(API_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            token: token,
-            action: "markPaymentReceived",
-            payload: { awb: c.awb, amount: c.amount, gateway: gateway }
-          })
-        }).then(r => r.json());
-
-        if (res.success) {
-          showToast("Payment Marked Received!");
-          loadPaymentData();
-        } else {
-          alert("Error: " + res.error);
-        }
-      } catch(e) { alert("Network Error: " + e.message); }
-    }
-    if (currentCandidate && currentCandidate.fromCamera && isCameraActive) {
-      setTimeout(() => { isScanPaused = false; }, 800);
-    }
-    currentCandidate = null;
-  }
-
-  function openCameraScanner() {
-    document.getElementById("modalCamera").style.display = "flex";
-    isCameraActive = true;
-    isScanPaused = false;
-    html5QrCodeScanner = new Html5Qrcode("cameraReader");
-    html5QrCodeScanner.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 280, height: 160 } }, onScanSuccess, function(){});
-  }
-
-  function closeCameraScanner() {
-    isCameraActive = false;
-    isScanPaused = false;
-    if (html5QrCodeScanner) {
-      html5QrCodeScanner.stop().then(() => { html5QrCodeScanner.clear(); document.getElementById("modalCamera").style.display = "none"; }).catch(() => { document.getElementById("modalCamera").style.display = "none"; });
-    } else {
-      document.getElementById("modalCamera").style.display = "none";
-    }
-  }
-
-  function onScanSuccess(decodedText) {
-    if (isScanPaused) return;
-    const awb = String(decodedText || "").trim();
-    if (!awb) return;
-
-    const matched = savedOrders.find(s => s.awb_number === awb);
-    if (matched) {
-      if (matched.payment_status === "RECEIVED") {
-        showToast("AWB " + awb + " is ALREADY paid!");
+      if (res.success) {
+        showToast("Payment Marked Received!");
+        loadPaymentData();
       } else {
-        isScanPaused = true;
-        currentCandidate = { awb: matched.awb_number, amount: matched.total_amount, mode: matched.payment_mode, fromCamera: true };
-        document.getElementById("payModalAmt").innerText = "₹" + matched.total_amount;
-        document.getElementById("payModalAwb").innerText = matched.awb_number;
-        document.getElementById("modalConfirmPay").style.display = "flex";
+        alert("Error: " + res.error);
       }
-    } else {
-      showToast("AWB Not in Dispatches: " + awb);
-    }
+    } catch(e) { alert("Network Error: " + e.message); }
   }
 
   async function submitRemittance() {
@@ -257,15 +165,10 @@
     document.getElementById("modalPay").style.display = "none";
     showToast("Reconciling remittance in Supabase...");
 
-    const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
     const res = await fetch(API_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        token: token,
-        action: "bulkReconcile",
-        payload: { date: date, text: text }
-      })
+      body: JSON.stringify({ action: "bulkReconcile", payload: { date: date, text: text } })
     }).then(r => r.json());
 
     if (res.success) {
