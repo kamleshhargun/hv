@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Developer ERP Engine & Core Dispatcher - Harsidhi ERP</title>
+  <title>Developer ERP Engine & Core Dispatcher</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script src="auth.js"></script>
   <style>
     :root {
-      --bg: #0b0f19; --card-bg: rgba(22, 27, 46, 0.92); --card-border: #2d3748;
+      --bg: #0b0f19; --card-bg: rgba(22, 27, 46, 0.9); --card-border: #2d3748;
       --text: #f8fafc; --muted: #94a3b8; --accent: #6366f1; --accent-glow: rgba(99, 102, 241, 0.2);
-      --green: #10b981; --red: #ef4444; --amber: #f59e0b; --pill-rad: 30px;
+      --green: #10b981; --red: #ef4444; --pill-rad: 30px;
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 25px; min-height: 100vh; }
-    .container { max-width: 1440px; margin: 0 auto; }
-    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 25px; flex-wrap: wrap; gap: 12px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 25px; }
     .brand { font-size: 20px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
     .badge-dev { background: #312e81; color: #a5b4fc; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
 
-    .grid-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 20px; }
-    .card-tool { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+    .grid-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; }
+    .card-tool { background: var(--card-bg); border: 1.5px solid var(--card-border); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
     .tool-title { font-size: 16px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: #e2e8f0; }
 
     .form-group { margin-bottom: 14px; text-align: left; }
@@ -28,13 +28,12 @@
     .form-group input, .form-group textarea, .form-group select {
       width: 100%; padding: 11px 14px; background: #0f172a; border: 1.5px solid var(--card-border); border-radius: 12px; color: #fff; font-size: 13px; outline: none; transition: 0.2s;
     }
-    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
-    
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
     .btn-action { width: 100%; padding: 12px; border-radius: var(--pill-rad); font-size: 13.5px; font-weight: 800; cursor: pointer; border: none; transition: 0.2s; color: #fff; }
     .btn-indigo { background: #4f46e5; } .btn-green { background: #059669; } .btn-purple { background: #7c3aed; } .btn-amber { background: #d97706; }
-    .btn-action:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    .lookup-preview { background: #0f172a; border: 1.5px solid #334155; border-radius: 14px; padding: 16px; margin-top: 14px; font-size: 12.5px; display: none; }
+    .lookup-preview { background: #0f172a; border: 1.5px solid #334155; border-radius: 12px; padding: 14px; margin-top: 12px; font-size: 12px; display: none; }
     .toast-pill { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #1e1b4b; border: 1px solid #4f46e5; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
   </style>
 </head>
@@ -45,107 +44,16 @@
       <span>⚙️</span> Developer Core Dispatch Engine
       <span class="badge-dev">STATION-ROOT</span>
     </div>
-    <div style="display:flex; gap:10px; align-items:center;">
-      <a href="order.html" style="color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; padding:8px 16px; background:#1e293b; border-radius:20px;">← Back to Order Recon</a>
+    <div style="display:flex; gap:10px;">
+      <a href="order.html" style="color:var(--muted); text-decoration:none; font-size:13px; font-weight:700; padding:8px 14px; background:#1e293b; border-radius:20px;">← Back to App</a>
     </div>
   </div>
 
   <div class="grid-tools">
-    <!-- TOOL 1: MANUAL ORDER CREATION (GS# & UC# SERIAL) -->
-    <div class="card-tool">
-      <div class="tool-title"><span>🛒</span> Create & Edit Manual Dispatch (GS# & UC#)</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Shopify URL ya Channel Order ID (e.g. <code>orders/8062829461791</code>) paste karein, fields verify/edit karein aur serial create karein.</p>
-      
-      <div class="form-group">
-        <label>Select Brand Serial:</label>
-        <select id="manBrand">
-          <option value="GS">GULABISHEHAR (Generates GS# Serial)</option>
-          <option value="UC">UNCLUTTERED CLOSET (Generates UC# Serial)</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Shopify Channel Order ID (ya full URL):</label>
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="manChannelId" placeholder="e.g. 8062829461791 ya admin URL..." />
-          <button class="btn-action btn-indigo" style="width:110px;" onclick="lookupChannelOrder()">Fetch</button>
-        </div>
-      </div>
-
-      <div id="manOrderPreview" class="lookup-preview">
-        <div style="font-size:13px; font-weight:800; color:#38bdf8; margin-bottom:10px;">✏️ Verify & Edit Order Before Dispatching:</div>
-        
-        <div class="form-group">
-          <label>Customer Name:</label>
-          <input type="text" id="editCustName" />
-        </div>
-        <div class="form-group">
-          <label>Customer Phone:</label>
-          <input type="text" id="editCustPhone" />
-        </div>
-        <div class="form-group">
-          <label>City & State:</label>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="editCity" placeholder="City" />
-            <input type="text" id="editState" placeholder="State" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Pincode:</label>
-          <input type="text" id="editPincode" />
-        </div>
-        <div class="form-group">
-          <label>Product Summary (SKUs & Titles):</label>
-          <input type="text" id="editProducts" />
-        </div>
-        <div class="form-group">
-          <label>Total Order Amount (₹):</label>
-          <input type="number" id="editTotalAmt" />
-        </div>
-        <div class="form-group">
-          <label>Payment Mode:</label>
-          <select id="editPayMode">
-            <option value="PREPAID">PREPAID</option>
-            <option value="COD">COD</option>
-          </select>
-        </div>
-
-        <button class="btn-action btn-green" onclick="commitManualOrder()">Confirm & Push to All Orders</button>
-      </div>
-    </div>
-
-    <!-- TOOL 2: REPAIR MISSING / BLANK COLUMNS -->
-    <div class="card-tool">
-      <div class="tool-title"><span>🛠️</span> Repair Missing / Blank Columns</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Boxd Orders API se complete manifest (Address 1/2, Customer Email, 5% GST breakdown, raw products JSON) re-fetch karke Supabase update karein.</p>
-
-      <div class="form-group">
-        <label>Paste AWBs to Repair (One per line):</label>
-        <textarea id="repairAwbs" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
-      </div>
-      <button class="btn-action btn-amber" onclick="commitRepairData()">Refetch 100% Manifest & Fill Columns</button>
-    </div>
-
-    <!-- TOOL 3: BULK EMERGENCY DISPATCH ENTRY -->
-    <div class="card-tool">
-      <div class="tool-title"><span>🚨</span> Bulk Emergency Dispatch Entry</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Custom past date select karein aur multiple AWBs enter karein. Sabhi 35+ columns automatically fill hokar Supabase me save ho jayenge.</p>
-
-      <div class="form-group">
-        <label>Target Dispatch Date:</label>
-        <input type="date" id="bulkEmDate" />
-      </div>
-      <div class="form-group">
-        <label>Paste AWBs (One per line):</label>
-        <textarea id="bulkEmAwbs" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
-      </div>
-      <button class="btn-action btn-purple" onclick="commitBulkEmergency()">Process & Log to Supabase</button>
-    </div>
-
-    <!-- TOOL 4: BULK SKU MAPPING (GS-SKU / UC-SKU) -->
+    <!-- TOOL 1: BRAND SKU LIST UPLOADER (GS-SKU / UC-SKU) -->
     <div class="card-tool">
       <div class="tool-title"><span>🏷️</span> Bulk SKU Mapping (GS-SKU & UC-SKU)</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Excel se SKUs copy-paste karke upload karein. Matching SKUs wale orders automatically GS ya UC channel tag me assign honge.</p>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste list of SKUs from Excel. Orders with matching SKUs will auto-tag as GS or UC in Channel Name.</p>
 
       <div class="form-group">
         <label>Select Target Brand Column:</label>
@@ -162,14 +70,86 @@
       <button class="btn-action btn-indigo" onclick="commitSkuUpload()">Upload & Merge SKUs</button>
     </div>
 
-    <!-- TOOL 5: MASTER SECURITY PASSWORD MANAGER -->
+    <!-- TOOL 2: REPAIR EMPTY COLUMNS IN SUPABASE -->
     <div class="card-tool">
-      <div class="tool-title"><span>🔑</span> Security & Master Password Manager</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Global ERP master password update karein jo Supabase <code>erp_config</code> table me sync hoga.</p>
+      <div class="tool-title"><span>🛠️</span> Repair Missing / Blank Columns</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Enter Single AWB or Paste Multiple AWBs to fetch complete fresh details from Boxd and refill blank columns in Supabase.</p>
+
+      <div class="form-group">
+        <label>Paste AWBs to Repair (One per line):</label>
+        <textarea id="repairAwbs" style="height:120px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
+      </div>
+      <button class="btn-action btn-amber" onclick="commitRepairData()">Refetch & Fill Blank Columns</button>
+    </div>
+
+    <!-- TOOL 3: MANUAL ORDER CREATION (GS# / UC# SERIAL) -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🛒</span> Create Manual Dispatch (GS# & UC#)</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Fetch full order data by Shopify Channel Order ID and assign custom sequential numbering.</p>
+      
+      <div class="form-group">
+        <label>Select Brand Serial:</label>
+        <select id="manBrand">
+          <option value="GS">GULABISHEHAR (Starts GS#001)</option>
+          <option value="UC">UNCLUTTERED CLOSET (Starts UC#001)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Channel Order ID (Shopify / Boxd):</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="manChannelId" placeholder="e.g. 5824982498214" />
+          <button class="btn-action btn-indigo" style="width:100px;" onclick="lookupChannelOrder()">Fetch</button>
+        </div>
+      </div>
+
+      <div id="manOrderPreview" class="lookup-preview">
+        <div style="font-weight:800; color:#38bdf8;" id="manCustName">-</div>
+        <div style="color:var(--muted); margin-top:2px;" id="manItems">-</div>
+        <div style="color:#34d399; font-weight:800; margin-top:4px;" id="manTotalAmt">-</div>
+        <hr style="border-color:#334155; margin:10px 0;">
+
+        <div class="form-group">
+          <label>Assign Courier Partner Name:</label>
+          <input type="text" id="manCourier" placeholder="e.g. DTDC, Tirupati, Self Porter" value="DTDC Local" />
+        </div>
+        <div class="form-group">
+          <label>Local Tracking / AWB Number:</label>
+          <input type="text" id="manTrackingAwb" placeholder="Enter AWB or Local Tracking Ref..." />
+        </div>
+        <div class="form-group">
+          <label>Tracking URL:</label>
+          <input type="text" id="manTrackingUrl" placeholder="https://dtdc.in/tracking/..." />
+        </div>
+
+        <button class="btn-action btn-green" onclick="commitManualOrder()">Confirm & Push to All Orders</button>
+      </div>
+    </div>
+
+    <!-- TOOL 4: EMERGENCY ENTRY (SINGLE & BULK) -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🚨</span> Bulk Emergency Dispatch Entry</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Paste AWBs and assign a custom past date. All columns will be automatically fetched.</p>
+
+      <div class="form-group">
+        <label>Target Dispatch Date:</label>
+        <input type="date" id="bulkEmDate" />
+      </div>
+      <div class="form-group">
+        <label>Paste AWBs (One per line):</label>
+        <textarea id="bulkEmAwbs" style="height:100px; font-family:'JetBrains Mono', monospace;" placeholder="50845018032080&#10;50845018032091"></textarea>
+      </div>
+      <button class="btn-action btn-purple" onclick="commitBulkEmergency()">Process & Log to Supabase</button>
+    </div>
+
+    <!-- TOOL 5: MASTER PASSWORD MANAGER -->
+    <div class="card-tool">
+      <div class="tool-title"><span>🔑</span> Security & Password Manager</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Update the global ERP master authorization access password.</p>
 
       <div class="form-group">
         <label>Current Master Password:</label>
-        <input type="password" id="oldPass" placeholder="Enter current password..." />
+        <input type="password" id="oldPass" placeholder="Enter old password..." />
       </div>
       <div class="form-group">
         <label>New Master Password:</label>
@@ -181,140 +161,9 @@
 </div>
 
 <script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyaAqxSrRfIsbeH67syD-A6Z24AlpELo-N3qZs6l2SWaPAjxOuJYpn3oZxgr_y5i0wU/exec"; // <-- Apne naye Code.gs ka Web App URL yahan daalein
+  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyEfXteKr6ERdGR1x1IMLguXHpQuYN1ASE6Ebpoo2w2frgyWbKBp_6WKt9u6ELvUPXr/exec";
   document.getElementById("bulkEmDate").value = new Date().toISOString().slice(0, 10);
-  let rawFetchedOrder = null;
-
-  async function lookupChannelOrder() {
-    let rawInput = document.getElementById("manChannelId").value.trim();
-    if (!rawInput) return alert("Enter Channel Order ID or Shopify Admin URL.");
-
-    // Clean numerical ID if full Shopify URL is pasted
-    if (rawInput.includes("/orders/")) {
-      rawInput = rawInput.split("/orders/")[1].split("?")[0].split("/")[0].trim();
-    }
-
-    showToast("Searching order in Boxd records...");
-    try {
-      const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
-      const res = await fetch(API_ENDPOINT + "?action=lookupChannelOrder&channel_order_id=" + encodeURIComponent(rawInput) + "&token=" + encodeURIComponent(token)).then(r => r.json());
-      if (!res.success || !res.order) return alert(res.error || "Order not found in Boxd records");
-
-      rawFetchedOrder = res.order;
-      document.getElementById("editCustName").value = rawFetchedOrder.shipping_name || rawFetchedOrder.customer_name || "";
-      document.getElementById("editCustPhone").value = rawFetchedOrder.customer_phone_number || rawFetchedOrder.shipping_phone_number || "";
-      document.getElementById("editCity").value = rawFetchedOrder.shipping_city || "";
-      document.getElementById("editState").value = rawFetchedOrder.shipping_state || "";
-      document.getElementById("editPincode").value = rawFetchedOrder.shipping_pincode || "";
-      
-      const prods = (rawFetchedOrder.products || []).map(p => p.sku || p.name).join(" | ");
-      document.getElementById("editProducts").value = prods;
-      document.getElementById("editTotalAmt").value = rawFetchedOrder.total_amount || 0;
-      document.getElementById("editPayMode").value = rawFetchedOrder.is_cod ? "COD" : "PREPAID";
-
-      document.getElementById("manOrderPreview").style.display = "block";
-    } catch(e) { alert("Lookup Error: " + e.message); }
-  }
-
-  async function commitManualOrder() {
-    if (!rawFetchedOrder) return;
-    const brand = document.getElementById("manBrand").value;
-
-    const payload = Object.assign({}, rawFetchedOrder, {
-      brand: brand,
-      shipping_name: document.getElementById("editCustName").value.trim(),
-      customer_phone_number: document.getElementById("editCustPhone").value.trim(),
-      shipping_city: document.getElementById("editCity").value.trim(),
-      shipping_state: document.getElementById("editState").value.trim(),
-      shipping_pincode: document.getElementById("editPincode").value.trim(),
-      products_summary: document.getElementById("editProducts").value.trim(),
-      total_amount: parseFloat(document.getElementById("editTotalAmt").value || 0),
-      payment_mode: document.getElementById("editPayMode").value,
-      is_cod: (document.getElementById("editPayMode").value === "COD")
-    });
-
-    showToast("Generating serial & saving to dispatches...");
-    try {
-      const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
-      const res = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          token: token,
-          action: "createManualOrder",
-          payload: payload
-        })
-      }).then(r => r.json());
-
-      if (res.success) {
-        alert("Success! Order Created with ID: " + res.order_id + "\nNow available in Order Recon queue.");
-        document.getElementById("manOrderPreview").style.display = "none";
-        document.getElementById("manChannelId").value = "";
-        rawFetchedOrder = null;
-      } else {
-        alert("Creation Error: " + res.error);
-      }
-    } catch(e) { alert("Network Error: " + e.message); }
-  }
-
-  async function commitRepairData() {
-    const text = document.getElementById("repairAwbs").value;
-    const awbs = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-    if (awbs.length === 0) return alert("Enter at least one AWB.");
-
-    showToast("Fetching complete Boxd order data & updating Supabase...");
-    try {
-      const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
-      const res = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          token: token,
-          action: "repairMissingColumns",
-          payload: { awbs: awbs }
-        })
-      }).then(r => r.json());
-
-      if (res.success) {
-        alert(`Repair Completed!\nUpdated Rows: ${res.updated}\nFailed / Not Found: ${res.failed}`);
-        document.getElementById("repairAwbs").value = "";
-      } else {
-        alert("Repair Error: " + res.error);
-      }
-    } catch(e) { alert("Network Error: " + e.message); }
-  }
-
-  async function commitBulkEmergency() {
-    const date = document.getElementById("bulkEmDate").value;
-    const awbs = document.getElementById("bulkEmAwbs").value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-    if (!date) return alert("Select target dispatch date.");
-    if (awbs.length === 0) return alert("Paste at least one AWB.");
-
-    showToast("Pulling full manifest from Boxd & logging to Supabase...");
-    try {
-      const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
-      const res = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          token: token,
-          action: "bulkEmergencyEntry",
-          payload: { date: date, awbs: awbs }
-        })
-      }).then(r => r.json());
-
-      if (res.success) {
-        let msg = `Bulk Processing Completed!\nSuccessfully Logged: ${res.processed}\nFailed / Not Found: ${res.failed}`;
-        if (res.errors && res.errors.length > 0) {
-          msg += "\n\nErrors:\n" + res.errors.join("\n");
-        }
-        alert(msg);
-        document.getElementById("bulkEmAwbs").value = "";
-      } else {
-        alert("Bulk Error: " + res.error);
-      }
-    } catch(e) { alert("Network Error: " + e.message); }
-  }
+  let activeFetchedOrder = null;
 
   async function commitSkuUpload() {
     const brand = document.getElementById("skuBrandSelect").value;
@@ -324,15 +173,10 @@
 
     showToast("Uploading SKUs to Supabase...");
     try {
-      const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
       const res = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          token: token,
-          action: "uploadSkus",
-          payload: { brand: brand, skus: skus }
-        })
+        body: JSON.stringify({ action: "uploadSkus", payload: { brand: brand, skus: skus } })
       }).then(r => r.json());
 
       if (res.success) {
@@ -344,27 +188,114 @@
     } catch(e) { alert("Network Error: " + e.message); }
   }
 
+  async function commitRepairData() {
+    const text = document.getElementById("repairAwbs").value;
+    const awbs = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if (awbs.length === 0) return alert("Enter at least one AWB.");
+
+    showToast("Refetching fresh order data and updating blank columns...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "repairMissingColumns", payload: { awbs: awbs } })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert(`Repair Completed!\nUpdated Rows: ${res.updated}\nFailed / Not Found: ${res.failed}`);
+        document.getElementById("repairAwbs").value = "";
+      } else {
+        alert("Repair Error: " + res.error);
+      }
+    } catch(e) { alert("Network Error: " + e.message); }
+  }
+
+  async function lookupChannelOrder() {
+    const cid = document.getElementById("manChannelId").value.trim();
+    if (!cid) return alert("Enter Channel Order ID.");
+
+    showToast("Searching in Boxd Store Records...");
+    try {
+      const res = await fetch(API_ENDPOINT + "?action=lookupChannelOrder&channel_order_id=" + encodeURIComponent(cid)).then(r => r.json());
+      if (!res.success || !res.order) return alert(res.error || "Order not found");
+
+      activeFetchedOrder = res.order;
+      document.getElementById("manCustName").innerText = (activeFetchedOrder.shipping_name || activeFetchedOrder.customer_name) + " (" + (activeFetchedOrder.shipping_city || "") + ")";
+      const items = (activeFetchedOrder.products || []).map(p => p.name || p.sku).join(", ");
+      document.getElementById("manItems").innerText = "Products: " + (items || "Item Summary");
+      document.getElementById("manTotalAmt").innerText = "Total: ₹" + (activeFetchedOrder.total_amount || 0) + " (" + (activeFetchedOrder.payment_mode || "PREPAID") + ")";
+      document.getElementById("manOrderPreview").style.display = "block";
+    } catch(e) { alert("Error: " + e.message); }
+  }
+
+  async function commitManualOrder() {
+    if (!activeFetchedOrder) return;
+    const trackingAwb = document.getElementById("manTrackingAwb").value.trim();
+    if (!trackingAwb) return alert("Tracking AWB is required for dispatch identification.");
+
+    const payload = Object.assign({}, activeFetchedOrder, {
+      brand: document.getElementById("manBrand").value,
+      courier_name: document.getElementById("manCourier").value,
+      awb_number: trackingAwb,
+      tracking_url: document.getElementById("manTrackingUrl").value
+    });
+
+    showToast("Generating serial & saving to dispatches...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "createManualOrder", payload: payload })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert("Success! Order Created with ID: " + res.order_id);
+        document.getElementById("manOrderPreview").style.display = "none";
+        document.getElementById("manChannelId").value = "";
+      } else {
+        alert("Creation Error: " + res.error);
+      }
+    } catch(e) { alert("Network Error: " + e.message); }
+  }
+
+  async function commitBulkEmergency() {
+    const date = document.getElementById("bulkEmDate").value;
+    const awbs = document.getElementById("bulkEmAwbs").value.split(/\r?\n/).filter(Boolean);
+    if (awbs.length === 0) return alert("Paste at least one AWB.");
+
+    showToast("Processing bulk AWBs with full data...");
+    try {
+      const res = await fetch(API_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "bulkEmergencyEntry", payload: { date: date, awbs: awbs } })
+      }).then(r => r.json());
+
+      if (res.success) {
+        alert(`Bulk Entry Completed!\nProcessed: ${res.processed} | Failed: ${res.failed}`);
+        document.getElementById("bulkEmAwbs").value = "";
+      } else {
+        alert("Bulk Error: " + res.error);
+      }
+    } catch(e) { alert("Network Error: " + e.message); }
+  }
+
   async function commitPasswordChange() {
     const oldP = document.getElementById("oldPass").value;
     const newP = document.getElementById("newPass").value;
     if (!oldP || !newP) return alert("Enter both current and new password.");
 
-    showToast("Updating master password in database...");
+    showToast("Updating password...");
     try {
-      const token = (typeof getAuthToken === 'function') ? getAuthToken() : (sessionStorage.getItem("erp_session_token") || "");
       const res = await fetch(API_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          token: token,
-          action: "updatePassword",
-          payload: { old_pass: oldP, new_pass: newP }
-        })
+        body: JSON.stringify({ action: "updatePassword", payload: { old_pass: oldP, new_pass: newP } })
       }).then(r => r.json());
 
       if (res.success) {
-        alert("Master password updated successfully! Please login again.");
-        sessionStorage.removeItem("erp_session_token");
+        alert("Master password updated successfully! Please re-login.");
+        sessionStorage.removeItem("erp_auth_active");
         location.reload();
       } else {
         alert("Password Error: " + res.error);
