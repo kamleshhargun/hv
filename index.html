@@ -1,113 +1,658 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Harsidhi Logistics & Financial Health ERP - Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-   <script src="auth.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Harsidhi ERP - Dispatch & Reconciliation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     :root {
-      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.92); --card-border: #e8ecf4;
-      --text: #1e293b; --muted: #64748b; --jelly-blue: #3b82f6; --jelly-green: #10b981;
-      --jelly-amber: #f59e0b; --jelly-red: #ef4444; --jelly-purple: #8b5cf6;
-      --radius-jelly: 20px; --radius-pill: 30px;
-      --shadow-jelly: 0 10px 25px -5px rgba(100, 116, 139, 0.08);
+      --bg: #f4f6fb; --card-bg: rgba(255, 255, 255, 0.96); --card-border: #e2e8f0;
+      --text: #0f172a; --muted: #64748b; --primary: #0f172a; --jelly-blue: #2563eb;
+      --jelly-green: #059669; --jelly-red: #dc2626; --radius-pill: 30px;
     }
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans', sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
-    .app-box { max-width: 1540px; margin: 0 auto; background: var(--card-bg); border-radius: var(--radius-jelly); border: 1.5px solid var(--card-border); padding: 22px; box-shadow: var(--shadow-jelly); }
-    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; border-bottom: 1.5px solid var(--card-border); margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-    .brand { font-size: 21px; font-weight: 800; color: #1e1b4b; display: flex; align-items: center; gap: 8px; }
-    .nav-links { display: flex; gap: 10px; flex-wrap: wrap; }
-    .nav-btn { background: #1e1b4b; color: #fff; text-decoration: none; padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 700; transition: 0.2s; }
-    .nav-btn:hover { background: #312e81; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 70px; }
 
-    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 25px; }
-    .kpi-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 16px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-    .kpi-val { font-size: 22px; font-weight: 800; color: #0f172a; }
-    .kpi-lbl { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 5px; }
+    /* Passcode Lock Screen */
+    #lockScreen {
+      position: fixed; inset: 0; background: #0f172a; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
+    }
+    .pin-box { display: flex; gap: 12px; margin: 20px 0; }
+    .pin-digit {
+      width: 50px; height: 58px; border: 2px solid #334155; border-radius: 12px;
+      font-size: 24px; text-align: center; color: white; background: #1e293b;
+    }
+    .pin-digit:focus { border-color: var(--jelly-blue); outline: none; }
 
-    .toast-pill { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e1b4b; color: #fff; padding: 10px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 10001; }
+    /* Header */
+    #appScreen { display: none; }
+    header { background: #ffffff; padding: 14px 22px; border-bottom: 1.5px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .brand-title { font-size: 19px; font-weight: 800; color: var(--primary); letter-spacing: -0.3px; }
+
+    /* KPI Row */
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; padding: 14px 16px 4px 16px; max-width: 1240px; margin: 0 auto; }
+    .kpi-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 16px; padding: 14px 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .kpi-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-main-val { font-size: 21px; font-weight: 800; color: #0f172a; margin: 4px 0; display: flex; align-items: baseline; gap: 8px; }
+    .kpi-sub-amt { font-size: 14px; font-weight: 700; color: var(--jelly-green); }
+    .kpi-wh-tags { display: flex; gap: 6px; margin-top: 6px; font-size: 11px; font-weight: 700; }
+    .kpi-wh-gs { background: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 6px; border: 1px solid #a7f3d0; }
+    .kpi-wh-uc { background: #f5f3ff; color: #5b21b6; padding: 2px 8px; border-radius: 6px; border: 1px solid #ddd6fe; }
+
+    /* 3 Action Buttons */
+    .action-bar { display: flex; gap: 10px; padding: 12px 16px; background: white; border-bottom: 1.5px solid var(--card-border); }
+    .btn-act-main {
+      flex: 1; padding: 10px 8px; border: none; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 800;
+      color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.1s ease;
+    }
+    .btn-act-main:active { transform: scale(0.98); }
+    .btn-act-pickup { background: #2563eb; }
+    .btn-act-return { background: #dc2626; }
+    .btn-act-payment { background: #059669; }
+
+    /* Navigation Tabs */
+    .tabs-nav {
+      display: flex; overflow-x: auto; background: white; border-bottom: 1.5px solid var(--card-border);
+      padding: 10px 14px; gap: 8px; scrollbar-width: none;
+    }
+    .tabs-nav::-webkit-scrollbar { display: none; }
+    .tab-pill {
+      background: #ffffff; border: 1.5px solid var(--card-border); color: #475569;
+      padding: 8px 18px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 700;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    }
+    .tab-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .tab-badge { background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 20px; font-weight: 800; }
+    .tab-pill.active .tab-badge { background: rgba(255,255,255,0.22); color: #fff; }
+
+    /* Orders Container */
+    .orders-list { padding: 14px; display: flex; flex-direction: column; gap: 10px; max-width: 1240px; margin: 0 auto; }
+    .order-card { background: white; border-radius: 16px; padding: 15px 18px; border: 1.5px solid var(--card-border); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+    .order-header { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; font-weight: 800; margin-bottom: 6px; }
+    .wh-pill { font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 6px; display: inline-block; }
+    .wh-gs { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .wh-uc { background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; }
+    .tag-mode { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; }
+    .tag-cod { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .tag-prepaid { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .order-info { font-size: 12.5px; color: #475569; margin: 3px 0; }
+    .sku-bubble { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 9px; font-size: 11.5px; margin-top: 6px; color: #334155; }
+
+    .btn-undo {
+      background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; padding: 5px 14px; border-radius: var(--radius-pill);
+      font-size: 11.5px; font-weight: 800; cursor: pointer; float: right; margin-top: 6px;
+    }
+
+    /* Date-Wise Reconciliation Table */
+    .recon-table-wrap { overflow-x: auto; background: white; border-radius: 16px; border: 1.5px solid var(--card-border); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th { background: #f8fafc; color: var(--muted); padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); }
+    td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
+
+    /* Modals */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-sheet { background: #ffffff; border-radius: 24px; padding: 24px; width: 92%; max-width: 480px; text-align: center; border: 1px solid var(--card-border); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    .modal-sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .date-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; font-size: 13px; font-weight: 800; color: #334155; }
+    .date-row input[type="date"] { padding: 6px 12px; border: 1.5px solid var(--card-border); border-radius: 10px; font-size: 13px; font-weight: 700; }
+
+    .mode-switch { display: flex; gap: 8px; margin-bottom: 14px; }
+    .mode-btn { flex: 1; padding: 8px; border: 1.5px solid var(--card-border); background: #f8fafc; border-radius: var(--radius-pill); font-weight: 700; font-size: 12px; cursor: pointer; }
+    .mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    .input-field { width: 100%; padding: 11px; border: 1.5px solid var(--card-border); border-radius: 12px; font-size: 13.5px; margin-bottom: 10px; }
+    .btn-m-confirm { width: 100%; padding: 11px; background: #059669; color: #fff; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; }
+    .btn-m-cancel { width: 100%; padding: 11px; background: #e2e8f0; color: #334155; border: none; border-radius: var(--radius-pill); font-weight: 800; cursor: pointer; margin-top: 8px; }
+
+    .preview-card { background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 14px; padding: 14px; margin-top: 10px; text-align: left; display: none; }
+    .preview-actions { display: flex; gap: 10px; margin-top: 12px; }
+
+    /* Professional Bulk Reconciliation Modal */
+    .summary-metric-row { display: flex; gap: 10px; margin: 14px 0; }
+    .summary-card-metric { flex: 1; padding: 10px; border-radius: 12px; font-weight: 800; font-size: 13px; }
+    .metric-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .metric-failed { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .audit-section-title { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin: 10px 0 6px 0; text-align: left; }
+    .audit-chip-list { display: flex; flex-wrap: wrap; gap: 6px; max-height: 140px; overflow-y: auto; padding: 4px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fafafa; }
+    .chip { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; font-family: monospace; }
+    .chip-success { background: #d1fae5; color: #065f46; }
+    .chip-failed { background: #fee2e2; color: #b91c1c; }
   </style>
 </head>
 <body>
-<div class="app-box">
-  <div class="header">
-    <div class="brand"><span>📦</span> HARSIDHI ENTERPRISE ERP - DASHBOARD</div>
-    <div class="nav-links">
-      <a href="index.html" class="nav-btn" style="background:#3b82f6;">Dashboard</a>
-      <a href="order.html" class="nav-btn">Order Recon</a>
-      <a href="rto.html" class="nav-btn">Return Recon</a>
-      <a href="payment.html" class="nav-btn">Payment Recon</a>
+
+  <!-- Passcode Screen -->
+  <div id="lockScreen">
+    <h2 style="margin-bottom: 6px; font-weight:800; letter-spacing:-0.4px;">Harsidhi ERP Portal</h2>
+    <p style="color: #94a3b8; font-size: 13px;">Enter 4-Digit Passcode to Unlock</p>
+    <div class="pin-box">
+      <input type="password" maxlength="1" class="pin-digit" autofocus oninput="onPinInput(this, 0)">
+      <input type="password" maxlength="1" class="pin-digit" oninput="onPinInput(this, 1)">
+      <input type="password" maxlength="1" class="pin-digit" oninput="onPinInput(this, 2)">
+      <input type="password" maxlength="1" class="pin-digit" oninput="onPinInput(this, 3)">
+    </div>
+    <p id="pinError" style="color: #ef4444; font-size: 12.5px; display:none;">Invalid Passcode! Please try again.</p>
+  </div>
+
+  <!-- Main Dashboard -->
+  <div id="appScreen">
+    <header>
+      <div class="brand-title">📦 Harsidhi ERP Station</div>
+      <button onclick="loadDashboard()" style="background:#059669; color:#fff; border:none; padding:8px 16px; border-radius:var(--radius-pill); font-size:12.5px; font-weight:700; cursor:pointer;">↻ Synchronize</button>
+    </header>
+
+    <!-- Daily KPIs -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-title">Today Picked Up</div>
+        <div class="kpi-main-val"><span id="kpiTodayCount">0</span><span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span></div>
+        <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiTodayGs">GS: 0</span><span class="kpi-wh-uc" id="kpiTodayUc">UC: 0</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Yesterday Picked Up</div>
+        <div class="kpi-main-val"><span id="kpiYestCount">0</span><span class="kpi-sub-amt" id="kpiYestAmt">₹0</span></div>
+        <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiYestGs">GS: 0</span><span class="kpi-wh-uc" id="kpiYestUc">UC: 0</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Monthly Dispatches</div>
+        <div class="kpi-main-val"><span id="kpiMonthCount">0</span><span class="kpi-sub-amt" id="kpiMonthAmt">₹0</span></div>
+        <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiMonthGs">GS: 0</span><span class="kpi-wh-uc" id="kpiMonthUc">UC: 0</span></div>
+      </div>
+    </div>
+
+    <!-- 3 Action Buttons -->
+    <div class="action-bar">
+      <button class="btn-act-main btn-act-pickup" onclick="openActionModal('pickup')">📦 Pickup Scan</button>
+      <button class="btn-act-main btn-act-return" onclick="openActionModal('return')">↩️ Return Scan</button>
+      <button class="btn-act-main btn-act-payment" onclick="openActionModal('payment')">💰 Payment Scan</button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-nav">
+      <button class="tab-pill active" id="tab_all_orders" onclick="switchTab('all_orders')">📦 All Orders (<span class="tab-badge" id="c_all_orders">0</span>)</button>
+      <button class="tab-pill" id="tab_pickup_failed" onclick="switchTab('pickup_failed')">⚠️ Pickup Failed (<span class="tab-badge" id="c_pickup_failed">0</span>)</button>
+      <button class="tab-pill" id="tab_picked" onclick="switchTab('picked')">✅ Picked Up (<span class="tab-badge" id="c_picked">0</span>)</button>
+      <button class="tab-pill" id="tab_intransit" onclick="switchTab('intransit')">🚚 In-Transit (<span class="tab-badge" id="c_intransit">0</span>)</button>
+      <button class="tab-pill" id="tab_out_for_delivery" onclick="switchTab('out_for_delivery')">Out for Delivery (<span class="tab-badge" id="c_out_for_delivery">0</span>)</button>
+      <button class="tab-pill" id="tab_delivered" onclick="switchTab('delivered')">🎯 Delivered (<span class="tab-badge" id="c_delivered">0</span>)</button>
+      <button class="tab-pill" id="tab_rto" onclick="switchTab('rto')">RTO (<span class="tab-badge" id="c_rto">0</span>)</button>
+      <button class="tab-pill" id="tab_rto_received" onclick="switchTab('rto_received')">RTO Received (<span class="tab-badge" id="c_rto_received">0</span>)</button>
+      <button class="tab-pill" id="tab_payment_received" onclick="switchTab('payment_received')">Payment Received (<span class="tab-badge" id="c_payment_received">0</span>)</button>
+      <button class="tab-pill" id="tab_daily_recon" onclick="switchTab('daily_recon')">📊 Date-Wise Recon (<span class="tab-badge" id="c_daily_recon">0</span>)</button>
+    </div>
+
+    <div id="ordersContainer" class="orders-list">
+      <div style="text-align: center; padding: 40px; color: var(--muted);">Synchronizing records...</div>
     </div>
   </div>
 
-  <!-- FINANCIAL HEALTH KPIS FROM SUPABASE -->
-  <div class="kpi-row">
-    <div class="kpi-card"><div class="kpi-val" id="totalOrders">0</div><div class="kpi-lbl">Total Picked in Supabase</div></div>
-    <div class="kpi-card"><div class="kpi-val" id="totalRevenue" style="color:var(--jelly-green);">₹0</div><div class="kpi-lbl">Gross Revenue</div></div>
-    <div class="kpi-card"><div class="kpi-val" id="kpiPrepaid" style="color:var(--jelly-blue);">₹0</div><div class="kpi-lbl">Prepaid Volume</div></div>
-    <div class="kpi-card"><div class="kpi-val" id="kpiCod" style="color:var(--jelly-amber);">₹0</div><div class="kpi-lbl">COD Pipeline</div></div>
-    <div class="kpi-card"><div class="kpi-val" id="kpiBankRec" style="color:var(--jelly-green);">₹0</div><div class="kpi-lbl">Reconciled / Settled</div></div>
-    <div class="kpi-card"><div class="kpi-val" id="kpiBankPend" style="color:var(--jelly-red);">₹0</div><div class="kpi-lbl">Payment Outstanding</div></div>
-    <div class="kpi-card"><div class="kpi-val" id="kpiGst" style="color:var(--jelly-purple);">₹0</div><div class="kpi-lbl">Est. 5% GST Liability</div></div>
-  </div>
+  <!-- Standard Action Modal -->
+  <div id="actionModal" class="modal-overlay">
+    <div class="modal-sheet">
+      <div class="modal-sheet-header">
+        <h3 id="modalTitle" style="font-size: 16px; font-weight: 800; color: var(--primary);">Dispatch Operation</h3>
+        <button onclick="closeActionModal()" style="background:none; border:none; font-size:20px; cursor:pointer;">✕</button>
+      </div>
 
-  <div style="background:#fff; padding:30px; border-radius:16px; border:1.5px solid var(--card-border); text-align:center;">
-    <h3 style="color:#1e1b4b; margin-bottom:10px;">Welcome to Harsidhi Logistics Live Control Station</h3>
-    <p style="color:var(--muted); font-size:14px; margin-bottom:15px;">
-      Live synchronization active with <b>Boxd Parallel Gateway</b>, <b>Supabase Cloud DB</b>, <b>Razorpay API</b>, and <b>GoKwik Order Verify</b>.
-    </p>
-    <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
-      <a href="order.html" class="nav-btn" style="background:#3b82f6;">Open Order Recon</a>
-      <a href="rto.html" class="nav-btn" style="background:#ef4444;">Review 30-Day RTO</a>
-      <a href="payment.html" class="nav-btn" style="background:#10b981;">Review Payment Ledger</a>
+      <div class="date-row">
+        <span>📅 Log Date:</span>
+        <input type="date" id="selectedDate">
+      </div>
+
+      <div class="mode-switch">
+        <button class="mode-btn active" id="btnModeManual" onclick="switchInputMode('manual')">⌨️ Manual Entry</button>
+        <button class="mode-btn" id="btnModeCamera" onclick="switchInputMode('camera')">📷 Optical Scanner</button>
+      </div>
+
+      <div id="cameraSection" style="display:none;">
+        <div id="reader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
+      </div>
+
+      <div id="manualSection">
+        <div style="display:flex; gap:6px; margin-bottom:12px;">
+          <button class="mode-btn active" id="btnSubSingle" onclick="switchSubTab('single')">Single AWB</button>
+          <button class="mode-btn" id="btnSubBulk" onclick="switchSubTab('bulk')">Batch AWBs</button>
+        </div>
+
+        <div id="singleForm">
+          <input type="text" id="inputSingleAwb" class="input-field" placeholder="Enter AWB Number...">
+          <button class="btn-m-confirm" style="background:#2563eb;" onclick="lookupSingleAwb()">Verify AWB</button>
+
+          <div id="previewCard" class="preview-card">
+            <div id="previewContent"></div>
+            <div class="preview-actions">
+              <button class="btn-m-confirm" onclick="confirmSaveSingle()">Confirm & Save</button>
+              <button class="btn-m-cancel" onclick="cancelPreview()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="bulkForm" style="display:none;">
+          <textarea id="inputBulkAwbs" class="input-field" rows="5" placeholder="Paste multiple AWBs (one per line)..."></textarea>
+          <button class="btn-m-confirm" style="background:#2563eb;" onclick="submitBulkAwbs()">Process Batch AWBs</button>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-  const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyEfXteKr6ERdGR1x1IMLguXHpQuYN1ASE6Ebpoo2w2frgyWbKBp_6WKt9u6ELvUPXr/exec";
+  <!-- Professional Batch Reconciliation Summary Modal -->
+  <div id="bulkSummaryModal" class="modal-overlay">
+    <div class="modal-sheet" style="max-width: 520px;">
+      <h3 style="font-size: 17px; font-weight: 800; color: var(--primary);">Batch Reconciliation Summary</h3>
+      <p style="font-size: 13px; color: var(--muted); margin-top: 4px;">Audit review of batch execution.</p>
 
-  async function loadDashboardSummary() {
-    try {
-      const res = await fetch(API_ENDPOINT + "?action=fetchStation").then(r => r.json());
-      if (res.success) {
-        const saved = res.saved_picked_orders || [];
+      <div class="summary-metric-row">
+        <div class="summary-card-metric metric-success">
+          <div style="font-size:11px; text-transform:uppercase;">Successful</div>
+          <div style="font-size:18px;" id="sumSuccessCount">0</div>
+        </div>
+        <div class="summary-card-metric metric-failed">
+          <div style="font-size:11px; text-transform:uppercase;">Skipped / Failed</div>
+          <div style="font-size:18px;" id="sumFailedCount">0</div>
+        </div>
+      </div>
 
-        document.getElementById("totalOrders").innerText = saved.length;
+      <div id="sectionSuccessChips" style="display:none;">
+        <div class="audit-section-title">Logged AWBs</div>
+        <div class="audit-chip-list" id="chipsSuccess"></div>
+      </div>
 
-        let gross = 0, prepaid = 0, cod = 0, bankRec = 0, bankPend = 0;
+      <div id="sectionFailedChips" style="display:none; margin-top:10px;">
+        <div class="audit-section-title" style="color:var(--jelly-red);">Exceptions & Missing AWBs</div>
+        <div class="audit-chip-list" id="chipsFailed"></div>
+      </div>
 
-        saved.forEach(s => {
-          const amt = (s.total_amount || 0);
-          gross += amt;
+      <button class="btn-m-confirm" style="margin-top:16px; background:#0f172a;" onclick="closeBulkSummaryModal()">Acknowledge & Refresh</button>
+    </div>
+  </div>
 
-          if (s.payment_mode === "PREPAID") prepaid += amt;
-          else cod += amt;
+  <script>
+    // <-- APPS SCRIPT WEB APP URL -->
+    const API_URL = "https://script.google.com/macros/s/AKfycbzb0mG49YMLxMzdvb7ko63YpSmCkyUD6NCSU98-ED5a4tPaRVoW5DNKwQdi9zzQ96HF/exec";
 
-          if (s.payment_status === "RECEIVED") bankRec += (s.payment_received_amount || amt);
-          else bankPend += amt;
-        });
+    let authenticatedPin = "";
+    let dashboardData = {};
+    let activeTab = "all_orders";
+    let currentActionMode = "pickup";
+    let html5QrCode = null;
+    let pendingAwbData = null;
 
-        // 5% Inclusive GST calculation on Gross Picked
-        const taxable = gross / 1.05;
-        const totalGst = gross - taxable;
-
-        document.getElementById("totalRevenue").innerText = "₹" + Math.round(gross).toLocaleString('en-IN');
-        document.getElementById("kpiPrepaid").innerText = "₹" + Math.round(prepaid).toLocaleString('en-IN');
-        document.getElementById("kpiCod").innerText = "₹" + Math.round(cod).toLocaleString('en-IN');
-        document.getElementById("kpiBankRec").innerText = "₹" + Math.round(bankRec).toLocaleString('en-IN');
-        document.getElementById("kpiBankPend").innerText = "₹" + Math.round(bankPend).toLocaleString('en-IN');
-        document.getElementById("kpiGst").innerText = "₹" + totalGst.toFixed(2);
-      }
-    } catch (e) {
-      console.error("Dashboard error:", e);
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
     }
-  }
+    function playBeep(success) {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(success ? 880 : 220, ctx.currentTime);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+      } catch(e) {}
+    }
 
-  window.onload = loadDashboardSummary;
-</script>
+    // Instant Passcode Unlock
+    function onPinInput(el, idx) {
+      const inputs = document.querySelectorAll(".pin-digit");
+      if (el.value.length === 1 && idx < 3) inputs[idx + 1].focus();
+      let pin = "";
+      inputs.forEach(i => pin += i.value);
+      if (pin.length === 4) verifyFastPin(pin);
+    }
+
+    function verifyFastPin(pin) {
+      fetch(`${API_URL}?action=verifyPin&pin=${encodeURIComponent(pin)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            authenticatedPin = pin;
+            document.getElementById("lockScreen").style.display = "none";
+            document.getElementById("appScreen").style.display = "block";
+            loadDashboard();
+          } else {
+            showPinError();
+          }
+        })
+        .catch(() => showPinError());
+    }
+
+    function showPinError() {
+      document.getElementById("pinError").style.display = "block";
+      const inputs = document.querySelectorAll(".pin-digit");
+      inputs.forEach(i => i.value = "");
+      inputs[0].focus();
+    }
+
+    function loadDashboard() {
+      document.getElementById("ordersContainer").innerHTML = '<div style="text-align:center; padding:35px; color:var(--muted);">Synchronizing 90-days live records...</div>';
+      fetch(`${API_URL}?pin=${authenticatedPin}&action=getDashboard`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            dashboardData = data;
+            renderKpis();
+            renderCounts();
+            renderActiveTab();
+          }
+        });
+    }
+
+    function renderKpis() {
+      if (!dashboardData.kpis) return;
+      const k = dashboardData.kpis;
+      document.getElementById("kpiTodayCount").innerText = k.today.count;
+      document.getElementById("kpiTodayAmt").innerText = "₹" + k.today.amount.toLocaleString('en-IN');
+      document.getElementById("kpiTodayGs").innerText = "GS: " + k.today.gs;
+      document.getElementById("kpiTodayUc").innerText = "UC: " + k.today.uc;
+
+      document.getElementById("kpiYestCount").innerText = k.yesterday.count;
+      document.getElementById("kpiYestAmt").innerText = "₹" + k.yesterday.amount.toLocaleString('en-IN');
+      document.getElementById("kpiYestGs").innerText = "GS: " + k.yesterday.gs;
+      document.getElementById("kpiYestUc").innerText = "UC: " + k.yesterday.uc;
+
+      document.getElementById("kpiMonthCount").innerText = k.month.count;
+      document.getElementById("kpiMonthAmt").innerText = "₹" + k.month.amount.toLocaleString('en-IN');
+      document.getElementById("kpiMonthGs").innerText = "GS: " + k.month.gs;
+      document.getElementById("kpiMonthUc").innerText = "UC: " + k.month.uc;
+    }
+
+    function renderCounts() {
+      const tabs = ['all_orders', 'pickup_failed', 'picked', 'intransit', 'out_for_delivery', 'delivered', 'rto', 'rto_received', 'payment_received'];
+      tabs.forEach(t => {
+        const count = (dashboardData[t] || []).length;
+        const el = document.getElementById("c_" + t);
+        if (el) el.innerText = count;
+      });
+      const reconCount = (dashboardData.date_wise_recon || []).length;
+      document.getElementById("c_daily_recon").innerText = reconCount;
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
+      const btn = document.getElementById("tab_" + tab);
+      if (btn) btn.classList.add("active");
+      renderActiveTab();
+    }
+
+    function renderActiveTab() {
+      const container = document.getElementById("ordersContainer");
+
+      if (activeTab === "daily_recon") {
+        const list = dashboardData.date_wise_recon || [];
+        if (list.length === 0) {
+          container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--muted);">No reconciliation records generated yet.</div>`;
+          return;
+        }
+        let html = `
+          <div class="recon-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Dispatch Date</th>
+                  <th>Total Packets</th>
+                  <th>Total Invoice Value</th>
+                  <th>Payment Collected</th>
+                  <th>Pending Packets</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        list.forEach(r => {
+          html += `
+            <tr>
+              <td><b>📅 ${r.date}</b></td>
+              <td>${r.count} pkts</td>
+              <td style="color:#0f172a; font-weight:800;">₹${r.total_amount.toLocaleString('en-IN')}</td>
+              <td style="color:var(--jelly-green); font-weight:800;">₹${r.received_amount.toLocaleString('en-IN')}</td>
+              <td style="color:${r.pending_count > 0 ? '#b45309' : '#047857'}; font-weight:800;">${r.pending_count} pending</td>
+            </tr>
+          `;
+        });
+        html += `</tbody></table></div>`;
+        container.innerHTML = html;
+        return;
+      }
+
+      const list = dashboardData[activeTab] || [];
+      if (list.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--muted);">No records available in this queue.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(o => `
+        <div class="order-card">
+          <div class="order-header">
+            <span>#${o.customer_order_number || o.order_number} <span class="wh-pill ${o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc'}">${o.warehouse_tag}</span></span>
+            <span class="tag-mode ${o.payment_mode === 'COD' ? 'tag-cod' : 'tag-prepaid'}">${o.payment_mode} - ₹${o.total_amount}</span>
+          </div>
+          <div class="order-info"><b>AWB:</b> <code>${o.awb_number || '-'}</code></div>
+          <div class="order-info"><b>Customer:</b> ${o.customer_name} (${o.phone})</div>
+          <div class="order-info"><b>Destination:</b> ${o.city}, ${o.state || ''}</div>
+          <div class="sku-bubble">${o.products_summary || 'Standard Item'}</div>
+
+          ${(activeTab === 'picked' || activeTab === 'rto_received' || activeTab === 'payment_received') ? `
+            <button class="btn-undo" onclick="promptUndo('${o.awb_number}', '${activeTab.toUpperCase()}')">↩️ Undo</button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function openActionModal(mode) {
+      currentActionMode = mode;
+      const modal = document.getElementById("actionModal");
+      const title = document.getElementById("modalTitle");
+
+      if (mode === "pickup") title.innerText = "📦 Pickup Operation";
+      else if (mode === "return") title.innerText = "↩️ Return Processing (RTO Received)";
+      else if (mode === "payment") title.innerText = "💰 Payment Reconciliation";
+
+      document.getElementById("selectedDate").value = new Date().toISOString().slice(0, 10);
+      switchInputMode('manual');
+      switchSubTab('single');
+      cancelPreview();
+      modal.style.display = "flex";
+    }
+
+    function closeActionModal() {
+      stopCamera();
+      document.getElementById("actionModal").style.display = "none";
+    }
+
+    function switchInputMode(mode) {
+      const btnManual = document.getElementById("btnModeManual");
+      const btnCam = document.getElementById("btnModeCamera");
+      const camSec = document.getElementById("cameraSection");
+      const manSec = document.getElementById("manualSection");
+
+      if (mode === "manual") {
+        btnManual.classList.add("active");
+        btnCam.classList.remove("active");
+        camSec.style.display = "none";
+        manSec.style.display = "block";
+        stopCamera();
+      } else {
+        btnCam.classList.add("active");
+        btnManual.classList.remove("active");
+        camSec.style.display = "block";
+        manSec.style.display = "none";
+        startCamera();
+      }
+    }
+
+    function switchSubTab(sub) {
+      document.getElementById("btnSubSingle").classList.toggle("active", sub === 'single');
+      document.getElementById("btnSubBulk").classList.toggle("active", sub === 'bulk');
+      document.getElementById("singleForm").style.display = (sub === 'single') ? "block" : "none";
+      document.getElementById("bulkForm").style.display = (sub === 'bulk') ? "block" : "none";
+      cancelPreview();
+    }
+
+    function lookupSingleAwb() {
+      const awb = document.getElementById("inputSingleAwb").value.trim();
+      if (!awb) return alert("Please specify a valid AWB number.");
+
+      fetch(`${API_URL}?pin=${authenticatedPin}&action=previewAwb&awb=${encodeURIComponent(awb)}&mode=${currentActionMode}`)
+        .then(r => r.json())
+        .then(res => {
+          if (!res.success) {
+            playBeep(false);
+            alert("Verification Failed: " + res.error);
+            cancelPreview();
+          } else {
+            playBeep(true);
+            pendingAwbData = res.data;
+            const d = res.data;
+            document.getElementById("previewContent").innerHTML = `
+              <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ AWB Verified: ${d.awb}</div>
+              <div style="font-size:12px;"><b>Order ID:</b> #${d.customer_order_number} (${d.warehouse_tag})</div>
+              <div style="font-size:12px;"><b>Customer:</b> ${d.customer_name} (${d.phone})</div>
+              <div style="font-size:12px;"><b>Invoice Amount:</b> ₹${d.total_amount} (${d.payment_mode})</div>
+              <div style="font-size:11.5px; color:#475569; margin-top:4px;"><b>Products:</b> ${d.products_summary}</div>
+            `;
+            document.getElementById("previewCard").style.display = "block";
+          }
+        });
+    }
+
+    function confirmSaveSingle() {
+      if (!pendingAwbData) return;
+      const awb = pendingAwbData.awb;
+      const date = document.getElementById("selectedDate").value;
+
+      let action = "confirmPickup";
+      let params = `&awb=${encodeURIComponent(awb)}&date=${encodeURIComponent(date)}`;
+
+      if (currentActionMode === "return") action = "confirmReturn";
+      else if (currentActionMode === "payment") {
+        action = "confirmPayment";
+        params += `&amount=${encodeURIComponent(pendingAwbData.total_amount)}`;
+      }
+
+      fetch(`${API_URL}?pin=${authenticatedPin}&action=${action}${params}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            playBeep(true);
+            closeActionModal();
+            loadDashboard();
+          } else {
+            playBeep(false);
+            alert("Error: " + res.error);
+          }
+        });
+    }
+
+    function cancelPreview() {
+      pendingAwbData = null;
+      document.getElementById("previewCard").style.display = "none";
+      document.getElementById("inputSingleAwb").value = "";
+    }
+
+    // Professional Batch Execution & Summary Card
+    function submitBulkAwbs() {
+      const text = document.getElementById("inputBulkAwbs").value.trim();
+      const date = document.getElementById("selectedDate").value;
+      if (!text) return alert("Please paste one or more AWB numbers.");
+
+      fetch(`${API_URL}?pin=${authenticatedPin}&action=bulkProcess&mode=${currentActionMode}&date=${encodeURIComponent(date)}&awbs=${encodeURIComponent(text)}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            playBeep(true);
+            closeActionModal();
+            displayBulkSummary(res);
+          } else {
+            playBeep(false);
+            alert("Batch Processing Failed: " + res.error);
+          }
+        })
+        .catch(err => alert("Network error: " + err));
+    }
+
+    function displayBulkSummary(res) {
+      document.getElementById("sumSuccessCount").innerText = res.processed_count;
+      document.getElementById("sumFailedCount").innerText = res.failed_count;
+
+      const secSuccess = document.getElementById("sectionSuccessChips");
+      const chipsSuccess = document.getElementById("chipsSuccess");
+      chipsSuccess.innerHTML = "";
+      if (res.processed && res.processed.length > 0) {
+        secSuccess.style.display = "block";
+        res.processed.forEach(item => {
+          chipsSuccess.innerHTML += `<span class="chip chip-success">${item.awb}</span>`;
+        });
+      } else {
+        secSuccess.style.display = "none";
+      }
+
+      const secFailed = document.getElementById("sectionFailedChips");
+      const chipsFailed = document.getElementById("chipsFailed");
+      chipsFailed.innerHTML = "";
+      if (res.failed && res.failed.length > 0) {
+        secFailed.style.display = "block";
+        res.failed.forEach(item => {
+          chipsFailed.innerHTML += `<span class="chip chip-failed" title="${item.reason}">${item.awb}</span>`;
+        });
+      } else {
+        secFailed.style.display = "none";
+      }
+
+      document.getElementById("bulkSummaryModal").style.display = "flex";
+    }
+
+    function closeBulkSummaryModal() {
+      document.getElementById("bulkSummaryModal").style.display = "none";
+      loadDashboard();
+    }
+
+    function startCamera() {
+      if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 15, qrbox: { width: 280, height: 160 } },
+        decodedText => {
+          const awb = decodedText.trim();
+          if (awb) {
+            stopCamera();
+            document.getElementById("inputSingleAwb").value = awb;
+            switchInputMode('manual');
+            lookupSingleAwb();
+          }
+        }
+      ).catch(e => console.warn(e));
+    }
+
+    function stopCamera() {
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(() => {});
+      }
+    }
+
+    function promptUndo(awb, stage) {
+      const conf = confirm(`Security Confirmation:\n\nAre you sure you want to revert or delete AWB ${awb} from the master database?\n\n(Click OK to confirm, Cancel to abort)`);
+      if (conf) {
+        fetch(`${API_URL}?pin=${authenticatedPin}&action=undoAction&awb=${encodeURIComponent(awb)}&stage=${stage}`)
+          .then(r => r.json())
+          .then(res => {
+            if (res.success) {
+              playBeep(true);
+              loadDashboard();
+            } else {
+              playBeep(false);
+              alert("Revert Operation Failed: " + res.error);
+            }
+          });
+      }
+    }
+  </script>
 </body>
 </html>
