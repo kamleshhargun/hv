@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Harsidhi ERP - Dispatch & Reconciliation</title>
+  <title>Harsidhi Ventures ERP</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
@@ -147,8 +147,8 @@
 
   <!-- Passcode Screen -->
   <div id="lockScreen">
-    <h2 style="margin-bottom: 6px; font-weight:800; letter-spacing:-0.4px;">Harsidhi ERP Portal</h2>
-    <p style="color: #94a3b8; font-size: 13px;">Enter 4-Digit Passcode to Unlock</p>
+    <h2 style="margin-bottom: 6px; font-weight:800; letter-spacing:-0.4px;">Harsidhi Ventures ERP</h2>
+    <p style="color: #94a3b8; font-size: 13px;">Enter Passcode to Unlock</p>
     <div class="pin-box">
       <input type="password" maxlength="1" class="pin-digit" autofocus oninput="onPinInput(this, 0)">
       <input type="password" maxlength="1" class="pin-digit" oninput="onPinInput(this, 1)">
@@ -161,8 +161,8 @@
   <!-- Main Dashboard -->
   <div id="appScreen">
     <header>
-      <div class="brand-title">📦 Harsidhi ERP Station</div>
-      <button onclick="loadDashboard()" style="background:#059669; color:#fff; border:none; padding:8px 16px; border-radius:var(--radius-pill); font-size:12.5px; font-weight:700; cursor:pointer;">↻ Synchronize</button>
+      <div class="brand-title">📦 Harsidhi Ventures ERP</div>
+      <button onclick="loadDashboard()" style="background:#059669; color:#fff; border:none; padding:8px 16px; border-radius:var(--radius-pill); font-size:12.5px; font-weight:700; cursor:pointer;">Refresh</button>
     </header>
 
     <!-- Daily KPIs -->
@@ -208,7 +208,7 @@
     <!-- Pagination Controls Bar -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-controls">
-        <label style="font-size:12.5px; font-weight:700; color:var(--muted);">Rows per page:</label>
+        <label style="font-size:12.5px; font-weight:700; color:var(--muted);">page:</label>
         <select class="page-size-selector" id="pageSizeSelect" onchange="changePageSize(this.value)">
           <option value="25">25</option>
           <option value="50" selected>50</option>
@@ -376,7 +376,7 @@
     }
 
     function loadDashboard() {
-      document.getElementById("ordersContainer").innerHTML = '<div style="text-align:center; padding:35px; color:var(--muted);">Synchronizing 90-days live records...</div>';
+      document.getElementById("ordersContainer").innerHTML = '<div style="text-align:center; padding:35px; color:var(--muted);">Loading...</div>';
       fetch(`${API_URL}?pin=${authenticatedPin}&action=getDashboard`)
         .then(res => res.json())
         .then(data => {
@@ -481,7 +481,7 @@
           return reconSortAsc ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
         });
 
-        const sortArrow = reconSortAsc ? "▲ Ascending" : "▼ Descending";
+        const sortArrow = reconSortAsc ? "▲" : "▼";
 
         let html = `
           <div class="recon-table-wrap">
@@ -530,7 +530,7 @@
 
       if (fullList.length === 0) {
         paginationBar.style.display = "none";
-        container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--muted);">No records available in this queue.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--muted);">No records</div>`;
         return;
       }
 
@@ -542,7 +542,7 @@
       const endIndex = Math.min(startIndex + pageSize, totalItems);
       const pageItems = fullList.slice(startIndex, endIndex);
 
-      document.getElementById("pageDisplayInfo").innerText = `Showing ${startIndex + 1}–${endIndex} of ${totalItems} (Page ${currentPage} of ${totalPages})`;
+      document.getElementById("pageDisplayInfo").innerText = `${startIndex + 1}–${endIndex} of ${totalItems} (${currentPage} of ${totalPages})`;
       document.getElementById("btnPrevPage").disabled = (currentPage === 1);
       document.getElementById("btnNextPage").disabled = (currentPage === totalPages);
 
