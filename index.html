@@ -42,13 +42,12 @@
     .kpi-wh-gs { background: #ecfdf5; color: #065f46; padding: 2px 8px; border-radius: 6px; border: 1px solid #a7f3d0; }
     .kpi-wh-uc { background: #f5f3ff; color: #5b21b6; padding: 2px 8px; border-radius: 6px; border: 1px solid #ddd6fe; }
 
-    /* 3 Action Buttons */
+    /* Action Buttons */
     .action-bar { display: flex; gap: 10px; padding: 12px 16px; background: white; border-bottom: 1.5px solid var(--card-border); }
     .btn-act-main {
       flex: 1; padding: 10px 8px; border: none; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 800;
-      color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform 0.1s ease;
+      color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
     }
-    .btn-act-main:active { transform: scale(0.98); }
     .btn-act-pickup { background: #2563eb; }
     .btn-act-return { background: #dc2626; }
     .btn-act-payment { background: #059669; }
@@ -68,6 +67,17 @@
     .tab-badge { background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 7px; border-radius: 20px; font-weight: 800; }
     .tab-pill.active .tab-badge { background: rgba(255,255,255,0.22); color: #fff; }
 
+    /* Pagination Controls Bar */
+    .pagination-bar {
+      max-width: 1240px; margin: 12px auto 6px auto; padding: 10px 16px; background: white; border-radius: 12px;
+      border: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+    }
+    .page-controls { display: flex; align-items: center; gap: 8px; }
+    .btn-page { background: #f8fafc; border: 1px solid var(--card-border); padding: 6px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+    .btn-page:disabled { opacity: 0.45; cursor: not-allowed; }
+    .page-info { font-size: 13px; font-weight: 700; color: var(--muted); }
+    .page-size-selector { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--card-border); font-size: 12.5px; font-weight: 700; background: #fff; }
+
     /* Orders Container */
     .orders-list { padding: 14px; display: flex; flex-direction: column; gap: 10px; max-width: 1240px; margin: 0 auto; }
     .order-card { background: white; border-radius: 16px; padding: 15px 18px; border: 1.5px solid var(--card-border); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
@@ -75,21 +85,32 @@
     .wh-pill { font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 6px; display: inline-block; }
     .wh-gs { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
     .wh-uc { background: #f5f3ff; color: #5b21b6; border: 1px solid #ddd6fe; }
+    .wh-dto { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    
     .tag-mode { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; }
     .tag-cod { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
     .tag-prepaid { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    
+    .tracking-status-badge {
+      display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px;
+      margin-top: 4px; background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; text-transform: uppercase;
+    }
+
     .order-info { font-size: 12.5px; color: #475569; margin: 3px 0; }
     .sku-bubble { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 9px; font-size: 11.5px; margin-top: 6px; color: #334155; }
 
-    .btn-undo {
-      background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; padding: 5px 14px; border-radius: var(--radius-pill);
-      font-size: 11.5px; font-weight: 800; cursor: pointer; float: right; margin-top: 6px;
+    .btn-act-action {
+      border: none; padding: 6px 14px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 800; cursor: pointer; float: right; margin-top: 6px;
     }
+    .btn-act-received { background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; }
+    .btn-undo { background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; }
 
     /* Date-Wise Reconciliation Table */
     .recon-table-wrap { overflow-x: auto; background: white; border-radius: 16px; border: 1.5px solid var(--card-border); }
     table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
     th { background: #f8fafc; color: var(--muted); padding: 12px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid var(--card-border); }
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { color: var(--jelly-blue); }
     td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
 
     /* Modals */
@@ -110,7 +131,7 @@
     .preview-card { background: #f8fafc; border: 1.5px solid var(--card-border); border-radius: 14px; padding: 14px; margin-top: 10px; text-align: left; display: none; }
     .preview-actions { display: flex; gap: 10px; margin-top: 12px; }
 
-    /* Professional Bulk Reconciliation Modal */
+    /* Summary Modal */
     .summary-metric-row { display: flex; gap: 10px; margin: 14px 0; }
     .summary-card-metric { flex: 1; padding: 10px; border-radius: 12px; font-weight: 800; font-size: 13px; }
     .metric-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
@@ -178,10 +199,30 @@
       <button class="tab-pill" id="tab_intransit" onclick="switchTab('intransit')">🚚 In-Transit (<span class="tab-badge" id="c_intransit">0</span>)</button>
       <button class="tab-pill" id="tab_out_for_delivery" onclick="switchTab('out_for_delivery')">Out for Delivery (<span class="tab-badge" id="c_out_for_delivery">0</span>)</button>
       <button class="tab-pill" id="tab_delivered" onclick="switchTab('delivered')">🎯 Delivered (<span class="tab-badge" id="c_delivered">0</span>)</button>
-      <button class="tab-pill" id="tab_rto" onclick="switchTab('rto')">RTO (<span class="tab-badge" id="c_rto">0</span>)</button>
-      <button class="tab-pill" id="tab_rto_received" onclick="switchTab('rto_received')">RTO Received (<span class="tab-badge" id="c_rto_received">0</span>)</button>
+      <button class="tab-pill" id="tab_rto_dto" onclick="switchTab('rto_dto')">↩️ RTO / DTO (<span class="tab-badge" id="c_rto_dto">0</span>)</button>
+      <button class="tab-pill" id="tab_rto_received" onclick="switchTab('rto_received')">RTO / DTO Received (<span class="tab-badge" id="c_rto_received">0</span>)</button>
       <button class="tab-pill" id="tab_payment_received" onclick="switchTab('payment_received')">Payment Received (<span class="tab-badge" id="c_payment_received">0</span>)</button>
       <button class="tab-pill" id="tab_daily_recon" onclick="switchTab('daily_recon')">📊 Date-Wise Recon (<span class="tab-badge" id="c_daily_recon">0</span>)</button>
+    </div>
+
+    <!-- Pagination Controls Bar -->
+    <div class="pagination-bar" id="paginationBar">
+      <div class="page-controls">
+        <label style="font-size:12.5px; font-weight:700; color:var(--muted);">Rows per page:</label>
+        <select class="page-size-selector" id="pageSizeSelect" onchange="changePageSize(this.value)">
+          <option value="25">25</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+          <option value="125">125</option>
+          <option value="150">150</option>
+          <option value="200">200</option>
+        </select>
+      </div>
+      <div class="page-controls">
+        <button class="btn-page" id="btnPrevPage" onclick="prevPage()">◀ Prev</button>
+        <span class="page-info" id="pageDisplayInfo">Page 1 of 1</span>
+        <button class="btn-page" id="btnNextPage" onclick="nextPage()">Next ▶</button>
+      </div>
     </div>
 
     <div id="ordersContainer" class="orders-list">
@@ -271,7 +312,7 @@
 
   <script>
     // <-- APPS SCRIPT WEB APP URL -->
-    const API_URL = "https://script.google.com/macros/s/AKfycbzb0mG49YMLxMzdvb7ko63YpSmCkyUD6NCSU98-ED5a4tPaRVoW5DNKwQdi9zzQ96HF/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzAzBLe0nhkSJBnjLC0Ujk0HMi7EV1F4K9Ipvv7c8XpaCCq99CMWYlTujhXlrOTExGE/exec";
 
     let authenticatedPin = "";
     let dashboardData = {};
@@ -279,6 +320,10 @@
     let currentActionMode = "pickup";
     let html5QrCode = null;
     let pendingAwbData = null;
+
+    let currentPage = 1;
+    let pageSize = 50;
+    let reconSortAsc = false; // By default Descending (Latest date top par)
 
     let audioCtx = null;
     function getAudioContext() {
@@ -299,7 +344,6 @@
       } catch(e) {}
     }
 
-    // Instant Passcode Unlock
     function onPinInput(el, idx) {
       const inputs = document.querySelectorAll(".pin-digit");
       if (el.value.length === 1 && idx < 3) inputs[idx + 1].focus();
@@ -340,6 +384,7 @@
             dashboardData = data;
             renderKpis();
             renderCounts();
+            currentPage = 1;
             renderActiveTab();
           }
         });
@@ -365,7 +410,7 @@
     }
 
     function renderCounts() {
-      const tabs = ['all_orders', 'pickup_failed', 'picked', 'intransit', 'out_for_delivery', 'delivered', 'rto', 'rto_received', 'payment_received'];
+      const tabs = ['all_orders', 'pickup_failed', 'picked', 'intransit', 'out_for_delivery', 'delivered', 'rto_dto', 'rto_received', 'payment_received'];
       tabs.forEach(t => {
         const count = (dashboardData[t] || []).length;
         const el = document.getElementById("c_" + t);
@@ -377,27 +422,74 @@
 
     function switchTab(tab) {
       activeTab = tab;
+      currentPage = 1;
       document.querySelectorAll(".tab-pill").forEach(b => b.classList.remove("active"));
       const btn = document.getElementById("tab_" + tab);
       if (btn) btn.classList.add("active");
       renderActiveTab();
     }
 
+    function toggleReconSort() {
+      reconSortAsc = !reconSortAsc;
+      renderActiveTab();
+    }
+
+    function changePageSize(val) {
+      pageSize = parseInt(val) || 50;
+      currentPage = 1;
+      renderActiveTab();
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderActiveTab();
+        window.scrollTo({ top: 300, behavior: 'smooth' });
+      }
+    }
+
+    function nextPage() {
+      const fullList = getActiveTabList();
+      const totalPages = Math.ceil(fullList.length / pageSize) || 1;
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderActiveTab();
+        window.scrollTo({ top: 300, behavior: 'smooth' });
+      }
+    }
+
+    function getActiveTabList() {
+      if (activeTab === "daily_recon") return dashboardData.date_wise_recon || [];
+      return dashboardData[activeTab] || [];
+    }
+
     function renderActiveTab() {
       const container = document.getElementById("ordersContainer");
+      const paginationBar = document.getElementById("paginationBar");
 
+      // Date-Wise Reconciliation View (With Sort Toggle)
       if (activeTab === "daily_recon") {
-        const list = dashboardData.date_wise_recon || [];
+        paginationBar.style.display = "none";
+        let list = [...(dashboardData.date_wise_recon || [])];
         if (list.length === 0) {
           container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--muted);">No reconciliation records generated yet.</div>`;
           return;
         }
+
+        // Sort based on toggle state
+        list.sort((a, b) => {
+          return reconSortAsc ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+        });
+
+        const sortArrow = reconSortAsc ? "▲ Ascending" : "▼ Descending";
+
         let html = `
           <div class="recon-table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Dispatch Date</th>
+                  <th>Line #</th>
+                  <th class="sortable" onclick="toggleReconSort()">Dispatch Date <span style="font-size:12px; color:var(--jelly-blue);">${sortArrow}</span></th>
                   <th>Total Packets</th>
                   <th>Total Invoice Value</th>
                   <th>Payment Collected</th>
@@ -406,10 +498,20 @@
               </thead>
               <tbody>
         `;
-        list.forEach(r => {
+        list.forEach((r, idx) => {
+          let displayDate = r.date;
+          if (r.date && r.date.includes("-")) {
+            const parts = r.date.split("-");
+            if (parts.length === 3) {
+              const yearShort = parts[0].length === 4 ? parts[0].slice(2) : parts[0];
+              displayDate = `${parts[2]}-${parts[1]}-${yearShort}`;
+            }
+          }
+
           html += `
             <tr>
-              <td><b>📅 ${r.date}</b></td>
+              <td style="color:var(--muted);">${idx + 1}</td>
+              <td><b>📅 ${displayDate}</b></td>
               <td>${r.count} pkts</td>
               <td style="color:#0f172a; font-weight:800;">₹${r.total_amount.toLocaleString('en-IN')}</td>
               <td style="color:var(--jelly-green); font-weight:800;">₹${r.received_amount.toLocaleString('en-IN')}</td>
@@ -422,28 +524,80 @@
         return;
       }
 
-      const list = dashboardData[activeTab] || [];
-      if (list.length === 0) {
+      // Standard Cards View
+      paginationBar.style.display = "flex";
+      const fullList = dashboardData[activeTab] || [];
+
+      if (fullList.length === 0) {
+        paginationBar.style.display = "none";
         container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--muted);">No records available in this queue.</div>`;
         return;
       }
 
-      container.innerHTML = list.map(o => `
-        <div class="order-card">
-          <div class="order-header">
-            <span>#${o.customer_order_number || o.order_number} <span class="wh-pill ${o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc'}">${o.warehouse_tag}</span></span>
-            <span class="tag-mode ${o.payment_mode === 'COD' ? 'tag-cod' : 'tag-prepaid'}">${o.payment_mode} - ₹${o.total_amount}</span>
-          </div>
-          <div class="order-info"><b>AWB:</b> <code>${o.awb_number || '-'}</code></div>
-          <div class="order-info"><b>Customer:</b> ${o.customer_name} (${o.phone})</div>
-          <div class="order-info"><b>Destination:</b> ${o.city}, ${o.state || ''}</div>
-          <div class="sku-bubble">${o.products_summary || 'Standard Item'}</div>
+      const totalItems = fullList.length;
+      const totalPages = Math.ceil(totalItems / pageSize) || 1;
+      if (currentPage > totalPages) currentPage = totalPages;
 
-          ${(activeTab === 'picked' || activeTab === 'rto_received' || activeTab === 'payment_received') ? `
-            <button class="btn-undo" onclick="promptUndo('${o.awb_number}', '${activeTab.toUpperCase()}')">↩️ Undo</button>
-          ` : ''}
-        </div>
-      `).join('');
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalItems);
+      const pageItems = fullList.slice(startIndex, endIndex);
+
+      document.getElementById("pageDisplayInfo").innerText = `Showing ${startIndex + 1}–${endIndex} of ${totalItems} (Page ${currentPage} of ${totalPages})`;
+      document.getElementById("btnPrevPage").disabled = (currentPage === 1);
+      document.getElementById("btnNextPage").disabled = (currentPage === totalPages);
+
+      container.innerHTML = pageItems.map(o => {
+        const isDto = Boolean(o.is_dto);
+        const whClass = isDto ? 'wh-dto' : (o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc');
+        const whLabel = isDto ? 'DTO (Delhivery)' : o.warehouse_tag;
+
+        return `
+          <div class="order-card">
+            <div class="order-header">
+              <span>#${o.customer_order_number || o.order_number} <span class="wh-pill ${whClass}">${whLabel}</span></span>
+              <div style="text-align:right;">
+                <span class="tag-mode ${o.payment_mode === 'COD' ? 'tag-cod' : 'tag-prepaid'}">${o.payment_mode} - ₹${o.total_amount}</span>
+                ${(activeTab === 'rto_dto' || activeTab === 'rto_received') ? `
+                  <div><span class="tracking-status-badge">${o.live_status || (isDto ? 'DTO In-Transit' : 'RTO In-Transit')}</span></div>
+                ` : ''}
+              </div>
+            </div>
+            <div class="order-info"><b>AWB:</b> <code>${o.awb_number || '-'}</code></div>
+            <div class="order-info"><b>Customer:</b> ${o.customer_name} (${o.phone})</div>
+            <div class="order-info"><b>Destination:</b> ${o.city}, ${o.state || ''}</div>
+            <div class="sku-bubble">${o.products_summary || 'Standard Item'}</div>
+
+            <!-- Action Buttons -->
+            ${activeTab === 'rto_dto' ? `
+              <button class="btn-act-action btn-act-received" onclick="markReturnDirect('${o.awb_number}', ${isDto ? JSON.stringify(JSON.stringify(o)) : 'null'})">Mark Received</button>
+            ` : ''}
+
+            ${(activeTab === 'picked' || activeTab === 'rto_received' || activeTab === 'payment_received') ? `
+              <button class="btn-act-action btn-undo" onclick="promptUndo('${o.awb_number}', '${activeTab.toUpperCase()}')">↩️ Undo</button>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function markReturnDirect(awb, dtoJsonString) {
+      const today = new Date().toISOString().slice(0, 10);
+      let params = `&awb=${encodeURIComponent(awb)}&date=${encodeURIComponent(today)}`;
+      if (dtoJsonString) {
+        params += `&payload=${encodeURIComponent(dtoJsonString)}`;
+      }
+
+      fetch(`${API_URL}?pin=${authenticatedPin}&action=confirmReturn${params}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success) {
+            playBeep(true);
+            loadDashboard();
+          } else {
+            playBeep(false);
+            alert("Error: " + res.error);
+          }
+        });
     }
 
     function openActionModal(mode) {
@@ -452,7 +606,7 @@
       const title = document.getElementById("modalTitle");
 
       if (mode === "pickup") title.innerText = "📦 Pickup Operation";
-      else if (mode === "return") title.innerText = "↩️ Return Processing (RTO Received)";
+      else if (mode === "return") title.innerText = "↩️ Return Processing (RTO / DTO Received)";
       else if (mode === "payment") title.innerText = "💰 Payment Reconciliation";
 
       document.getElementById("selectedDate").value = new Date().toISOString().slice(0, 10);
@@ -515,6 +669,7 @@
               <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ AWB Verified: ${d.awb}</div>
               <div style="font-size:12px;"><b>Order ID:</b> #${d.customer_order_number} (${d.warehouse_tag})</div>
               <div style="font-size:12px;"><b>Customer:</b> ${d.customer_name} (${d.phone})</div>
+              <div style="font-size:12px;"><b>Destination:</b> ${d.city}, ${d.state}</div>
               <div style="font-size:12px;"><b>Invoice Amount:</b> ₹${d.total_amount} (${d.payment_mode})</div>
               <div style="font-size:11.5px; color:#475569; margin-top:4px;"><b>Products:</b> ${d.products_summary}</div>
             `;
@@ -557,7 +712,6 @@
       document.getElementById("inputSingleAwb").value = "";
     }
 
-    // Professional Batch Execution & Summary Card
     function submitBulkAwbs() {
       const text = document.getElementById("inputBulkAwbs").value.trim();
       const date = document.getElementById("selectedDate").value;
