@@ -1,5 +1,5 @@
 // <-- APPS SCRIPT WEB APP URL (Replace with your deployed Web App URL) -->
-const API_URL = "https://script.google.com/macros/s/AKfycbzAzBLe0nhkSJBnjLC0Ujk0HMi7EV1F4K9Ipvv7c8XpaCCq99CMWYlTujhXlrOTExGE/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx5DnyKx84bzJZKD6qiNVan2inax0AaY5EziIxevlhsL2uDIRqFDcwfWau-3k3cohW-/exec";
 
 // <-- SUPABASE CONFIGURATION -->
 const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co";
