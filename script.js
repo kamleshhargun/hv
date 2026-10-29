@@ -1,5 +1,5 @@
 // <-- APPS SCRIPT WEB APP URL (Replace with your deployed Web App URL) -->
-const API_URL = "https://script.google.com/macros/s/AKfycbx5DnyKx84bzJZKD6qiNVan2inax0AaY5EziIxevlhsL2uDIRqFDcwfWau-3k3cohW-/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzwZxkVDPuRc37kOqrC-dZ3dH-qr7gC-wL1c2lSnckyMRTJWqaEZ_RkRRiWWlr1j1qc/exec";
 
 // <-- SUPABASE CONFIGURATION -->
 const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co";
@@ -114,13 +114,24 @@ async function loadDashboard() {
       month: { count: 0, amount: 0, gs: 0, uc: 0 }
     };
 
+    const pastOrdersToTrack = [];
+
     const dbOrders = supabaseOrders.map(row => {
       const scanDateStr = String(row.date || "").slice(0, 10);
       const awbVal = String(row.awb_number || "").trim();
       const whTag = String(row.warehouse_tag || "OTHER").toUpperCase();
       const rowAmt = parseFloat(row.total_amount || 0);
       const payStatus = String(row.payment_status || "PENDING").trim();
-      const currentStage = String(row.current_stage || "PICKED").trim();
+      let currentStage = String(row.current_stage || "PICKED").trim();
+
+      // STRICT RULE: Agar aaj ki date me scan hua hai, toh woh PICKED tab me hi rahega
+      if (scanDateStr === todayStr) {
+        currentStage = "PICKED";
+      } else if (currentStage === "PICKED") {
+        // Kal ya usse purane orders automatic In-Transit shift honge
+        currentStage = "IN_TRANSIT";
+        pastOrdersToTrack.push(awbVal);
+      }
 
       if (awbVal) {
         pickedUpMap[awbVal] = { stage: currentStage, scanDate: scanDateStr };
@@ -181,6 +192,23 @@ async function loadDashboard() {
         live_status: currentStage
       };
     });
+
+    // Background tracking sync for past orders (Non-blocking)
+    if (pastOrdersToTrack.length > 0) {
+      fetch(`${API_URL}?pin=${authenticatedPin}&action=batchTrackStatuses&awbs=${encodeURIComponent(pastOrdersToTrack.slice(0, 25).join(','))}`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && res.statuses) {
+            for (let awb in res.statuses) {
+              const matched = dbOrders.find(o => o.awb_number === awb);
+              if (matched && matched.current_stage !== res.statuses[awb]) {
+                matched.current_stage = res.statuses[awb];
+                sb.from('dispatches_master').update({ current_stage: res.statuses[awb] }).eq('awb_number', awb).then();
+              }
+            }
+          }
+        }).catch(() => {});
+    }
 
     const allOrders = [];
     const pickupFailed = [];
@@ -252,7 +280,7 @@ async function loadDashboard() {
       date_wise_recon: reconList,
       all_orders: allOrders,
       pickup_failed: pickupFailed,
-      picked: dbOrders.filter(o => o.current_stage === "PICKED"),
+      picked: dbOrders.filter(o => o.current_stage === "PICKED" && o.date === todayStr),
       intransit: dbOrders.filter(o => o.current_stage === "IN_TRANSIT"),
       out_for_delivery: dbOrders.filter(o => o.current_stage === "OUT_FOR_DELIVERY"),
       delivered: dbOrders.filter(o => o.current_stage === "DELIVERED"),
@@ -429,11 +457,11 @@ function renderActiveTab() {
         <div class="sku-bubble">${o.products_summary || 'Standard Item'}</div>
 
         ${activeTab === 'rto' ? `
-          <button class="btn-act-action btn-act-received" onclick="markRtoReceivedStrict('${o.awb_number}')">Mark RTO Received</button>
+          <button class="btn-act-action btn-act-received" onclick="confirmAndMarkRto('${o.awb_number}')">Mark RTO Received</button>
         ` : ''}
 
         ${activeTab === 'pending_payment' ? `
-          <button class="btn-act-action btn-act-received" onclick="markPaymentDirect('${o.awb_number}', ${o.total_amount}, '${o.payment_mode}')">Mark Paid</button>
+          <button class="btn-act-action btn-act-received" onclick="confirmAndMarkPayment('${o.awb_number}', ${o.total_amount}, '${o.payment_mode}')">Mark Paid</button>
           ${o.payment_mode === 'PREPAID' ? `<button class="btn-act-action" style="background:#f1f5f9; color:#0f172a; margin-right:8px;" onclick="verifyGatewayAudit('${o.customer_order_number || o.order_number}', ${o.total_amount})">Audit Gateway</button>` : ''}
         ` : ''}
 
@@ -445,12 +473,15 @@ function renderActiveTab() {
   }).join('');
 }
 
-// Strict RTO Received: Only changes status of already logged orders
-async function markRtoReceivedStrict(awb) {
+// WARNING POPUP FOR RTO RECEIVED
+async function confirmAndMarkRto(awb) {
+  const confirmed = confirm(`⚠️ Warning Confirmation:\n\nKya aap sach me AWB: ${awb} ko "RTO Received" mark karna chahte hain?\n\n(Click OK to Confirm, Cancel to Abort)`);
+  if (!confirmed) return;
+
   const { data: existing, error: findErr } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
   if (!existing || findErr) {
     playBeep(false);
-    return alert(`Action Blocked: AWB ${awb} was never dispatched/picked in master records.`);
+    return alert(`Action Blocked: AWB ${awb} dispatch records me nahi mila!`);
   }
 
   const { error } = await sb.from('dispatches_master')
@@ -466,8 +497,11 @@ async function markRtoReceivedStrict(awb) {
   }
 }
 
-// Mark Payment Received
-async function markPaymentDirect(awb, amount, mode) {
+// WARNING POPUP FOR PAYMENT RECEIVED
+async function confirmAndMarkPayment(awb, amount, mode) {
+  const confirmed = confirm(`⚠️ Payment Confirmation:\n\nKya aap AWB: ${awb} ke liye ₹${amount} (${mode}) Payment Received mark karna chahte hain?\n\n(Click OK to Confirm, Cancel to Abort)`);
+  if (!confirmed) return;
+
   const today = new Date().toISOString().slice(0, 10);
   const gatewayLabel = (mode === 'COD') ? 'COD_CASH' : 'MANUAL_VERIFIED';
 
@@ -489,7 +523,6 @@ async function markPaymentDirect(awb, amount, mode) {
   }
 }
 
-// Razorpay / Gokwik Audit Trigger
 async function verifyGatewayAudit(orderId, expectedAmount) {
   const res = await fetch(`${API_URL}?pin=${authenticatedPin}&action=auditPrepaidGateway&orderId=${encodeURIComponent(orderId)}&amount=${expectedAmount}`).then(r => r.json());
   if (res.success) {
@@ -549,40 +582,60 @@ function switchSubTab(sub) {
   cancelPreview();
 }
 
+// LOOKUP LOGIC (STRICT SUPABASE ONLY FOR RETURN / PAYMENT)
 async function lookupSingleAwb() {
   const awb = document.getElementById("inputSingleAwb").value.trim();
   if (!awb) return alert("Please specify a valid AWB number.");
 
+  // PICKUP MODE
   if (currentActionMode === "pickup") {
     const { data: existing } = await sb.from('dispatches_master').select('date').eq('awb_number', awb).maybeSingle();
     if (existing) {
       playBeep(false);
       return alert(`Duplicate blocked: AWB ${awb} was already logged on ${existing.date}.`);
     }
-  }
 
-  fetch(`${API_URL}?pin=${authenticatedPin}&action=previewAwb&awb=${encodeURIComponent(awb)}`)
-    .then(r => r.json())
-    .then(res => {
-      if (!res.success) {
-        playBeep(false);
-        alert("Verification Failed: " + res.error);
-        cancelPreview();
-      } else {
-        playBeep(true);
-        pendingAwbData = res.data;
-        const d = res.data;
-        document.getElementById("previewContent").innerHTML = `
-          <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ AWB Verified: ${d.awb}</div>
-          <div style="font-size:12px;"><b>Order ID:</b> #${d.customer_order_number} (${d.warehouse_tag})</div>
-          <div style="font-size:12px;"><b>Customer:</b> ${d.customer_name} (${d.phone})</div>
-          <div style="font-size:12px;"><b>Destination:</b> ${d.city}, ${d.state}</div>
-          <div style="font-size:12px;"><b>Invoice Amount:</b> ₹${d.total_amount} (${d.payment_mode})</div>
-          <div style="font-size:11.5px; color:#475569; margin-top:4px;"><b>Products:</b> ${d.products_summary}</div>
-        `;
-        document.getElementById("previewCard").style.display = "block";
-      }
-    });
+    fetch(`${API_URL}?pin=${authenticatedPin}&action=previewAwb&awb=${encodeURIComponent(awb)}`)
+      .then(r => r.json())
+      .then(res => {
+        if (!res.success) {
+          playBeep(false);
+          alert("Verification Failed: " + res.error);
+          cancelPreview();
+        } else {
+          playBeep(true);
+          pendingAwbData = res.data;
+          const d = res.data;
+          document.getElementById("previewContent").innerHTML = `
+            <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ AWB Verified: ${d.awb}</div>
+            <div style="font-size:12px;"><b>Order ID:</b> #${d.customer_order_number} (${d.warehouse_tag})</div>
+            <div style="font-size:12px;"><b>Customer:</b> ${d.customer_name} (${d.phone})</div>
+            <div style="font-size:12px;"><b>Destination:</b> ${d.city}, ${d.state}</div>
+            <div style="font-size:12px;"><b>Invoice Amount:</b> ₹${d.total_amount} (${d.payment_mode})</div>
+            <div style="font-size:11.5px; color:#475569; margin-top:4px;"><b>Products:</b> ${d.products_summary}</div>
+          `;
+          document.getElementById("previewCard").style.display = "block";
+        }
+      });
+  } 
+  // RETURN & PAYMENT MODE: STRICT SUPABASE SEARCH
+  else {
+    const { data: existing, error } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
+    if (!existing || error) {
+      playBeep(false);
+      cancelPreview();
+      return alert(`Action Blocked: AWB ${awb} database me nahi mila. Invalid Scan!`);
+    }
+
+    playBeep(true);
+    pendingAwbData = existing;
+    document.getElementById("previewContent").innerHTML = `
+      <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ Matched Order: #${existing.customer_order_number}</div>
+      <div style="font-size:12px;"><b>Customer:</b> ${existing.customer_name} (${existing.city})</div>
+      <div style="font-size:12px;"><b>Stage:</b> ${existing.current_stage} | <b>Amount:</b> ₹${existing.total_amount} (${existing.payment_mode})</div>
+    `;
+    document.getElementById("previewCard").style.display = "block";
+  }
 }
 
 async function confirmSaveSingle() {
@@ -613,11 +666,17 @@ async function confirmSaveSingle() {
     }]);
     error = res.error;
   } else if (currentActionMode === "return") {
+    const confirmed = confirm(`⚠️ Warning: Kya aap AWB ${d.awb_number} ko RTO Received mark karna chahte hain?`);
+    if (!confirmed) return;
+
     const res = await sb.from('dispatches_master')
       .update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' })
-      .eq('awb_number', d.awb);
+      .eq('awb_number', d.awb_number);
     error = res.error;
   } else if (currentActionMode === "payment") {
+    const confirmed = confirm(`⚠️ Warning: Kya aap AWB ${d.awb_number} ke liye payment confirm karna chahte hain?`);
+    if (!confirmed) return;
+
     const res = await sb.from('dispatches_master')
       .update({
         payment_status: 'RECEIVED',
@@ -625,7 +684,7 @@ async function confirmSaveSingle() {
         payment_received_date: date,
         gateway: (d.payment_mode === 'COD') ? 'COD_CASH' : 'MANUAL_VERIFIED'
       })
-      .eq('awb_number', d.awb);
+      .eq('awb_number', d.awb_number);
     error = res.error;
   }
 
@@ -684,17 +743,26 @@ async function submitBulkAwbs() {
           failed.push({ awb, reason: preview.error });
         }
       } else if (currentActionMode === "return") {
-        const { error } = await sb.from('dispatches_master')
-          .update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' })
-          .eq('awb_number', awb);
-        if (!error) processed.push({ awb });
-        else failed.push({ awb, reason: error.message });
+        const { data: existing } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
+        if (existing) {
+          await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
+          processed.push({ awb });
+        } else {
+          failed.push({ awb, reason: "Order not found in database." });
+        }
       } else if (currentActionMode === "payment") {
-        const { error } = await sb.from('dispatches_master')
-          .update({ payment_status: 'RECEIVED', payment_received_date: date, gateway: 'MANUAL_VERIFIED' })
-          .eq('awb_number', awb);
-        if (!error) processed.push({ awb });
-        else failed.push({ awb, reason: error.message });
+        const { data: existing } = await sb.from('dispatches_master').select('id, total_amount, payment_mode').eq('awb_number', awb).maybeSingle();
+        if (existing) {
+          await sb.from('dispatches_master').update({
+            payment_status: 'RECEIVED',
+            payment_received_amount: existing.total_amount,
+            payment_received_date: date,
+            gateway: (existing.payment_mode === 'COD') ? 'COD_CASH' : 'MANUAL_VERIFIED'
+          }).eq('awb_number', awb);
+          processed.push({ awb });
+        } else {
+          failed.push({ awb, reason: "Order not found in database." });
+        }
       }
     } catch (e) {
       failed.push({ awb, reason: e.toString() });
@@ -743,16 +811,39 @@ function closeBulkSummaryModal() {
   loadDashboard();
 }
 
+// OPTICAL CAMERA SCANNER (STRICT WORKFLOW)
 function startCamera() {
   if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
   html5QrCode.start(
     { facingMode: "environment" },
     { fps: 15, qrbox: { width: 280, height: 160 } },
-    decodedText => {
+    async decodedText => {
       const awb = decodedText.trim();
-      if (awb) {
-        stopCamera();
-        document.getElementById("inputSingleAwb").value = awb;
+      if (!awb) return;
+
+      stopCamera();
+      document.getElementById("inputSingleAwb").value = awb;
+
+      if (currentActionMode === "return") {
+        // Strict Supabase camera check with Warning Popup
+        const { data: existing, error } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
+        if (!existing || error) {
+          playBeep(false);
+          alert(`Scan Blocked: AWB ${awb} dispatch records me nahi mila!`);
+          switchInputMode('manual');
+          return;
+        }
+
+        const confirmed = confirm(`⚠️ Warning Confirmation:\n\nCamera ne AWB: ${awb} detect kiya hai.\nOrder: #${existing.customer_order_number} (${existing.customer_name})\n\nKya aap ise "RTO Received" mark karna chahte hain?`);
+        if (confirmed) {
+          await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
+          playBeep(true);
+          closeActionModal();
+          loadDashboard();
+        } else {
+          switchInputMode('manual');
+        }
+      } else {
         switchInputMode('manual');
         lookupSingleAwb();
       }
@@ -767,7 +858,7 @@ function stopCamera() {
 }
 
 async function promptUndo(awb, stage) {
-  const conf = confirm(`Security Confirmation:\n\nAre you sure you want to revert or delete AWB ${awb} from the master database?\n\n(Click OK to confirm, Cancel to abort)`);
+  const conf = confirm(`Security Confirmation:\n\nAre you sure you want to revert or delete AWB ${awb}?\n\n(Click OK to confirm, Cancel to abort)`);
   if (!conf) return;
 
   let error = null;
@@ -781,7 +872,7 @@ async function promptUndo(awb, stage) {
     error = res.error;
   } else if (stage === "PAYMENT_RECEIVED") {
     const res = await sb.from('dispatches_master')
-      .update({ payment_status: 'PENDING', payment_received_amount: 0, payment_received_date: null })
+      .update({ payment_status: 'PENDING', payment_received_amount: 0, payment_received_date: null, gateway: null })
       .eq('awb_number', awb);
     error = res.error;
   }
