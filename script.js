@@ -3,7 +3,7 @@
  * Developed by: Kamlesh Hargun
  */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxTrU_KwblhLu6RqnpBdhPgi995_WskN0EXxDLSrHJmFUF2gWG_Jx6lymNp4pau0XM6/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbw-J60tFAdu3ZhdNhcxU6yAfunn-1bpewsS8UnvgLiBRMPGllGDfcCbFapFyE2A082q/exec";
 
 // Supabase Configuration
 const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co";
@@ -24,7 +24,7 @@ let currentPage = 1;
 let pageSize = 50;
 let reconSortAsc = false;
 
-// Point 6: Warehouse Audio and Haptic Feedback Engine
+// Audio and Haptic Feedback
 let audioCtx = null;
 function getAudioContext() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -33,21 +33,19 @@ function getAudioContext() {
 }
 
 function playHapticBeep(type) {
-  // Hardware Haptic Feedback
   if ("vibrate" in navigator) {
     if (type === "success") navigator.vibrate(60);
     else if (type === "duplicate") navigator.vibrate([100, 50, 100]);
     else if (type === "error") navigator.vibrate([200, 80, 200]);
   }
 
-  // Audio Tones
   try {
     const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
     if (type === "success") {
-      osc.frequency.setValueAtTime(880, ctx.currentTime); // High pitch A5
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
       gain.gain.setValueAtTime(0.18, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
       osc.start(); osc.stop(ctx.currentTime + 0.25);
@@ -57,7 +55,7 @@ function playHapticBeep(type) {
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
       osc.start(); osc.stop(ctx.currentTime + 0.35);
     } else {
-      osc.frequency.setValueAtTime(220, ctx.currentTime); // Low pitch error tone
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
       gain.gain.setValueAtTime(0.25, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
       osc.start(); osc.stop(ctx.currentTime + 0.4);
@@ -118,28 +116,18 @@ async function fetchAllSupabaseRows() {
   return allRecords;
 }
 
-async function fetchIncomingDelhiveryReversePickups() {
-  try {
-    const { data, error } = await sb.from('incoming_reverse_pickups').select('*').order('created_at', { ascending: false });
-    if (error || !data) return [];
-    return data;
-  } catch(e) {
-    return [];
-  }
-}
-
 async function loadDashboard() {
   document.getElementById("ordersContainer").innerHTML = '<div style="text-align:center; padding:35px; color:var(--text-muted);">Synchronizing enterprise records...</div>';
 
   try {
-    const [supabaseOrders, incomingReverseList, carrierRes] = await Promise.all([
+    const [supabaseOrders, carrierRes] = await Promise.all([
       fetchAllSupabaseRows(),
-      fetchIncomingDelhiveryReversePickups(),
       fetch(`${API_URL}?pin=${authenticatedPin}&action=getLiveCarriersData`).then(r => r.json()).catch(() => ({ success: false }))
     ]);
 
     const boxdOrders = (carrierRes.success && carrierRes.boxd_orders) ? carrierRes.boxd_orders : [];
     const skuMap = (carrierRes.success && carrierRes.sku_map) ? carrierRes.sku_map : {};
+    const delhiveryDtoFeed = (carrierRes.success && carrierRes.delhivery_dto) ? carrierRes.delhivery_dto : [];
 
     const now = new Date();
     const todayStr = now.toISOString().slice(0, 10);
@@ -185,23 +173,26 @@ async function loadDashboard() {
 
       if (awbVal) pickedUpMap[awbVal] = { stage: currentStage, scanDate: scanDateStr };
 
-      totalDispatchedAmt += rowAmt;
-      if (payStatus === "RECEIVED") {
-        totalRealizedAmt += parseFloat(row.payment_received_amount || rowAmt);
-      } else if (currentStage === "IN_TRANSIT" || currentStage === "OUT_FOR_DELIVERY") {
-        totalInTransitAmt += rowAmt;
+      // Financial Calculation - Excludes DTO (DELHIVERY) records
+      if (whTag !== "DELHIVERY") {
+        totalDispatchedAmt += rowAmt;
+        if (payStatus === "RECEIVED") {
+          totalRealizedAmt += parseFloat(row.payment_received_amount || rowAmt);
+        } else if (currentStage === "IN_TRANSIT" || currentStage === "OUT_FOR_DELIVERY") {
+          totalInTransitAmt += rowAmt;
+        }
+
+        if (currentStage === "DELIVERED") deliveredCount++;
+        if (currentStage === "RTO" || currentStage === "RTO_RECEIVED") {
+          rtoCount++;
+          totalRtoLossAmt += rowAmt;
+        }
       }
 
-      if (currentStage === "DELIVERED") deliveredCount++;
-      if (currentStage === "RTO" || currentStage === "RTO_RECEIVED") {
-        rtoCount++;
-        totalRtoLossAmt += rowAmt;
-      }
       if (currentStage === "RTO_RECEIVED") rtoReceivedCount++;
 
-      // SKU Frequency count
       const summaryText = String(row.products_summary || "").trim();
-      if (summaryText) {
+      if (summaryText && whTag !== "DELHIVERY") {
         const items = summaryText.split(/[|,]+/);
         items.forEach(it => {
           const cleanSku = it.trim().split(" (")[0].trim();
@@ -211,8 +202,7 @@ async function loadDashboard() {
         });
       }
 
-      // Reconciliation & KPI counts
-      if (scanDateStr) {
+      if (scanDateStr && whTag !== "DELHIVERY") {
         if (!dateWiseRecon[scanDateStr]) {
           dateWiseRecon[scanDateStr] = { date: scanDateStr, count: 0, total_amount: 0, received_amount: 0, pending_count: 0 };
         }
@@ -254,11 +244,10 @@ async function loadDashboard() {
         packed_status: row.packed_status || "PICKED_UP",
         current_stage: currentStage,
         return_condition: row.return_condition || "INTACT",
-        is_incoming_reverse: false
+        is_dto: (whTag === "DELHIVERY")
       };
     });
 
-    // Background tracking sync for past in-transit records (Non-blocking)
     if (pastOrdersToTrack.length > 0) {
       fetch(`${API_URL}?pin=${authenticatedPin}&action=batchTrackStatuses&awbs=${encodeURIComponent(pastOrdersToTrack.slice(0, 25).join(','))}`)
         .then(r => r.json())
@@ -329,7 +318,8 @@ async function loadDashboard() {
         products_summary: prodStr,
         status: o.status || "new",
         cohort: cohort,
-        is_picked_up: isPickedUp
+        is_picked_up: isPickedUp,
+        is_dto: false
       };
 
       if (!isPickedUp) {
@@ -338,35 +328,40 @@ async function loadDashboard() {
       }
     });
 
-    const rtoQueueList = [...dbOrders.filter(o => o.current_stage === "RTO")];
-    incomingReverseList.forEach(item => {
-      if (!pickedUpMap[item.awb_number]) {
+    // RTO Queue Setup: Normal Dispatched RTOs + Temporary Delhivery DTO Staging Cache
+    const rtoQueueList = [...dbOrders.filter(o => o.current_stage === "RTO" && !o.is_dto)];
+    let activePendingDtoCount = 0;
+
+    delhiveryDtoFeed.forEach(dto => {
+      // Only include if NOT already physically verified in Supabase
+      if (!pickedUpMap[dto.awb_number]) {
+        activePendingDtoCount++;
         rtoQueueList.push({
-          date: String(item.created_at || todayStr).slice(0, 10),
-          awb_number: item.awb_number,
-          customer_order_number: item.customer_order_number || "-",
-          order_number: item.customer_order_number || "-",
+          date: String(dto.synced_at || todayStr).slice(0, 10),
+          awb_number: dto.awb_number,
+          customer_order_number: dto.customer_order_number || "-",
+          order_number: dto.customer_order_number || "-",
           warehouse_tag: "DELHIVERY",
-          customer_name: item.customer_name || "Customer Return",
-          phone: item.phone || "",
-          city: item.city || "",
-          state: item.state || "",
+          customer_name: "Delhivery DTO Consignee",
+          phone: "-",
+          city: dto.location || "Origin Transit",
+          state: "",
           payment_mode: "RETURN",
-          total_amount: parseFloat(item.total_amount || 0),
-          products_summary: item.products_summary || "Reverse Logistics Packet",
+          total_amount: 0,
+          products_summary: `Delhivery DTO (${dto.live_status}) - Action: ${dto.latest_action || '-'}`,
           payment_status: "PENDING",
           current_stage: "RTO",
-          is_incoming_reverse: true
+          is_dto: true
         });
       }
     });
 
-    // Sorted Top SKUs
     const topSkus = Object.entries(skuCounter).sort((a,b) => b[1] - a[1]);
-    const topSkuString = topSkus.length > 0 ? `${topSkus[0][0]} (${topSkus[0][1]} Units)` : "No SKU data recorded";
+    const topSkuString = topSkus.length > 0 ? `${topSkus[0][0]} (${topSkus[0][1]} Units)` : "No active SKU data";
 
-    const deliveryPercent = dbOrders.length > 0 ? ((deliveredCount / dbOrders.length) * 100).toFixed(1) : "0.0";
-    const rtoPercent = dbOrders.length > 0 ? ((rtoCount / dbOrders.length) * 100).toFixed(1) : "0.0";
+    const nonDtoTotal = dbOrders.filter(o => !o.is_dto).length;
+    const deliveryPercent = nonDtoTotal > 0 ? ((deliveredCount / nonDtoTotal) * 100).toFixed(1) : "0.0";
+    const rtoPercent = nonDtoTotal > 0 ? ((rtoCount / nonDtoTotal) * 100).toFixed(1) : "0.0";
     const recoveryPercent = rtoCount > 0 ? ((rtoReceivedCount / rtoCount) * 100).toFixed(0) : "100";
 
     const reconList = Object.values(dateWiseRecon).sort((a, b) => b.date.localeCompare(a.date));
@@ -377,19 +372,20 @@ async function loadDashboard() {
         totalDispatchedAmt, totalRealizedAmt, totalInTransitAmt, totalRtoLossAmt,
         todayCount, todayGs, todayUc, yesterdayCount, monthCount,
         deliveryPercent, deliveredCount, rtoPercent, recoveryPercent,
-        topSkuString, totalActiveSkus: Object.keys(skuCounter).length
+        topSkuString, totalActiveSkus: Object.keys(skuCounter).length,
+        activePendingDtoCount
       },
       date_wise_recon: reconList,
       all_orders: allOrders,
       pickup_failed: pickupFailed,
-      picked: dbOrders.filter(o => o.current_stage === "PICKED" && o.date === todayStr),
-      intransit: dbOrders.filter(o => o.current_stage === "IN_TRANSIT"),
-      out_for_delivery: dbOrders.filter(o => o.current_stage === "OUT_FOR_DELIVERY"),
-      delivered: dbOrders.filter(o => o.current_stage === "DELIVERED"),
+      picked: dbOrders.filter(o => o.current_stage === "PICKED" && o.date === todayStr && !o.is_dto),
+      intransit: dbOrders.filter(o => o.current_stage === "IN_TRANSIT" && !o.is_dto),
+      out_for_delivery: dbOrders.filter(o => o.current_stage === "OUT_FOR_DELIVERY" && !o.is_dto),
+      delivered: dbOrders.filter(o => o.current_stage === "DELIVERED" && !o.is_dto),
       rto: rtoQueueList,
       rto_received: dbOrders.filter(o => o.current_stage === "RTO_RECEIVED"),
-      pending_payment: dbOrders.filter(o => o.payment_status === "PENDING"),
-      payment_received: dbOrders.filter(o => o.payment_status === "RECEIVED")
+      pending_payment: dbOrders.filter(o => o.payment_status === "PENDING" && !o.is_dto),
+      payment_received: dbOrders.filter(o => o.payment_status === "RECEIVED" && !o.is_dto)
     };
 
     renderEnterpriseMetricPanels();
@@ -421,7 +417,7 @@ function renderEnterpriseMetricPanels() {
   document.getElementById("metricRecoveryRate").innerText = "Return Recovery: " + m.recoveryPercent + "%";
 
   document.getElementById("metricTopSku").innerText = m.topSkuString;
-  document.getElementById("metricMonthlyVolume").innerText = "Monthly Volume: " + m.monthCount + " Orders";
+  document.getElementById("metricPendingDtoCount").innerText = `Pending Delhivery DTO: ${m.activePendingDtoCount} Packets`;
   document.getElementById("metricActiveSkus").innerText = "Active SKUs in Circulation: " + m.totalActiveSkus;
 }
 
@@ -474,7 +470,6 @@ function nextPage() {
   }
 }
 
-// Point 1: Universal Search & Multi-Filter Engine
 function handleUniversalSearch() {
   currentPage = 1;
   renderActiveTab();
@@ -502,7 +497,6 @@ function getFilteredActiveList() {
   const monthPrefix = todayStr.slice(0, 7);
 
   return list.filter(o => {
-    // 1. Text Query Match
     if (query) {
       const matchAwb = String(o.awb_number || "").toLowerCase().includes(query);
       const matchOrder = String(o.customer_order_number || o.order_number || "").toLowerCase().includes(query);
@@ -511,13 +505,9 @@ function getFilteredActiveList() {
       if (!matchAwb && !matchOrder && !matchCust && !matchPhone) return false;
     }
 
-    // 2. Brand Filter Match
     if (brandFilter !== "ALL" && o.warehouse_tag !== brandFilter) return false;
-
-    // 3. Payment Mode Filter
     if (payFilter !== "ALL" && o.payment_mode !== payFilter) return false;
 
-    // 4. Date Range Filter
     if (dateFilter === "TODAY" && o.date !== todayStr) return false;
     if (dateFilter === "YESTERDAY" && o.date !== yestStr) return false;
     if (dateFilter === "LAST_7_DAYS" && o.date < sevenDaysAgo) return false;
@@ -531,14 +521,12 @@ function renderActiveTab() {
   const container = document.getElementById("ordersContainer");
   const paginationBar = document.getElementById("paginationBar");
 
-  // Visual Interactive Analytics View
   if (activeTab === "analytics") {
     paginationBar.style.display = "none";
     renderVisualAnalyticsCharts(container);
     return;
   }
 
-  // Date-Wise Reconciliation View
   if (activeTab === "daily_recon") {
     paginationBar.style.display = "none";
     let list = [...(dashboardData.date_wise_recon || [])];
@@ -582,7 +570,6 @@ function renderActiveTab() {
     return;
   }
 
-  // Standard Order Cards View
   paginationBar.style.display = "flex";
   const fullList = getFilteredActiveList();
 
@@ -605,9 +592,9 @@ function renderActiveTab() {
   document.getElementById("btnNextPage").disabled = (currentPage === totalPages);
 
   container.innerHTML = pageItems.map(o => {
-    const isDelhiveryReverse = Boolean(o.is_incoming_reverse);
-    const whClass = isDelhiveryReverse ? 'wh-reverse' : (o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc');
-    const whLabel = isDelhiveryReverse ? 'Delhivery Reverse' : o.warehouse_tag;
+    const isDto = Boolean(o.is_dto);
+    const whClass = isDto ? 'wh-reverse' : (o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc');
+    const whLabel = isDto ? 'Delhivery DTO' : o.warehouse_tag;
 
     return `
       <div class="order-card">
@@ -615,22 +602,19 @@ function renderActiveTab() {
           <div class="order-header">
             <span>#${o.customer_order_number || o.order_number} <span class="wh-pill ${whClass}">${whLabel}</span></span>
             <div style="text-align:right;">
-              <span class="tag-mode ${o.payment_mode === 'COD' ? 'tag-cod' : 'tag-prepaid'}">${o.payment_mode} - ₹${o.total_amount}</span>
+              <span class="tag-mode ${isDto ? 'tag-dto' : (o.payment_mode === 'COD' ? 'tag-cod' : 'tag-prepaid')}">${isDto ? 'DTO RETURN' : `${o.payment_mode} - ₹${o.total_amount}`}</span>
               ${o.gateway ? `<span class="tag-gateway">${o.gateway}</span>` : ''}
             </div>
           </div>
           <div class="order-info"><b>AWB:</b> <code>${o.awb_number || '-'}</code></div>
-          <div class="order-info"><b>Customer:</b> ${o.customer_name} (${o.phone})</div>
-          <div class="order-info"><b>Destination:</b> ${o.city}, ${o.state || ''}</div>
-          <div class="sku-bubble">${o.products_summary || 'Standard Apparel Package'}</div>
+          <div class="order-info"><b>Customer:</b> ${o.customer_name} ${o.phone ? `(${o.phone})` : ''}</div>
+          <div class="order-info"><b>Location:</b> ${o.city} ${o.state ? `, ${o.state}` : ''}</div>
+          <div class="sku-bubble">${o.products_summary || 'Standard Item'}</div>
         </div>
 
         <div class="card-actions-wrapper">
-          <!-- Point 3: Customer WhatsApp Action Ping Trigger -->
-          <button class="btn-act-action btn-whatsapp" onclick="triggerCustomerWhatsAppMessage('${o.phone}', '${o.customer_name}', '${o.customer_order_number}', '${o.awb_number}', '${o.current_stage}')">💬 WhatsApp</button>
-
           ${activeTab === 'rto' ? `
-            <button class="btn-act-action btn-act-received" onclick="confirmAndMarkRto('${o.awb_number}', ${isDelhiveryReverse ? JSON.stringify(JSON.stringify(o)) : 'null'})">Mark RTO Received</button>
+            <button class="btn-act-action btn-act-received" onclick="confirmAndMarkRto('${o.awb_number}', ${isDto ? JSON.stringify(JSON.stringify(o)) : 'null'})">Mark RTO Received</button>
           ` : ''}
 
           ${activeTab === 'pending_payment' ? `
@@ -647,7 +631,6 @@ function renderActiveTab() {
   }).join('');
 }
 
-// Visual Interactive Charts Generator (Section 4 Analytics)
 function renderVisualAnalyticsCharts(container) {
   const recon = (dashboardData.date_wise_recon || []).slice(0, 7).reverse();
   const dates = recon.map(r => r.date.slice(5));
@@ -687,28 +670,9 @@ function renderVisualAnalyticsCharts(container) {
   `;
 }
 
-// Point 3: Smart Customer WhatsApp Ping Generator
-function triggerCustomerWhatsAppMessage(phone, name, orderId, awb, stage) {
-  const cleanPhone = String(phone || "").replace(/[^0-9]/g, "");
-  if (!cleanPhone || cleanPhone.length < 10) return alert("Invalid customer phone number recorded for this order.");
-
-  const formattedPhone = cleanPhone.length === 10 ? ("91" + cleanPhone) : cleanPhone;
-  let text = `Hello ${name}, your order #${orderId} from Harsidhi Ventures is confirmed! Tracking AWB: ${awb}.`;
-  
-  if (stage === "OUT_FOR_DELIVERY") {
-    text = `Hello ${name}, your parcel #${orderId} is OUT FOR DELIVERY today! Please keep the payment amount ready. Tracking AWB: ${awb}.`;
-  } else if (stage === "PICKED") {
-    text = `Hello ${name}, your order #${orderId} has been packed and handed over to the courier partner! AWB: ${awb}.`;
-  }
-
-  const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`;
-  window.open(url, '_blank');
-}
-
-// Point 4: Printable Courier Manifest Slip Generator
 function generateAndPrintManifestSlip() {
   const todayStr = new Date().toISOString().slice(0, 10);
-  const todayOrders = (dashboardData.rawOrders || []).filter(o => o.date === todayStr);
+  const todayOrders = (dashboardData.rawOrders || []).filter(o => o.date === todayStr && !o.is_dto);
 
   if (todayOrders.length === 0) {
     return alert("No orders recorded for today's date to generate the manifest slip.");
@@ -766,7 +730,6 @@ function generateAndPrintManifestSlip() {
   window.print();
 }
 
-// Point 2: Rapid-Fire Continuous Mode Toggle
 function toggleContinuousScanningMode() {
   isContinuousScanning = !isContinuousScanning;
   document.getElementById("chkContinuousScan").checked = isContinuousScanning;
@@ -784,29 +747,32 @@ function toggleContinuousScanningMode() {
   }
 }
 
-async function confirmAndMarkRto(awb, rawStagingObj) {
-  const confirmed = confirm(`⚠️ Warning Confirmation:\n\nAre you sure you want to mark AWB: ${awb} as RTO RECEIVED?`);
+// Confirm Physical Receipt of RTO or DTO
+async function confirmAndMarkRto(awb, rawDtoObj) {
+  const confirmed = confirm(`⚠️ Confirmation:\n\nConfirm physical warehouse receipt of AWB: ${awb} as RTO RECEIVED?`);
   if (!confirmed) return;
 
   const today = new Date().toISOString().slice(0, 10);
 
-  if (rawStagingObj) {
-    let stagingItem = {};
-    try { stagingItem = JSON.parse(rawStagingObj); } catch(e) {}
+  // If packet is a Delhivery DTO (Reverse Logistics)
+  if (rawDtoObj) {
+    let dtoItem = {};
+    try { dtoItem = JSON.parse(rawDtoObj); } catch(e) {}
 
+    // Feed to Supabase Dispatches Master upon physical arrival
     const { error: insErr } = await sb.from('dispatches_master').insert([{
       date: today,
       awb_number: awb,
-      customer_order_number: stagingItem.customer_order_number || "-",
-      order_number: stagingItem.order_number || "-",
+      customer_order_number: dtoItem.customer_order_number || "-",
+      order_number: dtoItem.order_number || "-",
       warehouse_tag: "DELHIVERY",
-      customer_name: stagingItem.customer_name || "Customer Return",
-      phone: stagingItem.phone || "",
-      city: stagingItem.city || "",
-      state: stagingItem.state || "",
+      customer_name: dtoItem.customer_name || "Delhivery DTO Consignee",
+      phone: "",
+      city: dtoItem.city || "",
+      state: "",
       payment_mode: "RETURN",
-      total_amount: parseFloat(stagingItem.total_amount || 0),
-      products_summary: stagingItem.products_summary || "Reverse Logistics Packet",
+      total_amount: 0,
+      products_summary: dtoItem.products_summary || "Delhivery DTO Reverse Packet",
       payment_status: "PENDING",
       payment_received_amount: 0,
       gateway: "DELHIVERY_REVERSE",
@@ -816,7 +782,6 @@ async function confirmAndMarkRto(awb, rawStagingObj) {
     }]);
 
     if (!insErr) {
-      await sb.from('incoming_reverse_pickups').delete().eq('awb_number', awb);
       playHapticBeep("success");
       loadDashboard();
     } else {
@@ -826,10 +791,11 @@ async function confirmAndMarkRto(awb, rawStagingObj) {
     return;
   }
 
+  // Normal Dispatched Order RTO update
   const { data: existing, error: findErr } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
   if (!existing || findErr) {
     playHapticBeep("error");
-    return alert(`Action Blocked: AWB ${awb} was not located in database.`);
+    return alert(`Action Blocked: AWB ${awb} not found in database.`);
   }
 
   const { error } = await sb.from('dispatches_master')
@@ -891,7 +857,7 @@ function openActionModal(mode) {
     title.innerText = "📦 Warehouse Dispatch Scan";
     qcBox.style.display = "none";
   } else if (mode === "return") {
-    title.innerText = "↩️ Return Logistics Scan (RTO Received)";
+    title.innerText = "↩️ Return Logistics Scan (RTO / DTO Received)";
     qcBox.style.display = "block";
   } else if (mode === "payment") {
     title.innerText = "💰 Payment Reconciliation Scan";
@@ -974,24 +940,27 @@ async function lookupSingleAwb() {
         }
       });
   } else {
+    // Return or Payment Verification
     const { data: existing } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
-    const { data: staging } = await sb.from('incoming_reverse_pickups').select('*').eq('awb_number', awb).maybeSingle();
+    
+    // Check in-memory DTO queue
+    const matchedDto = (dashboardData.rto || []).find(o => o.awb_number === awb && o.is_dto);
 
-    if (!existing && !staging) {
+    if (!existing && !matchedDto) {
       playHapticBeep("error");
       cancelPreview();
-      return alert(`Action Blocked: AWB ${awb} not found in database records.`);
+      return alert(`Action Blocked: AWB ${awb} not found in database or DTO pipeline.`);
     }
 
     playHapticBeep("success");
-    const item = existing || staging;
+    const item = existing || matchedDto;
     pendingAwbData = item;
-    pendingAwbData.is_staging_reverse = !existing && Boolean(staging);
+    pendingAwbData.is_dto = Boolean(matchedDto);
 
     document.getElementById("previewContent").innerHTML = `
-      <div style="font-size:13px; font-weight:800; color:var(--primary-accent); margin-bottom:4px;">✅ Matched Order: #${item.customer_order_number}</div>
+      <div style="font-size:13px; font-weight:800; color:var(--primary-accent); margin-bottom:4px;">✅ Matched: #${item.customer_order_number}</div>
+      <div style="font-size:12px;"><b>Origin:</b> ${pendingAwbData.is_dto ? 'Delhivery DTO Reverse Packet' : 'Standard Dispatched Order'}</div>
       <div style="font-size:12px;"><b>Customer:</b> ${item.customer_name} (${item.city || '-'})</div>
-      <div style="font-size:12px;"><b>Origin:</b> ${pendingAwbData.is_staging_reverse ? 'Delhivery Reverse Packet' : 'Standard Dispatched Order'}</div>
     `;
     document.getElementById("previewCard").style.display = "block";
   }
@@ -1026,20 +995,20 @@ async function confirmSaveSingle() {
     }]);
     error = res.error;
   } else if (currentActionMode === "return") {
-    if (d.is_staging_reverse) {
+    if (d.is_dto) {
       const insRes = await sb.from('dispatches_master').insert([{
         date: date,
         awb_number: d.awb_number,
         customer_order_number: d.customer_order_number || "-",
         order_number: d.customer_order_number || "-",
         warehouse_tag: "DELHIVERY",
-        customer_name: d.customer_name || "Customer Return",
-        phone: d.phone || "",
+        customer_name: d.customer_name || "Delhivery DTO Consignee",
+        phone: "",
         city: d.city || "",
-        state: d.state || "",
+        state: "",
         payment_mode: "RETURN",
-        total_amount: parseFloat(d.total_amount || 0),
-        products_summary: d.products_summary || "Reverse Logistics Packet",
+        total_amount: 0,
+        products_summary: d.products_summary || "Delhivery DTO Packet",
         payment_status: "PENDING",
         gateway: "DELHIVERY_REVERSE",
         packed_status: "RTO_RECEIVED",
@@ -1047,7 +1016,6 @@ async function confirmSaveSingle() {
         return_condition: returnQc
       }]);
       error = insRes.error;
-      if (!error) await sb.from('incoming_reverse_pickups').delete().eq('awb_number', d.awb_number);
     } else {
       const res = await sb.from('dispatches_master')
         .update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED', return_condition: returnQc })
@@ -1113,7 +1081,23 @@ async function submitBulkAwbs() {
           }]);
         }
       } else if (currentActionMode === "return") {
-        await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
+        const matchedDto = (dashboardData.rto || []).find(o => o.awb_number === awb && o.is_dto);
+        if (matchedDto) {
+          await sb.from('dispatches_master').insert([{
+            date: date,
+            awb_number: awb,
+            customer_order_number: matchedDto.customer_order_number || "-",
+            warehouse_tag: "DELHIVERY",
+            customer_name: "Delhivery DTO Consignee",
+            payment_mode: "RETURN",
+            total_amount: 0,
+            gateway: "DELHIVERY_REVERSE",
+            packed_status: "RTO_RECEIVED",
+            current_stage: "RTO_RECEIVED"
+          }]);
+        } else {
+          await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
+        }
       } else if (currentActionMode === "payment") {
         const { data: existing } = await sb.from('dispatches_master').select('total_amount, payment_mode').eq('awb_number', awb).maybeSingle();
         if (existing) {
@@ -1142,7 +1126,6 @@ function startCamera() {
       const awb = decodedText.trim();
       if (!awb) return;
 
-      // Point 2: Rapid-Fire Continuous Mode Execution
       if (isContinuousScanning && currentActionMode === "pickup") {
         const { data: existing } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
         if (existing) {
@@ -1183,33 +1166,33 @@ function startCamera() {
 
       if (currentActionMode === "return") {
         const { data: existing } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
-        const { data: staging } = await sb.from('incoming_reverse_pickups').select('*').eq('awb_number', awb).maybeSingle();
+        const matchedDto = (dashboardData.rto || []).find(o => o.awb_number === awb && o.is_dto);
 
-        if (!existing && !staging) {
+        if (!existing && !matchedDto) {
           playHapticBeep("error");
-          alert(`Scan Blocked: AWB ${awb} not located in records!`);
+          alert(`Scan Blocked: AWB ${awb} not found in database or DTO pipeline!`);
           switchInputMode('manual');
           return;
         }
 
-        const match = existing || staging;
-        const confirmed = confirm(`⚠️ Warning Confirmation:\n\nCamera detected AWB: ${awb}\nOrder: #${match.customer_order_number} (${match.customer_name})\n\nConfirm physical receipt as RTO RECEIVED?`);
+        const match = existing || matchedDto;
+        const isDto = Boolean(matchedDto);
+        const confirmed = confirm(`⚠️ Warning Confirmation:\n\nCamera detected AWB: ${awb}\nOrder: #${match.customer_order_number} (${isDto ? 'Delhivery DTO' : match.customer_name})\n\nConfirm physical receipt as RTO RECEIVED?`);
         if (confirmed) {
           const today = new Date().toISOString().slice(0, 10);
-          if (staging && !existing) {
+          if (isDto) {
             await sb.from('dispatches_master').insert([{
               date: today,
               awb_number: awb,
-              customer_order_number: staging.customer_order_number || "-",
+              customer_order_number: match.customer_order_number || "-",
               warehouse_tag: "DELHIVERY",
-              customer_name: staging.customer_name || "Customer Return",
+              customer_name: "Delhivery DTO Consignee",
               payment_mode: "RETURN",
-              total_amount: staging.total_amount || 0,
+              total_amount: 0,
               gateway: "DELHIVERY_REVERSE",
               packed_status: "RTO_RECEIVED",
               current_stage: "RTO_RECEIVED"
             }]);
-            await sb.from('incoming_reverse_pickups').delete().eq('awb_number', awb);
           } else {
             await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
           }
