@@ -3,15 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Harsidhi ERP - Dispatch & Tracking</title>
+  <title>Harsidhi ERP - Dispatch, Reverse & Payment Engine</title>
+  
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Dedicated Responsive CSS File -->
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Optical Barcode / QR Scanner Engine -->
   <script src="https://unpkg.com/html5-qrcode"></script>
+  
+  <!-- Supabase Official JS SDK Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- Passcode Screen -->
+  <!-- =========================================================================
+       1. Security Passcode Screen
+       ========================================================================= -->
   <div id="lockScreen">
     <h2 style="margin-bottom: 6px; font-weight:800; letter-spacing:-0.4px;">Harsidhi ERP Portal</h2>
     <p style="color: #94a3b8; font-size: 13px;">Enter 4-Digit Passcode to Unlock</p>
@@ -24,7 +34,9 @@
     <p id="pinError" style="color: #ef4444; font-size: 12.5px; display:none;">Invalid Passcode! Please try again.</p>
   </div>
 
-  <!-- Main Dashboard -->
+  <!-- =========================================================================
+       2. Main Dashboard Application
+       ========================================================================= -->
   <div id="appScreen">
     <header>
       <div class="brand-title">📦 Harsidhi ERP Station</div>
@@ -35,29 +47,47 @@
     <div class="kpi-row">
       <div class="kpi-card">
         <div class="kpi-title">Today Picked Up</div>
-        <div class="kpi-main-val"><span id="kpiTodayCount">0</span><span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span></div>
-        <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiTodayGs">GS: 0</span><span class="kpi-wh-uc" id="kpiTodayUc">UC: 0</span></div>
+        <div class="kpi-main-val">
+          <span id="kpiTodayCount">0</span>
+          <span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span>
+        </div>
+        <div class="kpi-wh-tags">
+          <span class="kpi-wh-gs" id="kpiTodayGs">GS: 0</span>
+          <span class="kpi-wh-uc" id="kpiTodayUc">UC: 0</span>
+        </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-title">Yesterday Picked Up</div>
-        <div class="kpi-main-val"><span id="kpiYestCount">0</span><span class="kpi-sub-amt" id="kpiYestAmt">₹0</span></div>
-        <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiYestGs">GS: 0</span><span class="kpi-wh-uc" id="kpiYestUc">UC: 0</span></div>
+        <div class="kpi-main-val">
+          <span id="kpiYestCount">0</span>
+          <span class="kpi-sub-amt" id="kpiYestAmt">₹0</span>
+        </div>
+        <div class="kpi-wh-tags">
+          <span class="kpi-wh-gs" id="kpiYestGs">GS: 0</span>
+          <span class="kpi-wh-uc" id="kpiYestUc">UC: 0</span>
+        </div>
       </div>
       <div class="kpi-card">
         <div class="kpi-title">Monthly Dispatches</div>
-        <div class="kpi-main-val"><span id="kpiMonthCount">0</span><span class="kpi-sub-amt" id="kpiMonthAmt">₹0</span></div>
-        <div class="kpi-wh-tags"><span class="kpi-wh-gs" id="kpiMonthGs">GS: 0</span><span class="kpi-wh-uc" id="kpiMonthUc">UC: 0</span></div>
+        <div class="kpi-main-val">
+          <span id="kpiMonthCount">0</span>
+          <span class="kpi-sub-amt" id="kpiMonthAmt">₹0</span>
+        </div>
+        <div class="kpi-wh-tags">
+          <span class="kpi-wh-gs" id="kpiMonthGs">GS: 0</span>
+          <span class="kpi-wh-uc" id="kpiMonthUc">UC: 0</span>
+        </div>
       </div>
     </div>
 
-    <!-- Actions -->
+    <!-- 3 Core Scan Trigger Action Buttons -->
     <div class="action-bar">
       <button class="btn-act-main btn-act-pickup" onclick="openActionModal('pickup')">📦 Pickup Scan</button>
       <button class="btn-act-main btn-act-return" onclick="openActionModal('return')">↩️ Return Scan</button>
       <button class="btn-act-main btn-act-payment" onclick="openActionModal('payment')">💰 Payment Scan</button>
     </div>
 
-    <!-- Navigation Tabs -->
+    <!-- Navigation Tab Pills -->
     <div class="tabs-nav">
       <button class="tab-pill active" id="tab_all_orders" onclick="switchTab('all_orders')">📦 All Orders (<span class="tab-badge" id="c_all_orders">0</span>)</button>
       <button class="tab-pill" id="tab_pickup_failed" onclick="switchTab('pickup_failed')">⚠️ Pickup Failed (<span class="tab-badge" id="c_pickup_failed">0</span>)</button>
@@ -72,7 +102,7 @@
       <button class="tab-pill" id="tab_daily_recon" onclick="switchTab('daily_recon')">📊 Date-Wise Recon (<span class="tab-badge" id="c_daily_recon">0</span>)</button>
     </div>
 
-    <!-- Pagination Controls -->
+    <!-- Mobile & Desktop Pagination Controls Bar -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-controls">
         <label style="font-size:12.5px; font-weight:700; color:var(--muted);">Rows per page:</label>
@@ -90,12 +120,15 @@
       </div>
     </div>
 
+    <!-- Orders Feed Container -->
     <div id="ordersContainer" class="orders-list">
       <div style="text-align: center; padding: 40px; color: var(--muted);">Synchronizing records...</div>
     </div>
   </div>
 
-  <!-- Standard Action Modal -->
+  <!-- =========================================================================
+       3. Standard Operation Action Modal (Pickup / Return / Payment)
+       ========================================================================= -->
   <div id="actionModal" class="modal-overlay">
     <div class="modal-sheet">
       <div class="modal-sheet-header">
@@ -108,21 +141,25 @@
         <input type="date" id="selectedDate">
       </div>
 
+      <!-- Mode Selector: Manual vs Optical Camera -->
       <div class="mode-switch">
         <button class="mode-btn active" id="btnModeManual" onclick="switchInputMode('manual')">⌨️ Manual Entry</button>
         <button class="mode-btn" id="btnModeCamera" onclick="switchInputMode('camera')">📷 Optical Scanner</button>
       </div>
 
+      <!-- Optical Camera Scanner Section -->
       <div id="cameraSection" style="display:none;">
         <div id="reader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
       </div>
 
+      <!-- Manual Keyboard Section -->
       <div id="manualSection">
         <div style="display:flex; gap:6px; margin-bottom:12px;">
           <button class="mode-btn active" id="btnSubSingle" onclick="switchSubTab('single')">Single AWB</button>
           <button class="mode-btn" id="btnSubBulk" onclick="switchSubTab('bulk')">Batch AWBs</button>
         </div>
 
+        <!-- Single AWB Form -->
         <div id="singleForm">
           <input type="text" id="inputSingleAwb" class="input-field" placeholder="Enter AWB Number...">
           <button class="btn-m-confirm" style="background:#2563eb;" onclick="lookupSingleAwb()">Verify AWB</button>
@@ -136,6 +173,7 @@
           </div>
         </div>
 
+        <!-- Batch AWBs Form -->
         <div id="bulkForm" style="display:none;">
           <textarea id="inputBulkAwbs" class="input-field" rows="5" placeholder="Paste multiple AWBs (one per line)..."></textarea>
           <button class="btn-m-confirm" style="background:#2563eb;" onclick="submitBulkAwbs()">Process Batch AWBs</button>
@@ -144,7 +182,9 @@
     </div>
   </div>
 
-  <!-- Summary Modal -->
+  <!-- =========================================================================
+       4. Batch Processing Audit Review Modal
+       ========================================================================= -->
   <div id="bulkSummaryModal" class="modal-overlay">
     <div class="modal-sheet" style="max-width: 520px;">
       <h3 style="font-size: 17px; font-weight: 800; color: var(--primary);">Batch Reconciliation Summary</h3>
@@ -158,18 +198,22 @@
           <div style="font-size:18px;" id="sumFailedCount">0</div>
         </div>
       </div>
+      
       <div id="sectionSuccessChips" style="display:none;">
         <div style="font-size:12px; font-weight:800; text-align:left; margin-bottom:4px;">Logged AWBs</div>
         <div class="audit-chip-list" id="chipsSuccess"></div>
       </div>
+      
       <div id="sectionFailedChips" style="display:none; margin-top:10px;">
         <div style="font-size:12px; font-weight:800; color:var(--jelly-red); text-align:left; margin-bottom:4px;">Exceptions</div>
         <div class="audit-chip-list" id="chipsFailed"></div>
       </div>
+      
       <button class="btn-m-confirm" style="margin-top:16px; background:#0f172a;" onclick="closeBulkSummaryModal()">Acknowledge & Refresh</button>
     </div>
   </div>
 
+  <!-- Dedicated Controller JavaScript File -->
   <script src="script.js"></script>
 </body>
 </html>
