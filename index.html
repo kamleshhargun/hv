@@ -3,94 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Harsidhi ERP - Dispatch, Reverse & Payment Engine</title>
+  <title>Harsidhi Ventures - Enterprise E-Commerce Operating System</title>
   
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- Dedicated Responsive CSS File -->
   <link rel="stylesheet" href="style.css">
   
-  <!-- Optical Barcode / QR Scanner Engine -->
   <script src="https://unpkg.com/html5-qrcode"></script>
-  
-  <!-- Supabase Official JS SDK Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- =========================================================================
-       1. Security Passcode Screen
-       ========================================================================= -->
+  <!-- Passcode Unlock Overlay -->
   <div id="lockScreen">
-    <h2 style="margin-bottom: 6px; font-weight:800; letter-spacing:-0.4px;">Harsidhi ERP Portal</h2>
-    <p style="color: #94a3b8; font-size: 13px;">Enter 4-Digit Passcode to Unlock</p>
+    <h2 style="margin-bottom: 6px; font-weight:800; letter-spacing:-0.4px;">Harsidhi Ventures ERP</h2>
+    <p style="color: #94a3b8; font-size: 13px;">Enter 4-Digit Security PIN</p>
     <div class="pin-box">
       <input type="password" maxlength="1" class="pin-digit" autofocus oninput="onPinInput(this, 0)">
       <input type="password" maxlength="1" class="pin-digit" oninput="onPinInput(this, 1)">
       <input type="password" maxlength="1" class="pin-digit" oninput="onPinInput(this, 2)">
       <input type="password" maxlength="1" class="pin-digit" oninput="onPinInput(this, 3)">
     </div>
-    <p id="pinError" style="color: #ef4444; font-size: 12.5px; display:none;">Invalid Passcode! Please try again.</p>
+    <p id="pinError" style="color: #ef4444; font-size: 12.5px; display:none;">Invalid PIN. Please try again.</p>
   </div>
 
-  <!-- =========================================================================
-       2. Main Dashboard Application
-       ========================================================================= -->
+  <!-- Main System UI -->
   <div id="appScreen">
     <header>
-      <div class="brand-title">📦 Harsidhi ERP Station</div>
-      <button onclick="loadDashboard()" style="background:#059669; color:#fff; border:none; padding:8px 16px; border-radius:var(--radius-pill); font-size:12.5px; font-weight:700; cursor:pointer;">↻ Synchronize</button>
+      <div class="brand-wrapper">
+        <div class="brand-title">🏢 Harsidhi Ventures ERP</div>
+        <div class="brand-author">Developed by Kamlesh Hargun</div>
+      </div>
+      <div class="header-actions">
+        <button onclick="loadDashboard()" style="background:#059669; color:#fff; border:none; padding:8px 16px; border-radius:var(--radius-pill); font-size:12.5px; font-weight:700; cursor:pointer;">↻ Synchronize</button>
+      </div>
     </header>
 
-    <!-- Daily KPIs -->
-    <div class="kpi-row">
-      <div class="kpi-card">
-        <div class="kpi-title">Today Picked Up</div>
-        <div class="kpi-main-val">
-          <span id="kpiTodayCount">0</span>
-          <span class="kpi-sub-amt" id="kpiTodayAmt">₹0</span>
-        </div>
-        <div class="kpi-wh-tags">
-          <span class="kpi-wh-gs" id="kpiTodayGs">GS: 0</span>
-          <span class="kpi-wh-uc" id="kpiTodayUc">UC: 0</span>
+    <!-- Point 1: Universal Instant Search & Dynamic Filter Header Bar -->
+    <div class="filter-header-bar">
+      <input type="text" id="globalSearchInput" class="search-input-box" placeholder="🔍 Search AWB, Order ID, Customer Name, Phone..." oninput="handleUniversalSearch()">
+      
+      <select id="filterBrandSelect" class="filter-select" onchange="applyUniversalFilters()">
+        <option value="ALL">All Brands (GS & UC)</option>
+        <option value="GS">Gulabi Shehar (GS)</option>
+        <option value="UC">Uncluttered Closet (UC)</option>
+      </select>
+
+      <select id="filterPaymentModeSelect" class="filter-select" onchange="applyUniversalFilters()">
+        <option value="ALL">All Payment Types</option>
+        <option value="COD">COD Orders</option>
+        <option value="PREPAID">Prepaid Orders</option>
+      </select>
+
+      <select id="filterDateRangeSelect" class="filter-select" onchange="applyUniversalFilters()">
+        <option value="ALL">All Time Data</option>
+        <option value="TODAY">Today's Orders</option>
+        <option value="YESTERDAY">Yesterday's Orders</option>
+        <option value="LAST_7_DAYS">Last 7 Days</option>
+        <option value="THIS_MONTH">This Month</option>
+      </select>
+    </div>
+
+    <!-- 4 Core Enterprise Financial & Operational Metric Panels -->
+    <div class="enterprise-pulse-grid">
+      <!-- Panel 1: Financial & Cash Pulse -->
+      <div class="metric-panel">
+        <div class="panel-title">Financial Realization <span>₹ Cash Flow</span></div>
+        <div class="panel-primary-val" id="metricCollectedAmt">₹0</div>
+        <div class="panel-sub-detail" id="metricInvoiceTotal">Total Dispatched: ₹0</div>
+        <div class="sub-meta-tags">
+          <span style="color:#d97706;" id="metricFloatingCash">In-Transit: ₹0</span>
+          <span style="color:#dc2626;" id="metricRtoLoss">RTO Drain: ₹0</span>
         </div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Yesterday Picked Up</div>
-        <div class="kpi-main-val">
-          <span id="kpiYestCount">0</span>
-          <span class="kpi-sub-amt" id="kpiYestAmt">₹0</span>
-        </div>
-        <div class="kpi-wh-tags">
-          <span class="kpi-wh-gs" id="kpiYestGs">GS: 0</span>
-          <span class="kpi-wh-uc" id="kpiYestUc">UC: 0</span>
+
+      <!-- Panel 2: Operational Dispatch Velocity -->
+      <div class="metric-panel">
+        <div class="panel-title">Fulfillment Velocity <span>Orders</span></div>
+        <div class="panel-primary-val" id="metricTodayDispatchedCount">0 pkts</div>
+        <div class="panel-sub-detail" id="metricYesterdayDispatched">Yesterday: 0 pkts</div>
+        <div class="sub-meta-tags">
+          <span class="badge-brand-gs" id="badgeGsVelocity">GS: 0</span>
+          <span class="badge-brand-uc" id="badgeUcVelocity">UC: 0</span>
         </div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Monthly Dispatches</div>
-        <div class="kpi-main-val">
-          <span id="kpiMonthCount">0</span>
-          <span class="kpi-sub-amt" id="kpiMonthAmt">₹0</span>
+
+      <!-- Panel 3: Performance & Delivery Conversion -->
+      <div class="metric-panel">
+        <div class="panel-title">Lifecycle Performance <span>Success %</span></div>
+        <div class="panel-primary-val" id="metricDeliveryRate">0.0%</div>
+        <div class="panel-sub-detail" id="metricDeliveredCount">0 Successfully Delivered</div>
+        <div class="sub-meta-tags">
+          <span style="color:#dc2626;" id="metricRtoRate">RTO: 0.0%</span>
+          <span style="color:#059669;" id="metricRecoveryRate">Return Recovery: 0%</span>
         </div>
-        <div class="kpi-wh-tags">
-          <span class="kpi-wh-gs" id="kpiMonthGs">GS: 0</span>
-          <span class="kpi-wh-uc" id="kpiMonthUc">UC: 0</span>
+      </div>
+
+      <!-- Panel 4: SKU & Inventory Intelligence -->
+      <div class="metric-panel">
+        <div class="panel-title">Inventory Intelligence <span>Fast SKUs</span></div>
+        <div class="panel-primary-val" style="font-size:16px; margin: 8px 0;" id="metricTopSku">Analyzing Velocity...</div>
+        <div class="panel-sub-detail" id="metricMonthlyVolume">Monthly Volume: 0 Orders</div>
+        <div class="sub-meta-tags">
+          <span style="color:#475569;" id="metricActiveSkus">SKUs in Circulation: 0</span>
         </div>
       </div>
     </div>
 
-    <!-- 3 Core Scan Trigger Action Buttons -->
-    <div class="action-bar">
-      <button class="btn-act-main btn-act-pickup" onclick="openActionModal('pickup')">📦 Pickup Scan</button>
-      <button class="btn-act-main btn-act-return" onclick="openActionModal('return')">↩️ Return Scan</button>
-      <button class="btn-act-main btn-act-payment" onclick="openActionModal('payment')">💰 Payment Scan</button>
+    <!-- Action Command Bar (With Rapid Continuous Toggle & Handover Sheet) -->
+    <div class="action-command-bar">
+      <button class="btn-command-main btn-cmd-pickup" onclick="openActionModal('pickup')">📦 Dispatch Scan</button>
+      <button class="btn-command-main btn-cmd-return" onclick="openActionModal('return')">↩️ Return Scan</button>
+      <button class="btn-command-main btn-cmd-payment" onclick="openActionModal('payment')">💰 Payment Scan</button>
+      <button class="btn-command-main btn-cmd-manifest" onclick="generateAndPrintManifestSlip()">📋 Print Handover Slip</button>
+
+      <!-- Point 2: Rapid-Fire Continuous Mode Toggle -->
+      <div class="rapid-scan-toggle-box" onclick="toggleContinuousScanningMode()">
+        <input type="checkbox" id="chkContinuousScan" pointer-events="none">
+        <label for="chkContinuousScan" style="cursor:pointer;">⚡ Rapid-Fire Continuous Mode</label>
+        <span id="rapidScanCounter" style="display:none; color:var(--primary-accent); margin-left:6px;">(Session: 0)</span>
+      </div>
     </div>
 
-    <!-- Navigation Tab Pills -->
+    <!-- Navigation Tabs -->
     <div class="tabs-nav">
       <button class="tab-pill active" id="tab_all_orders" onclick="switchTab('all_orders')">📦 All Orders (<span class="tab-badge" id="c_all_orders">0</span>)</button>
-      <button class="tab-pill" id="tab_pickup_failed" onclick="switchTab('pickup_failed')">⚠️ Pickup Failed (<span class="tab-badge" id="c_pickup_failed">0</span>)</button>
+      <button class="tab-pill" id="tab_pickup_failed" onclick="switchTab('pickup_failed')">⚠️ Pickup Exceptions (<span class="tab-badge" id="c_pickup_failed">0</span>)</button>
       <button class="tab-pill" id="tab_picked" onclick="switchTab('picked')">✅ Today Picked (<span class="tab-badge" id="c_picked">0</span>)</button>
       <button class="tab-pill" id="tab_intransit" onclick="switchTab('intransit')">🚚 In-Transit (<span class="tab-badge" id="c_intransit">0</span>)</button>
       <button class="tab-pill" id="tab_out_for_delivery" onclick="switchTab('out_for_delivery')">Out for Delivery (<span class="tab-badge" id="c_out_for_delivery">0</span>)</button>
@@ -99,13 +136,14 @@
       <button class="tab-pill" id="tab_rto_received" onclick="switchTab('rto_received')">RTO Received (<span class="tab-badge" id="c_rto_received">0</span>)</button>
       <button class="tab-pill" id="tab_pending_payment" onclick="switchTab('pending_payment')">💳 Payment Pending (<span class="tab-badge" id="c_pending_payment">0</span>)</button>
       <button class="tab-pill" id="tab_payment_received" onclick="switchTab('payment_received')">Payment Received (<span class="tab-badge" id="c_payment_received">0</span>)</button>
-      <button class="tab-pill" id="tab_daily_recon" onclick="switchTab('daily_recon')">📊 Date-Wise Recon (<span class="tab-badge" id="c_daily_recon">0</span>)</button>
+      <button class="tab-pill" id="tab_analytics" onclick="switchTab('analytics')">📊 Visual Charts & Intelligence</button>
+      <button class="tab-pill" id="tab_daily_recon" onclick="switchTab('daily_recon')">📅 Date-Wise Reconciliation (<span class="tab-badge" id="c_daily_recon">0</span>)</button>
     </div>
 
-    <!-- Mobile & Desktop Pagination Controls Bar -->
+    <!-- Pagination Controls -->
     <div class="pagination-bar" id="paginationBar">
       <div class="page-controls">
-        <label style="font-size:12.5px; font-weight:700; color:var(--muted);">Rows per page:</label>
+        <label style="font-size:12.5px; font-weight:700; color:var(--text-muted);">Rows per page:</label>
         <select class="page-size-selector" id="pageSizeSelect" onchange="changePageSize(this.value)">
           <option value="25">25</option>
           <option value="50" selected>50</option>
@@ -114,21 +152,19 @@
         </select>
       </div>
       <div class="page-controls">
-        <button class="btn-page" id="btnPrevPage" onclick="prevPage()">◀ Prev</button>
+        <button class="btn-page" id="btnPrevPage" onclick="prevPage()">◀ Previous</button>
         <span class="page-info" id="pageDisplayInfo">Page 1 of 1</span>
         <button class="btn-page" id="btnNextPage" onclick="nextPage()">Next ▶</button>
       </div>
     </div>
 
-    <!-- Orders Feed Container -->
+    <!-- Main Output View Container -->
     <div id="ordersContainer" class="orders-list">
-      <div style="text-align: center; padding: 40px; color: var(--muted);">Synchronizing records...</div>
+      <div style="text-align: center; padding: 40px; color: var(--text-muted);">Synchronizing enterprise records...</div>
     </div>
   </div>
 
-  <!-- =========================================================================
-       3. Standard Operation Action Modal (Pickup / Return / Payment)
-       ========================================================================= -->
+  <!-- Standard Action Modal (Dispatch / Return / Payment) -->
   <div id="actionModal" class="modal-overlay">
     <div class="modal-sheet">
       <div class="modal-sheet-header">
@@ -141,31 +177,38 @@
         <input type="date" id="selectedDate">
       </div>
 
-      <!-- Mode Selector: Manual vs Optical Camera -->
       <div class="mode-switch">
-        <button class="mode-btn active" id="btnModeManual" onclick="switchInputMode('manual')">⌨️ Manual Entry</button>
-        <button class="mode-btn" id="btnModeCamera" onclick="switchInputMode('camera')">📷 Optical Scanner</button>
+        <button class="mode-btn active" id="btnModeManual" onclick="switchInputMode('manual')">⌨️ Keyboard</button>
+        <button class="mode-btn" id="btnModeCamera" onclick="switchInputMode('camera')">📷 Optical Camera</button>
       </div>
 
-      <!-- Optical Camera Scanner Section -->
       <div id="cameraSection" style="display:none;">
         <div id="reader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:260px;"></div>
       </div>
 
-      <!-- Manual Keyboard Section -->
       <div id="manualSection">
         <div style="display:flex; gap:6px; margin-bottom:12px;">
           <button class="mode-btn active" id="btnSubSingle" onclick="switchSubTab('single')">Single AWB</button>
           <button class="mode-btn" id="btnSubBulk" onclick="switchSubTab('bulk')">Batch AWBs</button>
         </div>
 
-        <!-- Single AWB Form -->
         <div id="singleForm">
-          <input type="text" id="inputSingleAwb" class="input-field" placeholder="Enter AWB Number...">
+          <input type="text" id="inputSingleAwb" class="input-field" placeholder="Enter or scan AWB Number...">
           <button class="btn-m-confirm" style="background:#2563eb;" onclick="lookupSingleAwb()">Verify AWB</button>
 
           <div id="previewCard" class="preview-card">
             <div id="previewContent"></div>
+            
+            <!-- Point 5: Return Quality Check (QC) Logger Selection -->
+            <div id="returnQcSection" style="display:none; margin-top:10px; padding:10px; background:#fff; border-radius:10px; border:1px solid #e2e8f0;">
+              <label style="font-size:12px; font-weight:800; color:#334155; display:block; margin-bottom:6px;">📦 Package Condition (QC Check):</label>
+              <select id="qcConditionSelect" class="filter-select" style="width:100%;">
+                <option value="INTACT">✅ Intact & Resellable</option>
+                <option value="DAMAGED">⚠️ Damaged Item / Crushed Box</option>
+                <option value="WRONG_RETURN">❌ Wrong / Incomplete Return Packet</option>
+              </select>
+            </div>
+
             <div class="preview-actions">
               <button class="btn-m-confirm" onclick="confirmSaveSingle()">Confirm & Save</button>
               <button class="btn-m-cancel" onclick="cancelPreview()">Cancel</button>
@@ -173,7 +216,6 @@
           </div>
         </div>
 
-        <!-- Batch AWBs Form -->
         <div id="bulkForm" style="display:none;">
           <textarea id="inputBulkAwbs" class="input-field" rows="5" placeholder="Paste multiple AWBs (one per line)..."></textarea>
           <button class="btn-m-confirm" style="background:#2563eb;" onclick="submitBulkAwbs()">Process Batch AWBs</button>
@@ -182,38 +224,9 @@
     </div>
   </div>
 
-  <!-- =========================================================================
-       4. Batch Processing Audit Review Modal
-       ========================================================================= -->
-  <div id="bulkSummaryModal" class="modal-overlay">
-    <div class="modal-sheet" style="max-width: 520px;">
-      <h3 style="font-size: 17px; font-weight: 800; color: var(--primary);">Batch Reconciliation Summary</h3>
-      <div class="summary-metric-row">
-        <div class="summary-card-metric metric-success">
-          <div style="font-size:11px; text-transform:uppercase;">Successful</div>
-          <div style="font-size:18px;" id="sumSuccessCount">0</div>
-        </div>
-        <div class="summary-card-metric metric-failed">
-          <div style="font-size:11px; text-transform:uppercase;">Skipped / Failed</div>
-          <div style="font-size:18px;" id="sumFailedCount">0</div>
-        </div>
-      </div>
-      
-      <div id="sectionSuccessChips" style="display:none;">
-        <div style="font-size:12px; font-weight:800; text-align:left; margin-bottom:4px;">Logged AWBs</div>
-        <div class="audit-chip-list" id="chipsSuccess"></div>
-      </div>
-      
-      <div id="sectionFailedChips" style="display:none; margin-top:10px;">
-        <div style="font-size:12px; font-weight:800; color:var(--jelly-red); text-align:left; margin-bottom:4px;">Exceptions</div>
-        <div class="audit-chip-list" id="chipsFailed"></div>
-      </div>
-      
-      <button class="btn-m-confirm" style="margin-top:16px; background:#0f172a;" onclick="closeBulkSummaryModal()">Acknowledge & Refresh</button>
-    </div>
-  </div>
+  <!-- Printable Courier Handover Slip Container -->
+  <div id="printManifestArea" style="display:none; background:#fff; padding:24px;"></div>
 
-  <!-- Dedicated Controller JavaScript File -->
   <script src="script.js"></script>
 </body>
 </html>
