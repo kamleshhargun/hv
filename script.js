@@ -1,5 +1,5 @@
 // <-- APPS SCRIPT WEB APP URL (Replace with your deployed Web App URL) -->
-const API_URL = "https://script.google.com/macros/s/AKfycbzwZxkVDPuRc37kOqrC-dZ3dH-qr7gC-wL1c2lSnckyMRTJWqaEZ_RkRRiWWlr1j1qc/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxJW5GLCuCVvhNmPu64CwmgxPldyZ0rKhguBybUeWbAsf5CS8YikDjG6QaKu6ewuHko/exec";
 
 // <-- SUPABASE CONFIGURATION -->
 const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co";
@@ -67,6 +67,7 @@ function showPinError() {
   inputs[0].focus();
 }
 
+// Unlimited Fast Fetch helper via Supabase range pagination
 async function fetchAllSupabaseRows() {
   let allRecords = [];
   let from = 0;
@@ -88,12 +89,27 @@ async function fetchAllSupabaseRows() {
   return allRecords;
 }
 
+// Staging Reverse Pickups fetch helper (From Delhivery Webhook)
+async function fetchIncomingDelhiveryReversePickups() {
+  try {
+    const { data, error } = await sb
+      .from('incoming_reverse_pickups')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error || !data) return [];
+    return data;
+  } catch(e) {
+    return [];
+  }
+}
+
 async function loadDashboard() {
   document.getElementById("ordersContainer").innerHTML = '<div style="text-align:center; padding:35px; color:var(--muted);">Synchronizing realtime Supabase records...</div>';
 
   try {
-    const [supabaseOrders, carrierRes] = await Promise.all([
+    const [supabaseOrders, incomingReverseList, carrierRes] = await Promise.all([
       fetchAllSupabaseRows(),
+      fetchIncomingDelhiveryReversePickups(),
       fetch(`${API_URL}?pin=${authenticatedPin}&action=getLiveCarriersData`).then(r => r.json()).catch(() => ({ success: false }))
     ]);
 
@@ -124,11 +140,10 @@ async function loadDashboard() {
       const payStatus = String(row.payment_status || "PENDING").trim();
       let currentStage = String(row.current_stage || "PICKED").trim();
 
-      // STRICT RULE: Agar aaj ki date me scan hua hai, toh woh PICKED tab me hi rahega
+      // RULE: Aaj ki date me scan hua order strictly PICKED me rahega
       if (scanDateStr === todayStr) {
         currentStage = "PICKED";
       } else if (currentStage === "PICKED") {
-        // Kal ya usse purane orders automatic In-Transit shift honge
         currentStage = "IN_TRANSIT";
         pastOrdersToTrack.push(awbVal);
       }
@@ -189,11 +204,12 @@ async function loadDashboard() {
         tx_id: row.tx_id || "",
         packed_status: row.packed_status || "PICKED_UP",
         current_stage: currentStage,
-        live_status: currentStage
+        live_status: currentStage,
+        is_incoming_reverse: false
       };
     });
 
-    // Background tracking sync for past orders (Non-blocking)
+    // Background sync tracking for past in-transit records (Non-blocking)
     if (pastOrdersToTrack.length > 0) {
       fetch(`${API_URL}?pin=${authenticatedPin}&action=batchTrackStatuses&awbs=${encodeURIComponent(pastOrdersToTrack.slice(0, 25).join(','))}`)
         .then(r => r.json())
@@ -273,6 +289,34 @@ async function loadDashboard() {
       }
     });
 
+    // RTO Queue me Supabase ke RTO orders + Delhivery Webhook ke incoming reverse packets merge honge
+    const rtoQueueList = [
+      ...dbOrders.filter(o => o.current_stage === "RTO")
+    ];
+
+    incomingReverseList.forEach(item => {
+      if (!pickedUpMap[item.awb_number]) {
+        rtoQueueList.push({
+          date: String(item.created_at || todayStr).slice(0, 10),
+          awb_number: item.awb_number,
+          customer_order_number: item.customer_order_number || "-",
+          order_number: item.customer_order_number || "-",
+          warehouse_tag: "DELHIVERY",
+          customer_name: item.customer_name || "Customer Return",
+          phone: item.phone || "",
+          city: item.city || "",
+          state: item.state || "",
+          payment_mode: "RETURN",
+          total_amount: parseFloat(item.total_amount || 0),
+          products_summary: item.products_summary || "Reverse Delhivery Packet",
+          payment_status: "PENDING",
+          current_stage: "RTO",
+          is_incoming_reverse: true,
+          raw_staging_id: item.id
+        });
+      }
+    });
+
     const reconList = Object.values(dateWiseRecon).sort((a, b) => b.date.localeCompare(a.date));
 
     dashboardData = {
@@ -284,7 +328,7 @@ async function loadDashboard() {
       intransit: dbOrders.filter(o => o.current_stage === "IN_TRANSIT"),
       out_for_delivery: dbOrders.filter(o => o.current_stage === "OUT_FOR_DELIVERY"),
       delivered: dbOrders.filter(o => o.current_stage === "DELIVERED"),
-      rto: dbOrders.filter(o => o.current_stage === "RTO"),
+      rto: rtoQueueList,
       rto_received: dbOrders.filter(o => o.current_stage === "RTO_RECEIVED"),
       pending_payment: dbOrders.filter(o => o.payment_status === "PENDING"),
       payment_received: dbOrders.filter(o => o.payment_status === "RECEIVED")
@@ -441,47 +485,95 @@ function renderActiveTab() {
   document.getElementById("btnNextPage").disabled = (currentPage === totalPages);
 
   container.innerHTML = pageItems.map(o => {
-    const whClass = o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc';
+    const isDelhiveryReverse = Boolean(o.is_incoming_reverse);
+    const whClass = isDelhiveryReverse ? 'wh-dto' : (o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc');
+    const whLabel = isDelhiveryReverse ? 'Delhivery Reverse' : o.warehouse_tag;
+
     return `
       <div class="order-card">
-        <div class="order-header">
-          <span>#${o.customer_order_number || o.order_number} <span class="wh-pill ${whClass}">${o.warehouse_tag}</span></span>
-          <div style="text-align:right;">
-            <span class="tag-mode ${o.payment_mode === 'COD' ? 'tag-cod' : 'tag-prepaid'}">${o.payment_mode} - ₹${o.total_amount}</span>
-            ${o.gateway ? `<span class="tag-gateway">${o.gateway}</span>` : ''}
+        <div>
+          <div class="order-header">
+            <span>#${o.customer_order_number || o.order_number} <span class="wh-pill ${whClass}">${whLabel}</span></span>
+            <div style="text-align:right;">
+              <span class="tag-mode ${o.payment_mode === 'COD' ? 'tag-cod' : 'tag-prepaid'}">${o.payment_mode} - ₹${o.total_amount}</span>
+              ${o.gateway ? `<span class="tag-gateway">${o.gateway}</span>` : ''}
+            </div>
           </div>
+          <div class="order-info"><b>AWB:</b> <code>${o.awb_number || '-'}</code></div>
+          <div class="order-info"><b>Customer:</b> ${o.customer_name} (${o.phone})</div>
+          <div class="order-info"><b>Destination:</b> ${o.city}, ${o.state || ''}</div>
+          <div class="sku-bubble">${o.products_summary || 'Standard Item'}</div>
         </div>
-        <div class="order-info"><b>AWB:</b> <code>${o.awb_number || '-'}</code></div>
-        <div class="order-info"><b>Customer:</b> ${o.customer_name} (${o.phone})</div>
-        <div class="order-info"><b>Destination:</b> ${o.city}, ${o.state || ''}</div>
-        <div class="sku-bubble">${o.products_summary || 'Standard Item'}</div>
 
-        ${activeTab === 'rto' ? `
-          <button class="btn-act-action btn-act-received" onclick="confirmAndMarkRto('${o.awb_number}')">Mark RTO Received</button>
-        ` : ''}
+        <div class="card-actions-wrapper">
+          ${activeTab === 'rto' ? `
+            <button class="btn-act-action btn-act-received" onclick="confirmAndMarkRto('${o.awb_number}', ${isDelhiveryReverse ? JSON.stringify(JSON.stringify(o)) : 'null'})">Mark RTO Received</button>
+          ` : ''}
 
-        ${activeTab === 'pending_payment' ? `
-          <button class="btn-act-action btn-act-received" onclick="confirmAndMarkPayment('${o.awb_number}', ${o.total_amount}, '${o.payment_mode}')">Mark Paid</button>
-          ${o.payment_mode === 'PREPAID' ? `<button class="btn-act-action" style="background:#f1f5f9; color:#0f172a; margin-right:8px;" onclick="verifyGatewayAudit('${o.customer_order_number || o.order_number}', ${o.total_amount})">Audit Gateway</button>` : ''}
-        ` : ''}
+          ${activeTab === 'pending_payment' ? `
+            <button class="btn-act-action btn-act-received" onclick="confirmAndMarkPayment('${o.awb_number}', ${o.total_amount}, '${o.payment_mode}')">Mark Paid</button>
+            ${o.payment_mode === 'PREPAID' ? `<button class="btn-act-action" style="background:#f1f5f9; color:#0f172a;" onclick="verifyGatewayAudit('${o.customer_order_number || o.order_number}', ${o.total_amount})">Audit Gateway</button>` : ''}
+          ` : ''}
 
-        ${(activeTab === 'picked' || activeTab === 'rto_received' || activeTab === 'payment_received') ? `
-          <button class="btn-act-action btn-undo" onclick="promptUndo('${o.awb_number}', '${activeTab.toUpperCase()}')">↩️ Undo</button>
-        ` : ''}
+          ${(activeTab === 'picked' || activeTab === 'rto_received' || activeTab === 'payment_received') ? `
+            <button class="btn-act-action btn-undo" onclick="promptUndo('${o.awb_number}', '${activeTab.toUpperCase()}')">↩️ Undo</button>
+          ` : ''}
+        </div>
       </div>
     `;
   }).join('');
 }
 
-// WARNING POPUP FOR RTO RECEIVED
-async function confirmAndMarkRto(awb) {
+// WARNING POPUP FOR RTO RECEIVED (Handles both Dispatched Orders & Delhivery Reverse Staging)
+async function confirmAndMarkRto(awb, rawStagingObj) {
   const confirmed = confirm(`⚠️ Warning Confirmation:\n\nKya aap sach me AWB: ${awb} ko "RTO Received" mark karna chahte hain?\n\n(Click OK to Confirm, Cancel to Abort)`);
   if (!confirmed) return;
 
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Case 1: Agar packet Delhivery Reverse Staging se aaya hai
+  if (rawStagingObj) {
+    let stagingItem = {};
+    try { stagingItem = JSON.parse(rawStagingObj); } catch(e) {}
+
+    // Master sheet me insert karein
+    const { error: insErr } = await sb.from('dispatches_master').insert([{
+      date: today,
+      awb_number: awb,
+      customer_order_number: stagingItem.customer_order_number || "-",
+      order_number: stagingItem.order_number || "-",
+      warehouse_tag: "DELHIVERY",
+      customer_name: stagingItem.customer_name || "Customer Return",
+      phone: stagingItem.phone || "",
+      city: stagingItem.city || "",
+      state: stagingItem.state || "",
+      payment_mode: "RETURN",
+      total_amount: parseFloat(stagingItem.total_amount || 0),
+      products_summary: stagingItem.products_summary || "Reverse Delhivery Packet",
+      payment_status: "PENDING",
+      payment_received_amount: 0,
+      gateway: "DELHIVERY_REVERSE",
+      packed_status: "RTO_RECEIVED",
+      current_stage: "RTO_RECEIVED"
+    }]);
+
+    if (!insErr) {
+      // Staging se delete karein
+      await sb.from('incoming_reverse_pickups').delete().eq('awb_number', awb);
+      playBeep(true);
+      loadDashboard();
+    } else {
+      playBeep(false);
+      alert("Error: " + insErr.message);
+    }
+    return;
+  }
+
+  // Case 2: Agar packet already dispatches_master me tha
   const { data: existing, error: findErr } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
   if (!existing || findErr) {
     playBeep(false);
-    return alert(`Action Blocked: AWB ${awb} dispatch records me nahi mila!`);
+    return alert(`Action Blocked: AWB ${awb} database me nahi mila!`);
   }
 
   const { error } = await sb.from('dispatches_master')
@@ -582,12 +674,10 @@ function switchSubTab(sub) {
   cancelPreview();
 }
 
-// LOOKUP LOGIC (STRICT SUPABASE ONLY FOR RETURN / PAYMENT)
 async function lookupSingleAwb() {
   const awb = document.getElementById("inputSingleAwb").value.trim();
   if (!awb) return alert("Please specify a valid AWB number.");
 
-  // PICKUP MODE
   if (currentActionMode === "pickup") {
     const { data: existing } = await sb.from('dispatches_master').select('date').eq('awb_number', awb).maybeSingle();
     if (existing) {
@@ -617,22 +707,26 @@ async function lookupSingleAwb() {
           document.getElementById("previewCard").style.display = "block";
         }
       });
-  } 
-  // RETURN & PAYMENT MODE: STRICT SUPABASE SEARCH
-  else {
-    const { data: existing, error } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
-    if (!existing || error) {
+  } else {
+    // Return & Payment Lookup: Supabase Dispatches ya Incoming Staging table me search
+    const { data: existing } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
+    const { data: staging } = await sb.from('incoming_reverse_pickups').select('*').eq('awb_number', awb).maybeSingle();
+
+    if (!existing && !staging) {
       playBeep(false);
       cancelPreview();
       return alert(`Action Blocked: AWB ${awb} database me nahi mila. Invalid Scan!`);
     }
 
     playBeep(true);
-    pendingAwbData = existing;
+    const item = existing || staging;
+    pendingAwbData = item;
+    pendingAwbData.is_staging_reverse = !existing && Boolean(staging);
+
     document.getElementById("previewContent").innerHTML = `
-      <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ Matched Order: #${existing.customer_order_number}</div>
-      <div style="font-size:12px;"><b>Customer:</b> ${existing.customer_name} (${existing.city})</div>
-      <div style="font-size:12px;"><b>Stage:</b> ${existing.current_stage} | <b>Amount:</b> ₹${existing.total_amount} (${existing.payment_mode})</div>
+      <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ Matched Order: #${item.customer_order_number}</div>
+      <div style="font-size:12px;"><b>Customer:</b> ${item.customer_name} (${item.city || '-'})</div>
+      <div style="font-size:12px;"><b>Type:</b> ${pendingAwbData.is_staging_reverse ? 'Delhivery Reverse Packet' : 'Standard Dispatched Order'}</div>
     `;
     document.getElementById("previewCard").style.display = "block";
   }
@@ -669,10 +763,33 @@ async function confirmSaveSingle() {
     const confirmed = confirm(`⚠️ Warning: Kya aap AWB ${d.awb_number} ko RTO Received mark karna chahte hain?`);
     if (!confirmed) return;
 
-    const res = await sb.from('dispatches_master')
-      .update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' })
-      .eq('awb_number', d.awb_number);
-    error = res.error;
+    if (d.is_staging_reverse) {
+      const insRes = await sb.from('dispatches_master').insert([{
+        date: date,
+        awb_number: d.awb_number,
+        customer_order_number: d.customer_order_number || "-",
+        order_number: d.customer_order_number || "-",
+        warehouse_tag: "DELHIVERY",
+        customer_name: d.customer_name || "Customer Return",
+        phone: d.phone || "",
+        city: d.city || "",
+        state: d.state || "",
+        payment_mode: "RETURN",
+        total_amount: parseFloat(d.total_amount || 0),
+        products_summary: d.products_summary || "Reverse Delhivery Packet",
+        payment_status: "PENDING",
+        gateway: "DELHIVERY_REVERSE",
+        packed_status: "RTO_RECEIVED",
+        current_stage: "RTO_RECEIVED"
+      }]);
+      error = insRes.error;
+      if (!error) await sb.from('incoming_reverse_pickups').delete().eq('awb_number', d.awb_number);
+    } else {
+      const res = await sb.from('dispatches_master')
+        .update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' })
+        .eq('awb_number', d.awb_number);
+      error = res.error;
+    }
   } else if (currentActionMode === "payment") {
     const confirmed = confirm(`⚠️ Warning: Kya aap AWB ${d.awb_number} ke liye payment confirm karna chahte hain?`);
     if (!confirmed) return;
@@ -744,8 +861,25 @@ async function submitBulkAwbs() {
         }
       } else if (currentActionMode === "return") {
         const { data: existing } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
+        const { data: staging } = await sb.from('incoming_reverse_pickups').select('*').eq('awb_number', awb).maybeSingle();
+
         if (existing) {
           await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
+          processed.push({ awb });
+        } else if (staging) {
+          await sb.from('dispatches_master').insert([{
+            date: date,
+            awb_number: awb,
+            customer_order_number: staging.customer_order_number || "-",
+            warehouse_tag: "DELHIVERY",
+            customer_name: staging.customer_name || "Customer Return",
+            payment_mode: "RETURN",
+            total_amount: staging.total_amount || 0,
+            gateway: "DELHIVERY_REVERSE",
+            packed_status: "RTO_RECEIVED",
+            current_stage: "RTO_RECEIVED"
+          }]);
+          await sb.from('incoming_reverse_pickups').delete().eq('awb_number', awb);
           processed.push({ awb });
         } else {
           failed.push({ awb, reason: "Order not found in database." });
@@ -811,7 +945,6 @@ function closeBulkSummaryModal() {
   loadDashboard();
 }
 
-// OPTICAL CAMERA SCANNER (STRICT WORKFLOW)
 function startCamera() {
   if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
   html5QrCode.start(
@@ -825,18 +958,38 @@ function startCamera() {
       document.getElementById("inputSingleAwb").value = awb;
 
       if (currentActionMode === "return") {
-        // Strict Supabase camera check with Warning Popup
-        const { data: existing, error } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
-        if (!existing || error) {
+        const { data: existing } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
+        const { data: staging } = await sb.from('incoming_reverse_pickups').select('*').eq('awb_number', awb).maybeSingle();
+
+        if (!existing && !staging) {
           playBeep(false);
           alert(`Scan Blocked: AWB ${awb} dispatch records me nahi mila!`);
           switchInputMode('manual');
           return;
         }
 
-        const confirmed = confirm(`⚠️ Warning Confirmation:\n\nCamera ne AWB: ${awb} detect kiya hai.\nOrder: #${existing.customer_order_number} (${existing.customer_name})\n\nKya aap ise "RTO Received" mark karna chahte hain?`);
+        const match = existing || staging;
+        const confirmed = confirm(`⚠️ Warning Confirmation:\n\nCamera ne AWB: ${awb} detect kiya hai.\nOrder: #${match.customer_order_number} (${match.customer_name})\n\nKya aap ise "RTO Received" mark karna chahte hain?`);
         if (confirmed) {
-          await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
+          const today = new Date().toISOString().slice(0, 10);
+          if (staging && !existing) {
+            await sb.from('dispatches_master').insert([{
+              date: today,
+              awb_number: awb,
+              customer_order_number: staging.customer_order_number || "-",
+              warehouse_tag: "DELHIVERY",
+              customer_name: staging.customer_name || "Customer Return",
+              payment_mode: "RETURN",
+              total_amount: staging.total_amount || 0,
+              gateway: "DELHIVERY_REVERSE",
+              packed_status: "RTO_RECEIVED",
+              current_stage: "RTO_RECEIVED"
+            }]);
+            await sb.from('incoming_reverse_pickups').delete().eq('awb_number', awb);
+          } else {
+            await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
+          }
+
           playBeep(true);
           closeActionModal();
           loadDashboard();
