@@ -1,7 +1,11 @@
-// <-- APPS SCRIPT WEB APP URL (Replace with your deployed Web App URL) -->
-const API_URL = "https://script.google.com/macros/s/AKfycbxJW5GLCuCVvhNmPu64CwmgxPldyZ0rKhguBybUeWbAsf5CS8YikDjG6QaKu6ewuHko/exec";
+/**
+ * Harsidhi Ventures ERP - Client Controller
+ * Developed by: Kamlesh Hargun
+ */
 
-// <-- SUPABASE CONFIGURATION -->
+const API_URL = "https://script.google.com/macros/s/AKfycbxTrU_KwblhLu6RqnpBdhPgi995_WskN0EXxDLSrHJmFUF2gWG_Jx6lymNp4pau0XM6/exec";
+
+// Supabase Configuration
 const SUPABASE_URL = "https://bkmynjioyjtzzjtwloee.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbXluamlveWp0enpqdHdsb2VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDI5MzIsImV4cCI6MjEwNzgxODkzMn0.L34UB_G55TSP9EAW9Xox-obUUe8XsVIwDTJ8XwfQ85A";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -13,26 +17,52 @@ let currentActionMode = "pickup";
 let html5QrCode = null;
 let pendingAwbData = null;
 
+let isContinuousScanning = false;
+let continuousSessionCount = 0;
+
 let currentPage = 1;
 let pageSize = 50;
 let reconSortAsc = false;
 
+// Point 6: Warehouse Audio and Haptic Feedback Engine
 let audioCtx = null;
 function getAudioContext() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
-function playBeep(success) {
+
+function playHapticBeep(type) {
+  // Hardware Haptic Feedback
+  if ("vibrate" in navigator) {
+    if (type === "success") navigator.vibrate(60);
+    else if (type === "duplicate") navigator.vibrate([100, 50, 100]);
+    else if (type === "error") navigator.vibrate([200, 80, 200]);
+  }
+
+  // Audio Tones
   try {
     const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.frequency.setValueAtTime(success ? 880 : 220, ctx.currentTime);
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
+    if (type === "success") {
+      osc.frequency.setValueAtTime(880, ctx.currentTime); // High pitch A5
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.start(); osc.stop(ctx.currentTime + 0.25);
+    } else if (type === "duplicate") {
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start(); osc.stop(ctx.currentTime + 0.35);
+    } else {
+      osc.frequency.setValueAtTime(220, ctx.currentTime); // Low pitch error tone
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
+    }
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(); osc.stop(ctx.currentTime + 0.3);
   } catch(e) {}
 }
 
@@ -54,20 +84,19 @@ function verifyFastPin(pin) {
         document.getElementById("appScreen").style.display = "block";
         loadDashboard();
       } else {
-        showPinError();
+        document.getElementById("pinError").style.display = "block";
+        const inputs = document.querySelectorAll(".pin-digit");
+        inputs.forEach(i => i.value = "");
+        inputs[0].focus();
+        playHapticBeep("error");
       }
     })
-    .catch(() => showPinError());
+    .catch(() => {
+      document.getElementById("pinError").style.display = "block";
+      playHapticBeep("error");
+    });
 }
 
-function showPinError() {
-  document.getElementById("pinError").style.display = "block";
-  const inputs = document.querySelectorAll(".pin-digit");
-  inputs.forEach(i => i.value = "");
-  inputs[0].focus();
-}
-
-// Unlimited Fast Fetch helper via Supabase range pagination
 async function fetchAllSupabaseRows() {
   let allRecords = [];
   let from = 0;
@@ -89,13 +118,9 @@ async function fetchAllSupabaseRows() {
   return allRecords;
 }
 
-// Staging Reverse Pickups fetch helper (From Delhivery Webhook)
 async function fetchIncomingDelhiveryReversePickups() {
   try {
-    const { data, error } = await sb
-      .from('incoming_reverse_pickups')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { data, error } = await sb.from('incoming_reverse_pickups').select('*').order('created_at', { ascending: false });
     if (error || !data) return [];
     return data;
   } catch(e) {
@@ -104,7 +129,7 @@ async function fetchIncomingDelhiveryReversePickups() {
 }
 
 async function loadDashboard() {
-  document.getElementById("ordersContainer").innerHTML = '<div style="text-align:center; padding:35px; color:var(--muted);">Synchronizing realtime Supabase records...</div>';
+  document.getElementById("ordersContainer").innerHTML = '<div style="text-align:center; padding:35px; color:var(--text-muted);">Synchronizing enterprise records...</div>';
 
   try {
     const [supabaseOrders, incomingReverseList, carrierRes] = await Promise.all([
@@ -124,11 +149,22 @@ async function loadDashboard() {
 
     const pickedUpMap = {};
     const dateWiseRecon = {};
-    let kpis = {
-      today: { count: 0, amount: 0, gs: 0, uc: 0 },
-      yesterday: { count: 0, amount: 0, gs: 0, uc: 0 },
-      month: { count: 0, amount: 0, gs: 0, uc: 0 }
-    };
+    const skuCounter = {};
+
+    let totalDispatchedAmt = 0;
+    let totalRealizedAmt = 0;
+    let totalInTransitAmt = 0;
+    let totalRtoLossAmt = 0;
+
+    let todayCount = 0;
+    let todayGs = 0;
+    let todayUc = 0;
+    let yesterdayCount = 0;
+    let monthCount = 0;
+
+    let deliveredCount = 0;
+    let rtoCount = 0;
+    let rtoReceivedCount = 0;
 
     const pastOrdersToTrack = [];
 
@@ -140,7 +176,6 @@ async function loadDashboard() {
       const payStatus = String(row.payment_status || "PENDING").trim();
       let currentStage = String(row.current_stage || "PICKED").trim();
 
-      // RULE: Aaj ki date me scan hua order strictly PICKED me rahega
       if (scanDateStr === todayStr) {
         currentStage = "PICKED";
       } else if (currentStage === "PICKED") {
@@ -148,10 +183,35 @@ async function loadDashboard() {
         pastOrdersToTrack.push(awbVal);
       }
 
-      if (awbVal) {
-        pickedUpMap[awbVal] = { stage: currentStage, scanDate: scanDateStr };
+      if (awbVal) pickedUpMap[awbVal] = { stage: currentStage, scanDate: scanDateStr };
+
+      totalDispatchedAmt += rowAmt;
+      if (payStatus === "RECEIVED") {
+        totalRealizedAmt += parseFloat(row.payment_received_amount || rowAmt);
+      } else if (currentStage === "IN_TRANSIT" || currentStage === "OUT_FOR_DELIVERY") {
+        totalInTransitAmt += rowAmt;
       }
 
+      if (currentStage === "DELIVERED") deliveredCount++;
+      if (currentStage === "RTO" || currentStage === "RTO_RECEIVED") {
+        rtoCount++;
+        totalRtoLossAmt += rowAmt;
+      }
+      if (currentStage === "RTO_RECEIVED") rtoReceivedCount++;
+
+      // SKU Frequency count
+      const summaryText = String(row.products_summary || "").trim();
+      if (summaryText) {
+        const items = summaryText.split(/[|,]+/);
+        items.forEach(it => {
+          const cleanSku = it.trim().split(" (")[0].trim();
+          if (cleanSku && cleanSku !== "Standard Item") {
+            skuCounter[cleanSku] = (skuCounter[cleanSku] || 0) + 1;
+          }
+        });
+      }
+
+      // Reconciliation & KPI counts
       if (scanDateStr) {
         if (!dateWiseRecon[scanDateStr]) {
           dateWiseRecon[scanDateStr] = { date: scanDateStr, count: 0, total_amount: 0, received_amount: 0, pending_count: 0 };
@@ -165,23 +225,12 @@ async function loadDashboard() {
         }
 
         if (scanDateStr === todayStr) {
-          kpis.today.count++;
-          kpis.today.amount += rowAmt;
-          if (whTag === "GS") kpis.today.gs++;
-          else if (whTag === "UC") kpis.today.uc++;
+          todayCount++;
+          if (whTag === "GS") todayGs++;
+          else if (whTag === "UC") todayUc++;
         }
-        if (scanDateStr === yesterdayStr) {
-          kpis.yesterday.count++;
-          kpis.yesterday.amount += rowAmt;
-          if (whTag === "GS") kpis.yesterday.gs++;
-          else if (whTag === "UC") kpis.yesterday.uc++;
-        }
-        if (scanDateStr.startsWith(monthPrefix)) {
-          kpis.month.count++;
-          kpis.month.amount += rowAmt;
-          if (whTag === "GS") kpis.month.gs++;
-          else if (whTag === "UC") kpis.month.uc++;
-        }
+        if (scanDateStr === yesterdayStr) yesterdayCount++;
+        if (scanDateStr.startsWith(monthPrefix)) monthCount++;
       }
 
       return {
@@ -204,12 +253,12 @@ async function loadDashboard() {
         tx_id: row.tx_id || "",
         packed_status: row.packed_status || "PICKED_UP",
         current_stage: currentStage,
-        live_status: currentStage,
+        return_condition: row.return_condition || "INTACT",
         is_incoming_reverse: false
       };
     });
 
-    // Background sync tracking for past in-transit records (Non-blocking)
+    // Background tracking sync for past in-transit records (Non-blocking)
     if (pastOrdersToTrack.length > 0) {
       fetch(`${API_URL}?pin=${authenticatedPin}&action=batchTrackStatuses&awbs=${encodeURIComponent(pastOrdersToTrack.slice(0, 25).join(','))}`)
         .then(r => r.json())
@@ -289,11 +338,7 @@ async function loadDashboard() {
       }
     });
 
-    // RTO Queue me Supabase ke RTO orders + Delhivery Webhook ke incoming reverse packets merge honge
-    const rtoQueueList = [
-      ...dbOrders.filter(o => o.current_stage === "RTO")
-    ];
-
+    const rtoQueueList = [...dbOrders.filter(o => o.current_stage === "RTO")];
     incomingReverseList.forEach(item => {
       if (!pickedUpMap[item.awb_number]) {
         rtoQueueList.push({
@@ -308,19 +353,32 @@ async function loadDashboard() {
           state: item.state || "",
           payment_mode: "RETURN",
           total_amount: parseFloat(item.total_amount || 0),
-          products_summary: item.products_summary || "Reverse Delhivery Packet",
+          products_summary: item.products_summary || "Reverse Logistics Packet",
           payment_status: "PENDING",
           current_stage: "RTO",
-          is_incoming_reverse: true,
-          raw_staging_id: item.id
+          is_incoming_reverse: true
         });
       }
     });
 
+    // Sorted Top SKUs
+    const topSkus = Object.entries(skuCounter).sort((a,b) => b[1] - a[1]);
+    const topSkuString = topSkus.length > 0 ? `${topSkus[0][0]} (${topSkus[0][1]} Units)` : "No SKU data recorded";
+
+    const deliveryPercent = dbOrders.length > 0 ? ((deliveredCount / dbOrders.length) * 100).toFixed(1) : "0.0";
+    const rtoPercent = dbOrders.length > 0 ? ((rtoCount / dbOrders.length) * 100).toFixed(1) : "0.0";
+    const recoveryPercent = rtoCount > 0 ? ((rtoReceivedCount / rtoCount) * 100).toFixed(0) : "100";
+
     const reconList = Object.values(dateWiseRecon).sort((a, b) => b.date.localeCompare(a.date));
 
     dashboardData = {
-      kpis: kpis,
+      rawOrders: dbOrders,
+      metrics: {
+        totalDispatchedAmt, totalRealizedAmt, totalInTransitAmt, totalRtoLossAmt,
+        todayCount, todayGs, todayUc, yesterdayCount, monthCount,
+        deliveryPercent, deliveredCount, rtoPercent, recoveryPercent,
+        topSkuString, totalActiveSkus: Object.keys(skuCounter).length
+      },
       date_wise_recon: reconList,
       all_orders: allOrders,
       pickup_failed: pickupFailed,
@@ -334,32 +392,37 @@ async function loadDashboard() {
       payment_received: dbOrders.filter(o => o.payment_status === "RECEIVED")
     };
 
-    renderKpis();
+    renderEnterpriseMetricPanels();
     renderCounts();
     currentPage = 1;
     renderActiveTab();
   } catch (err) {
-    document.getElementById("ordersContainer").innerHTML = `<div style="text-align:center; padding:35px; color:var(--jelly-red);">Sync Failed: ${err.message}</div>`;
+    document.getElementById("ordersContainer").innerHTML = `<div style="text-align:center; padding:35px; color:var(--danger);">Synchronization Failed: ${err.message}</div>`;
   }
 }
 
-function renderKpis() {
-  if (!dashboardData.kpis) return;
-  const k = dashboardData.kpis;
-  document.getElementById("kpiTodayCount").innerText = k.today.count;
-  document.getElementById("kpiTodayAmt").innerText = "₹" + k.today.amount.toLocaleString('en-IN');
-  document.getElementById("kpiTodayGs").innerText = "GS: " + k.today.gs;
-  document.getElementById("kpiTodayUc").innerText = "UC: " + k.today.uc;
+function renderEnterpriseMetricPanels() {
+  const m = dashboardData.metrics;
+  if (!m) return;
 
-  document.getElementById("kpiYestCount").innerText = k.yesterday.count;
-  document.getElementById("kpiYestAmt").innerText = "₹" + k.yesterday.amount.toLocaleString('en-IN');
-  document.getElementById("kpiYestGs").innerText = "GS: " + k.yesterday.gs;
-  document.getElementById("kpiYestUc").innerText = "UC: " + k.yesterday.uc;
+  document.getElementById("metricCollectedAmt").innerText = "₹" + m.totalRealizedAmt.toLocaleString('en-IN');
+  document.getElementById("metricInvoiceTotal").innerText = "Total Dispatched: ₹" + m.totalDispatchedAmt.toLocaleString('en-IN');
+  document.getElementById("metricFloatingCash").innerText = "In-Transit: ₹" + m.totalInTransitAmt.toLocaleString('en-IN');
+  document.getElementById("metricRtoLoss").innerText = "RTO Drain: ₹" + m.totalRtoLossAmt.toLocaleString('en-IN');
 
-  document.getElementById("kpiMonthCount").innerText = k.month.count;
-  document.getElementById("kpiMonthAmt").innerText = "₹" + k.month.amount.toLocaleString('en-IN');
-  document.getElementById("kpiMonthGs").innerText = "GS: " + k.month.gs;
-  document.getElementById("kpiMonthUc").innerText = "UC: " + k.month.uc;
+  document.getElementById("metricTodayDispatchedCount").innerText = m.todayCount + " pkts";
+  document.getElementById("metricYesterdayDispatched").innerText = "Yesterday: " + m.yesterdayCount + " pkts";
+  document.getElementById("badgeGsVelocity").innerText = "GS: " + m.todayGs;
+  document.getElementById("badgeUcVelocity").innerText = "UC: " + m.todayUc;
+
+  document.getElementById("metricDeliveryRate").innerText = m.deliveryPercent + "%";
+  document.getElementById("metricDeliveredCount").innerText = m.deliveredCount + " Successfully Delivered";
+  document.getElementById("metricRtoRate").innerText = "RTO: " + m.rtoPercent + "%";
+  document.getElementById("metricRecoveryRate").innerText = "Return Recovery: " + m.recoveryPercent + "%";
+
+  document.getElementById("metricTopSku").innerText = m.topSkuString;
+  document.getElementById("metricMonthlyVolume").innerText = "Monthly Volume: " + m.monthCount + " Orders";
+  document.getElementById("metricActiveSkus").innerText = "Active SKUs in Circulation: " + m.totalActiveSkus;
 }
 
 function renderCounts() {
@@ -402,7 +465,7 @@ function prevPage() {
 }
 
 function nextPage() {
-  const fullList = getActiveTabList();
+  const fullList = getFilteredActiveList();
   const totalPages = Math.ceil(fullList.length / pageSize) || 1;
   if (currentPage < totalPages) {
     currentPage++;
@@ -411,20 +474,76 @@ function nextPage() {
   }
 }
 
-function getActiveTabList() {
+// Point 1: Universal Search & Multi-Filter Engine
+function handleUniversalSearch() {
+  currentPage = 1;
+  renderActiveTab();
+}
+
+function applyUniversalFilters() {
+  currentPage = 1;
+  renderActiveTab();
+}
+
+function getFilteredActiveList() {
+  let list = [];
   if (activeTab === "daily_recon") return dashboardData.date_wise_recon || [];
-  return dashboardData[activeTab] || [];
+  if (activeTab === "analytics") return [];
+  list = dashboardData[activeTab] || [];
+
+  const query = (document.getElementById("globalSearchInput")?.value || "").toLowerCase().trim();
+  const brandFilter = document.getElementById("filterBrandSelect")?.value || "ALL";
+  const payFilter = document.getElementById("filterPaymentModeSelect")?.value || "ALL";
+  const dateFilter = document.getElementById("filterDateRangeSelect")?.value || "ALL";
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const yestStr = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const monthPrefix = todayStr.slice(0, 7);
+
+  return list.filter(o => {
+    // 1. Text Query Match
+    if (query) {
+      const matchAwb = String(o.awb_number || "").toLowerCase().includes(query);
+      const matchOrder = String(o.customer_order_number || o.order_number || "").toLowerCase().includes(query);
+      const matchCust = String(o.customer_name || "").toLowerCase().includes(query);
+      const matchPhone = String(o.phone || "").toLowerCase().includes(query);
+      if (!matchAwb && !matchOrder && !matchCust && !matchPhone) return false;
+    }
+
+    // 2. Brand Filter Match
+    if (brandFilter !== "ALL" && o.warehouse_tag !== brandFilter) return false;
+
+    // 3. Payment Mode Filter
+    if (payFilter !== "ALL" && o.payment_mode !== payFilter) return false;
+
+    // 4. Date Range Filter
+    if (dateFilter === "TODAY" && o.date !== todayStr) return false;
+    if (dateFilter === "YESTERDAY" && o.date !== yestStr) return false;
+    if (dateFilter === "LAST_7_DAYS" && o.date < sevenDaysAgo) return false;
+    if (dateFilter === "THIS_MONTH" && !String(o.date).startsWith(monthPrefix)) return false;
+
+    return true;
+  });
 }
 
 function renderActiveTab() {
   const container = document.getElementById("ordersContainer");
   const paginationBar = document.getElementById("paginationBar");
 
+  // Visual Interactive Analytics View
+  if (activeTab === "analytics") {
+    paginationBar.style.display = "none";
+    renderVisualAnalyticsCharts(container);
+    return;
+  }
+
+  // Date-Wise Reconciliation View
   if (activeTab === "daily_recon") {
     paginationBar.style.display = "none";
     let list = [...(dashboardData.date_wise_recon || [])];
     if (list.length === 0) {
-      container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--muted);">No reconciliation records generated yet.</div>`;
+      container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--text-muted);">No reconciliation records generated yet.</div>`;
       return;
     }
 
@@ -433,14 +552,14 @@ function renderActiveTab() {
 
     let html = `
       <div class="recon-table-wrap">
-        <table>
+        <table style="width:100%; border-collapse:collapse;">
           <thead>
             <tr>
               <th>#</th>
               <th class="sortable" onclick="toggleReconSort()">Dispatch Date ${sortArrow}</th>
               <th>Total Packets</th>
-              <th>Total Value</th>
-              <th>Payment Collected</th>
+              <th>Total Invoice Value</th>
+              <th>Payment Realized</th>
               <th>Pending Count</th>
             </tr>
           </thead>
@@ -449,11 +568,11 @@ function renderActiveTab() {
     list.forEach((r, idx) => {
       html += `
         <tr>
-          <td style="color:var(--muted);">${idx + 1}</td>
+          <td style="color:var(--text-muted);">${idx + 1}</td>
           <td><b>📅 ${r.date}</b></td>
           <td>${r.count} pkts</td>
           <td style="font-weight:800;">₹${r.total_amount.toLocaleString('en-IN')}</td>
-          <td style="color:var(--jelly-green); font-weight:800;">₹${r.received_amount.toLocaleString('en-IN')}</td>
+          <td style="color:var(--success); font-weight:800;">₹${r.received_amount.toLocaleString('en-IN')}</td>
           <td style="color:${r.pending_count > 0 ? '#b45309' : '#047857'}; font-weight:800;">${r.pending_count} pending</td>
         </tr>
       `;
@@ -463,12 +582,13 @@ function renderActiveTab() {
     return;
   }
 
+  // Standard Order Cards View
   paginationBar.style.display = "flex";
-  const fullList = dashboardData[activeTab] || [];
+  const fullList = getFilteredActiveList();
 
   if (fullList.length === 0) {
     paginationBar.style.display = "none";
-    container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--muted);">No records available in this queue.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:35px; color:var(--text-muted);">No records match your active search and filter criteria.</div>`;
     return;
   }
 
@@ -486,7 +606,7 @@ function renderActiveTab() {
 
   container.innerHTML = pageItems.map(o => {
     const isDelhiveryReverse = Boolean(o.is_incoming_reverse);
-    const whClass = isDelhiveryReverse ? 'wh-dto' : (o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc');
+    const whClass = isDelhiveryReverse ? 'wh-reverse' : (o.warehouse_tag === 'GS' ? 'wh-gs' : 'wh-uc');
     const whLabel = isDelhiveryReverse ? 'Delhivery Reverse' : o.warehouse_tag;
 
     return `
@@ -502,10 +622,13 @@ function renderActiveTab() {
           <div class="order-info"><b>AWB:</b> <code>${o.awb_number || '-'}</code></div>
           <div class="order-info"><b>Customer:</b> ${o.customer_name} (${o.phone})</div>
           <div class="order-info"><b>Destination:</b> ${o.city}, ${o.state || ''}</div>
-          <div class="sku-bubble">${o.products_summary || 'Standard Item'}</div>
+          <div class="sku-bubble">${o.products_summary || 'Standard Apparel Package'}</div>
         </div>
 
         <div class="card-actions-wrapper">
+          <!-- Point 3: Customer WhatsApp Action Ping Trigger -->
+          <button class="btn-act-action btn-whatsapp" onclick="triggerCustomerWhatsAppMessage('${o.phone}', '${o.customer_name}', '${o.customer_order_number}', '${o.awb_number}', '${o.current_stage}')">💬 WhatsApp</button>
+
           ${activeTab === 'rto' ? `
             <button class="btn-act-action btn-act-received" onclick="confirmAndMarkRto('${o.awb_number}', ${isDelhiveryReverse ? JSON.stringify(JSON.stringify(o)) : 'null'})">Mark RTO Received</button>
           ` : ''}
@@ -524,19 +647,153 @@ function renderActiveTab() {
   }).join('');
 }
 
-// WARNING POPUP FOR RTO RECEIVED (Handles both Dispatched Orders & Delhivery Reverse Staging)
+// Visual Interactive Charts Generator (Section 4 Analytics)
+function renderVisualAnalyticsCharts(container) {
+  const recon = (dashboardData.date_wise_recon || []).slice(0, 7).reverse();
+  const dates = recon.map(r => r.date.slice(5));
+  const counts = recon.map(r => r.count);
+  const amounts = recon.map(r => r.received_amount);
+
+  container.innerHTML = `
+    <div class="analytics-dashboard-wrap">
+      <div class="chart-card">
+        <div class="chart-title">7-Day Dispatch Velocity Trend <span>Packets</span></div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Daily fulfillment volume across all warehouses.</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; height:160px; padding:10px 0; border-bottom:1px solid #e2e8f0;">
+          ${counts.map((c, i) => `
+            <div style="flex:1; text-align:center;">
+              <div style="font-size:11px; font-weight:800; margin-bottom:4px;">${c}</div>
+              <div style="height:${Math.min(c * 6, 120)}px; background:var(--primary-accent); border-radius:6px 6px 0 0; margin:0 4px;"></div>
+              <div style="font-size:10.5px; font-weight:700; color:var(--text-muted); margin-top:6px;">${dates[i] || '-'}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Payment Realization Rate <span>₹ Collected</span></div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Realized bank settlements vs pending float.</div>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; height:160px; padding:10px 0; border-bottom:1px solid #e2e8f0;">
+          ${amounts.map((a, i) => `
+            <div style="flex:1; text-align:center;">
+              <div style="font-size:10px; font-weight:800; margin-bottom:4px;">₹${(a/1000).toFixed(0)}k</div>
+              <div style="height:${Math.min((a / 800), 120)}px; background:var(--success); border-radius:6px 6px 0 0; margin:0 4px;"></div>
+              <div style="font-size:10.5px; font-weight:700; color:var(--text-muted); margin-top:6px;">${dates[i] || '-'}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Point 3: Smart Customer WhatsApp Ping Generator
+function triggerCustomerWhatsAppMessage(phone, name, orderId, awb, stage) {
+  const cleanPhone = String(phone || "").replace(/[^0-9]/g, "");
+  if (!cleanPhone || cleanPhone.length < 10) return alert("Invalid customer phone number recorded for this order.");
+
+  const formattedPhone = cleanPhone.length === 10 ? ("91" + cleanPhone) : cleanPhone;
+  let text = `Hello ${name}, your order #${orderId} from Harsidhi Ventures is confirmed! Tracking AWB: ${awb}.`;
+  
+  if (stage === "OUT_FOR_DELIVERY") {
+    text = `Hello ${name}, your parcel #${orderId} is OUT FOR DELIVERY today! Please keep the payment amount ready. Tracking AWB: ${awb}.`;
+  } else if (stage === "PICKED") {
+    text = `Hello ${name}, your order #${orderId} has been packed and handed over to the courier partner! AWB: ${awb}.`;
+  }
+
+  const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+}
+
+// Point 4: Printable Courier Manifest Slip Generator
+function generateAndPrintManifestSlip() {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayOrders = (dashboardData.rawOrders || []).filter(o => o.date === todayStr);
+
+  if (todayOrders.length === 0) {
+    return alert("No orders recorded for today's date to generate the manifest slip.");
+  }
+
+  let totalCod = 0;
+  let tableRows = todayOrders.map((o, idx) => {
+    if (o.payment_mode === "COD") totalCod += parseFloat(o.total_amount || 0);
+    return `
+      <tr>
+        <td style="border:1px solid #000; padding:6px; font-size:12px;">${idx + 1}</td>
+        <td style="border:1px solid #000; padding:6px; font-size:12px;"><b>${o.awb_number}</b></td>
+        <td style="border:1px solid #000; padding:6px; font-size:12px;">#${o.customer_order_number} (${o.warehouse_tag})</td>
+        <td style="border:1px solid #000; padding:6px; font-size:12px;">${o.customer_name}</td>
+        <td style="border:1px solid #000; padding:6px; font-size:12px;">${o.city}, ${o.state}</td>
+        <td style="border:1px solid #000; padding:6px; font-size:12px;">${o.payment_mode}</td>
+        <td style="border:1px solid #000; padding:6px; font-size:12px;">₹${o.total_amount}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const slipHtml = `
+    <div style="font-family:sans-serif; padding:10px;">
+      <h2 style="margin-bottom:4px;">🏢 HARSIDHI VENTURES - DISPATCH HANDOVER MANIFEST</h2>
+      <p style="font-size:13px; margin-bottom:12px;">Date: <b>${todayStr}</b> | Total Packages: <b>${todayOrders.length}</b> | COD Amount: <b>₹${totalCod.toLocaleString('en-IN')}</b></p>
+      
+      <table style="width:100%; border-collapse:collapse; text-align:left; margin-bottom:30px;">
+        <thead>
+          <tr style="background:#f1f5f9;">
+            <th style="border:1px solid #000; padding:6px; font-size:12px;">#</th>
+            <th style="border:1px solid #000; padding:6px; font-size:12px;">AWB Number</th>
+            <th style="border:1px solid #000; padding:6px; font-size:12px;">Order ID (Brand)</th>
+            <th style="border:1px solid #000; padding:6px; font-size:12px;">Customer Name</th>
+            <th style="border:1px solid #000; padding:6px; font-size:12px;">Destination</th>
+            <th style="border:1px solid #000; padding:6px; font-size:12px;">Mode</th>
+            <th style="border:1px solid #000; padding:6px; font-size:12px;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+
+      <div style="display:flex; justify-content:space-between; margin-top:40px;">
+        <div style="border-top:1px solid #000; width:220px; text-align:center; padding-top:6px; font-size:12px;">
+          Warehouse Dispatcher Signature
+        </div>
+        <div style="border-top:1px solid #000; width:220px; text-align:center; padding-top:6px; font-size:12px;">
+          Courier Pickup Executive Signature
+        </div>
+      </div>
+    </div>
+  `;
+
+  const printArea = document.getElementById("printManifestArea");
+  printArea.innerHTML = slipHtml;
+  window.print();
+}
+
+// Point 2: Rapid-Fire Continuous Mode Toggle
+function toggleContinuousScanningMode() {
+  isContinuousScanning = !isContinuousScanning;
+  document.getElementById("chkContinuousScan").checked = isContinuousScanning;
+  const counterBadge = document.getElementById("rapidScanCounter");
+  
+  if (isContinuousScanning) {
+    continuousSessionCount = 0;
+    counterBadge.style.display = "inline";
+    counterBadge.innerText = `(Session: 0)`;
+    playHapticBeep("success");
+    openActionModal("pickup");
+    switchInputMode("camera");
+  } else {
+    counterBadge.style.display = "none";
+  }
+}
+
 async function confirmAndMarkRto(awb, rawStagingObj) {
-  const confirmed = confirm(`⚠️ Warning Confirmation:\n\nKya aap sach me AWB: ${awb} ko "RTO Received" mark karna chahte hain?\n\n(Click OK to Confirm, Cancel to Abort)`);
+  const confirmed = confirm(`⚠️ Warning Confirmation:\n\nAre you sure you want to mark AWB: ${awb} as RTO RECEIVED?`);
   if (!confirmed) return;
 
   const today = new Date().toISOString().slice(0, 10);
 
-  // Case 1: Agar packet Delhivery Reverse Staging se aaya hai
   if (rawStagingObj) {
     let stagingItem = {};
     try { stagingItem = JSON.parse(rawStagingObj); } catch(e) {}
 
-    // Master sheet me insert karein
     const { error: insErr } = await sb.from('dispatches_master').insert([{
       date: today,
       awb_number: awb,
@@ -549,31 +806,30 @@ async function confirmAndMarkRto(awb, rawStagingObj) {
       state: stagingItem.state || "",
       payment_mode: "RETURN",
       total_amount: parseFloat(stagingItem.total_amount || 0),
-      products_summary: stagingItem.products_summary || "Reverse Delhivery Packet",
+      products_summary: stagingItem.products_summary || "Reverse Logistics Packet",
       payment_status: "PENDING",
       payment_received_amount: 0,
       gateway: "DELHIVERY_REVERSE",
       packed_status: "RTO_RECEIVED",
-      current_stage: "RTO_RECEIVED"
+      current_stage: "RTO_RECEIVED",
+      return_condition: "INTACT"
     }]);
 
     if (!insErr) {
-      // Staging se delete karein
       await sb.from('incoming_reverse_pickups').delete().eq('awb_number', awb);
-      playBeep(true);
+      playHapticBeep("success");
       loadDashboard();
     } else {
-      playBeep(false);
+      playHapticBeep("error");
       alert("Error: " + insErr.message);
     }
     return;
   }
 
-  // Case 2: Agar packet already dispatches_master me tha
   const { data: existing, error: findErr } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
   if (!existing || findErr) {
-    playBeep(false);
-    return alert(`Action Blocked: AWB ${awb} database me nahi mila!`);
+    playHapticBeep("error");
+    return alert(`Action Blocked: AWB ${awb} was not located in database.`);
   }
 
   const { error } = await sb.from('dispatches_master')
@@ -581,17 +837,16 @@ async function confirmAndMarkRto(awb, rawStagingObj) {
     .eq('awb_number', awb);
 
   if (!error) {
-    playBeep(true);
+    playHapticBeep("success");
     loadDashboard();
   } else {
-    playBeep(false);
+    playHapticBeep("error");
     alert("Error: " + error.message);
   }
 }
 
-// WARNING POPUP FOR PAYMENT RECEIVED
 async function confirmAndMarkPayment(awb, amount, mode) {
-  const confirmed = confirm(`⚠️ Payment Confirmation:\n\nKya aap AWB: ${awb} ke liye ₹${amount} (${mode}) Payment Received mark karna chahte hain?\n\n(Click OK to Confirm, Cancel to Abort)`);
+  const confirmed = confirm(`⚠️ Payment Confirmation:\n\nConfirm payment receipt of ₹${amount} (${mode}) for AWB: ${awb}?`);
   if (!confirmed) return;
 
   const today = new Date().toISOString().slice(0, 10);
@@ -607,10 +862,10 @@ async function confirmAndMarkPayment(awb, amount, mode) {
     .eq('awb_number', awb);
 
   if (!error) {
-    playBeep(true);
+    playHapticBeep("success");
     loadDashboard();
   } else {
-    playBeep(false);
+    playHapticBeep("error");
     alert("Error: " + error.message);
   }
 }
@@ -618,9 +873,11 @@ async function confirmAndMarkPayment(awb, amount, mode) {
 async function verifyGatewayAudit(orderId, expectedAmount) {
   const res = await fetch(`${API_URL}?pin=${authenticatedPin}&action=auditPrepaidGateway&orderId=${encodeURIComponent(orderId)}&amount=${expectedAmount}`).then(r => r.json());
   if (res.success) {
+    playHapticBeep("success");
     alert(`Payment Verified on ${res.gateway}!\nStatus: ${res.status}\nTx ID: ${res.tx_id}\nAmount: ₹${res.amount}`);
   } else {
-    alert("Payment verification failed on Razorpay / Gokwik. Please check manual UTR.");
+    playHapticBeep("error");
+    alert("Payment verification unconfirmed on Razorpay / Gokwik. Please audit manual UTR.");
   }
 }
 
@@ -628,10 +885,18 @@ function openActionModal(mode) {
   currentActionMode = mode;
   const modal = document.getElementById("actionModal");
   const title = document.getElementById("modalTitle");
+  const qcBox = document.getElementById("returnQcSection");
 
-  if (mode === "pickup") title.innerText = "📦 Pickup Operation";
-  else if (mode === "return") title.innerText = "↩️ Return Processing (RTO Received)";
-  else if (mode === "payment") title.innerText = "💰 Payment Reconciliation";
+  if (mode === "pickup") {
+    title.innerText = "📦 Warehouse Dispatch Scan";
+    qcBox.style.display = "none";
+  } else if (mode === "return") {
+    title.innerText = "↩️ Return Logistics Scan (RTO Received)";
+    qcBox.style.display = "block";
+  } else if (mode === "payment") {
+    title.innerText = "💰 Payment Reconciliation Scan";
+    qcBox.style.display = "none";
+  }
 
   document.getElementById("selectedDate").value = new Date().toISOString().slice(0, 10);
   switchInputMode('manual');
@@ -643,6 +908,7 @@ function openActionModal(mode) {
 function closeActionModal() {
   stopCamera();
   document.getElementById("actionModal").style.display = "none";
+  if (isContinuousScanning) toggleContinuousScanningMode();
 }
 
 function switchInputMode(mode) {
@@ -676,28 +942,28 @@ function switchSubTab(sub) {
 
 async function lookupSingleAwb() {
   const awb = document.getElementById("inputSingleAwb").value.trim();
-  if (!awb) return alert("Please specify a valid AWB number.");
+  if (!awb) return alert("Please specify a valid AWB tracking number.");
 
   if (currentActionMode === "pickup") {
     const { data: existing } = await sb.from('dispatches_master').select('date').eq('awb_number', awb).maybeSingle();
     if (existing) {
-      playBeep(false);
-      return alert(`Duplicate blocked: AWB ${awb} was already logged on ${existing.date}.`);
+      playHapticBeep("duplicate");
+      return alert(`Duplicate Prevented: AWB ${awb} was already dispatched on ${existing.date}.`);
     }
 
     fetch(`${API_URL}?pin=${authenticatedPin}&action=previewAwb&awb=${encodeURIComponent(awb)}`)
       .then(r => r.json())
       .then(res => {
         if (!res.success) {
-          playBeep(false);
+          playHapticBeep("error");
           alert("Verification Failed: " + res.error);
           cancelPreview();
         } else {
-          playBeep(true);
+          playHapticBeep("success");
           pendingAwbData = res.data;
           const d = res.data;
           document.getElementById("previewContent").innerHTML = `
-            <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ AWB Verified: ${d.awb}</div>
+            <div style="font-size:13px; font-weight:800; color:var(--primary-accent); margin-bottom:4px;">✅ AWB Verified: ${d.awb}</div>
             <div style="font-size:12px;"><b>Order ID:</b> #${d.customer_order_number} (${d.warehouse_tag})</div>
             <div style="font-size:12px;"><b>Customer:</b> ${d.customer_name} (${d.phone})</div>
             <div style="font-size:12px;"><b>Destination:</b> ${d.city}, ${d.state}</div>
@@ -708,25 +974,24 @@ async function lookupSingleAwb() {
         }
       });
   } else {
-    // Return & Payment Lookup: Supabase Dispatches ya Incoming Staging table me search
     const { data: existing } = await sb.from('dispatches_master').select('*').eq('awb_number', awb).maybeSingle();
     const { data: staging } = await sb.from('incoming_reverse_pickups').select('*').eq('awb_number', awb).maybeSingle();
 
     if (!existing && !staging) {
-      playBeep(false);
+      playHapticBeep("error");
       cancelPreview();
-      return alert(`Action Blocked: AWB ${awb} database me nahi mila. Invalid Scan!`);
+      return alert(`Action Blocked: AWB ${awb} not found in database records.`);
     }
 
-    playBeep(true);
+    playHapticBeep("success");
     const item = existing || staging;
     pendingAwbData = item;
     pendingAwbData.is_staging_reverse = !existing && Boolean(staging);
 
     document.getElementById("previewContent").innerHTML = `
-      <div style="font-size:13px; font-weight:800; color:var(--jelly-blue); margin-bottom:4px;">✅ Matched Order: #${item.customer_order_number}</div>
+      <div style="font-size:13px; font-weight:800; color:var(--primary-accent); margin-bottom:4px;">✅ Matched Order: #${item.customer_order_number}</div>
       <div style="font-size:12px;"><b>Customer:</b> ${item.customer_name} (${item.city || '-'})</div>
-      <div style="font-size:12px;"><b>Type:</b> ${pendingAwbData.is_staging_reverse ? 'Delhivery Reverse Packet' : 'Standard Dispatched Order'}</div>
+      <div style="font-size:12px;"><b>Origin:</b> ${pendingAwbData.is_staging_reverse ? 'Delhivery Reverse Packet' : 'Standard Dispatched Order'}</div>
     `;
     document.getElementById("previewCard").style.display = "block";
   }
@@ -736,6 +1001,7 @@ async function confirmSaveSingle() {
   if (!pendingAwbData) return;
   const d = pendingAwbData;
   const date = document.getElementById("selectedDate").value;
+  const returnQc = document.getElementById("qcConditionSelect")?.value || "INTACT";
 
   let error = null;
 
@@ -760,9 +1026,6 @@ async function confirmSaveSingle() {
     }]);
     error = res.error;
   } else if (currentActionMode === "return") {
-    const confirmed = confirm(`⚠️ Warning: Kya aap AWB ${d.awb_number} ko RTO Received mark karna chahte hain?`);
-    if (!confirmed) return;
-
     if (d.is_staging_reverse) {
       const insRes = await sb.from('dispatches_master').insert([{
         date: date,
@@ -776,24 +1039,22 @@ async function confirmSaveSingle() {
         state: d.state || "",
         payment_mode: "RETURN",
         total_amount: parseFloat(d.total_amount || 0),
-        products_summary: d.products_summary || "Reverse Delhivery Packet",
+        products_summary: d.products_summary || "Reverse Logistics Packet",
         payment_status: "PENDING",
         gateway: "DELHIVERY_REVERSE",
         packed_status: "RTO_RECEIVED",
-        current_stage: "RTO_RECEIVED"
+        current_stage: "RTO_RECEIVED",
+        return_condition: returnQc
       }]);
       error = insRes.error;
       if (!error) await sb.from('incoming_reverse_pickups').delete().eq('awb_number', d.awb_number);
     } else {
       const res = await sb.from('dispatches_master')
-        .update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' })
+        .update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED', return_condition: returnQc })
         .eq('awb_number', d.awb_number);
       error = res.error;
     }
   } else if (currentActionMode === "payment") {
-    const confirmed = confirm(`⚠️ Warning: Kya aap AWB ${d.awb_number} ke liye payment confirm karna chahte hain?`);
-    if (!confirmed) return;
-
     const res = await sb.from('dispatches_master')
       .update({
         payment_status: 'RECEIVED',
@@ -806,11 +1067,11 @@ async function confirmSaveSingle() {
   }
 
   if (!error) {
-    playBeep(true);
+    playHapticBeep("success");
     closeActionModal();
     loadDashboard();
   } else {
-    playBeep(false);
+    playHapticBeep("error");
     alert("Error saving: " + error.message);
   }
 }
@@ -825,10 +1086,7 @@ async function submitBulkAwbs() {
   const text = document.getElementById("inputBulkAwbs").value.trim();
   const date = document.getElementById("selectedDate").value;
   const lines = text.split(/[\r\n,]+/).map(s => s.trim()).filter(Boolean);
-  if (lines.length === 0) return alert("Please paste one or more AWB numbers.");
-
-  const processed = [];
-  const failed = [];
+  if (lines.length === 0) return alert("Please specify valid AWB numbers.");
 
   for (const awb of lines) {
     try {
@@ -836,7 +1094,7 @@ async function submitBulkAwbs() {
         const preview = await fetch(`${API_URL}?pin=${authenticatedPin}&action=previewAwb&awb=${encodeURIComponent(awb)}`).then(r => r.json());
         if (preview.success) {
           const d = preview.data;
-          const { error } = await sb.from('dispatches_master').insert([{
+          await sb.from('dispatches_master').insert([{
             date: date,
             awb_number: d.awb,
             customer_order_number: d.customer_order_number,
@@ -850,42 +1108,14 @@ async function submitBulkAwbs() {
             total_amount: d.total_amount,
             products_summary: d.products_summary,
             payment_status: "PENDING",
-            payment_received_amount: 0,
             packed_status: "PICKED_UP",
             current_stage: "PICKED"
           }]);
-          if (!error) processed.push({ awb });
-          else failed.push({ awb, reason: error.message });
-        } else {
-          failed.push({ awb, reason: preview.error });
         }
       } else if (currentActionMode === "return") {
-        const { data: existing } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
-        const { data: staging } = await sb.from('incoming_reverse_pickups').select('*').eq('awb_number', awb).maybeSingle();
-
-        if (existing) {
-          await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
-          processed.push({ awb });
-        } else if (staging) {
-          await sb.from('dispatches_master').insert([{
-            date: date,
-            awb_number: awb,
-            customer_order_number: staging.customer_order_number || "-",
-            warehouse_tag: "DELHIVERY",
-            customer_name: staging.customer_name || "Customer Return",
-            payment_mode: "RETURN",
-            total_amount: staging.total_amount || 0,
-            gateway: "DELHIVERY_REVERSE",
-            packed_status: "RTO_RECEIVED",
-            current_stage: "RTO_RECEIVED"
-          }]);
-          await sb.from('incoming_reverse_pickups').delete().eq('awb_number', awb);
-          processed.push({ awb });
-        } else {
-          failed.push({ awb, reason: "Order not found in database." });
-        }
+        await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
       } else if (currentActionMode === "payment") {
-        const { data: existing } = await sb.from('dispatches_master').select('id, total_amount, payment_mode').eq('awb_number', awb).maybeSingle();
+        const { data: existing } = await sb.from('dispatches_master').select('total_amount, payment_mode').eq('awb_number', awb).maybeSingle();
         if (existing) {
           await sb.from('dispatches_master').update({
             payment_status: 'RECEIVED',
@@ -893,55 +1123,13 @@ async function submitBulkAwbs() {
             payment_received_date: date,
             gateway: (existing.payment_mode === 'COD') ? 'COD_CASH' : 'MANUAL_VERIFIED'
           }).eq('awb_number', awb);
-          processed.push({ awb });
-        } else {
-          failed.push({ awb, reason: "Order not found in database." });
         }
       }
-    } catch (e) {
-      failed.push({ awb, reason: e.toString() });
-    }
+    } catch (e) {}
   }
 
-  playBeep(true);
+  playHapticBeep("success");
   closeActionModal();
-  displayBulkSummary({
-    processed_count: processed.length,
-    failed_count: failed.length,
-    processed,
-    failed
-  });
-}
-
-function displayBulkSummary(res) {
-  document.getElementById("sumSuccessCount").innerText = res.processed_count;
-  document.getElementById("sumFailedCount").innerText = res.failed_count;
-
-  const secSuccess = document.getElementById("sectionSuccessChips");
-  const chipsSuccess = document.getElementById("chipsSuccess");
-  chipsSuccess.innerHTML = "";
-  if (res.processed && res.processed.length > 0) {
-    secSuccess.style.display = "block";
-    res.processed.forEach(item => chipsSuccess.innerHTML += `<span class="chip chip-success">${item.awb}</span>`);
-  } else {
-    secSuccess.style.display = "none";
-  }
-
-  const secFailed = document.getElementById("sectionFailedChips");
-  const chipsFailed = document.getElementById("chipsFailed");
-  chipsFailed.innerHTML = "";
-  if (res.failed && res.failed.length > 0) {
-    secFailed.style.display = "block";
-    res.failed.forEach(item => chipsFailed.innerHTML += `<span class="chip chip-failed" title="${item.reason}">${item.awb}</span>`);
-  } else {
-    secFailed.style.display = "none";
-  }
-
-  document.getElementById("bulkSummaryModal").style.display = "flex";
-}
-
-function closeBulkSummaryModal() {
-  document.getElementById("bulkSummaryModal").style.display = "none";
   loadDashboard();
 }
 
@@ -954,6 +1142,42 @@ function startCamera() {
       const awb = decodedText.trim();
       if (!awb) return;
 
+      // Point 2: Rapid-Fire Continuous Mode Execution
+      if (isContinuousScanning && currentActionMode === "pickup") {
+        const { data: existing } = await sb.from('dispatches_master').select('id').eq('awb_number', awb).maybeSingle();
+        if (existing) {
+          playHapticBeep("duplicate");
+          return;
+        }
+
+        const preview = await fetch(`${API_URL}?pin=${authenticatedPin}&action=previewAwb&awb=${encodeURIComponent(awb)}`).then(r => r.json());
+        if (preview.success) {
+          const d = preview.data;
+          const today = new Date().toISOString().slice(0, 10);
+          await sb.from('dispatches_master').insert([{
+            date: today,
+            awb_number: d.awb,
+            customer_order_number: d.customer_order_number,
+            order_number: d.order_number,
+            warehouse_tag: d.warehouse_tag,
+            customer_name: d.customer_name,
+            phone: d.phone,
+            city: d.city,
+            state: d.state,
+            payment_mode: d.payment_mode,
+            total_amount: d.total_amount,
+            products_summary: d.products_summary,
+            payment_status: "PENDING",
+            packed_status: "PICKED_UP",
+            current_stage: "PICKED"
+          }]);
+          continuousSessionCount++;
+          document.getElementById("rapidScanCounter").innerText = `(Session: ${continuousSessionCount})`;
+          playHapticBeep("success");
+        }
+        return;
+      }
+
       stopCamera();
       document.getElementById("inputSingleAwb").value = awb;
 
@@ -962,14 +1186,14 @@ function startCamera() {
         const { data: staging } = await sb.from('incoming_reverse_pickups').select('*').eq('awb_number', awb).maybeSingle();
 
         if (!existing && !staging) {
-          playBeep(false);
-          alert(`Scan Blocked: AWB ${awb} dispatch records me nahi mila!`);
+          playHapticBeep("error");
+          alert(`Scan Blocked: AWB ${awb} not located in records!`);
           switchInputMode('manual');
           return;
         }
 
         const match = existing || staging;
-        const confirmed = confirm(`⚠️ Warning Confirmation:\n\nCamera ne AWB: ${awb} detect kiya hai.\nOrder: #${match.customer_order_number} (${match.customer_name})\n\nKya aap ise "RTO Received" mark karna chahte hain?`);
+        const confirmed = confirm(`⚠️ Warning Confirmation:\n\nCamera detected AWB: ${awb}\nOrder: #${match.customer_order_number} (${match.customer_name})\n\nConfirm physical receipt as RTO RECEIVED?`);
         if (confirmed) {
           const today = new Date().toISOString().slice(0, 10);
           if (staging && !existing) {
@@ -990,7 +1214,7 @@ function startCamera() {
             await sb.from('dispatches_master').update({ packed_status: 'RTO_RECEIVED', current_stage: 'RTO_RECEIVED' }).eq('awb_number', awb);
           }
 
-          playBeep(true);
+          playHapticBeep("success");
           closeActionModal();
           loadDashboard();
         } else {
@@ -1011,7 +1235,7 @@ function stopCamera() {
 }
 
 async function promptUndo(awb, stage) {
-  const conf = confirm(`Security Confirmation:\n\nAre you sure you want to revert or delete AWB ${awb}?\n\n(Click OK to confirm, Cancel to abort)`);
+  const conf = confirm(`Security Confirmation:\n\nAre you sure you want to revert or delete AWB ${awb} from master database?`);
   if (!conf) return;
 
   let error = null;
@@ -1031,10 +1255,10 @@ async function promptUndo(awb, stage) {
   }
 
   if (!error) {
-    playBeep(true);
+    playHapticBeep("success");
     loadDashboard();
   } else {
-    playBeep(false);
-    alert("Revert Operation Failed: " + error.message);
+    playHapticBeep("error");
+    alert("Revert Action Failed: " + error.message);
   }
 }
