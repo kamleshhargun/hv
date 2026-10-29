@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DTO Bulk Ingestion Console - Harsidhi Ventures</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .dto-container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+    .dto-card {
+      background: #ffffff;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    }
+    .badge-counter {
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .badge-new { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-dup { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .table-preview {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 12px;
+    }
+    .table-preview th, .table-preview td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    .table-preview th {
+      background: #f8fafc;
+      font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-wrapper">
+      <div class="brand-title">🏢 Delhivery DTO Bulk Ingestion</div>
+      <div class="brand-author">Harsidhi Ventures Logistics Ops</div>
+    </div>
+    <div class="header-actions">
+      <button onclick="window.location.href='index.html'" style="background:#0f172a; color:#fff; border:none; padding:8px 16px; border-radius:var(--radius-pill); font-size:12.5px; font-weight:700; cursor:pointer;">◀ Back to Main ERP</button>
+    </div>
+  </header>
+
+  <div class="dto-container">
+    <div class="dto-card">
+      <h2 style="font-size:18px; font-weight:800; margin-bottom:6px;">📦 Bulk Ingest Reverse Pickups</h2>
+      <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:16px;">
+        Delhivery panel se export kiye gaye CSV/Excel se columns copy karke yaha paste karein. Duplicate AWBs automatic detect hokar filter out ho jayenge.
+      </p>
+
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px; font-weight:800; color:#334155; display:block; margin-bottom:6px;">
+          Paste Data (Supports Direct Copy-Paste from Delhivery Excel / CSV or Raw AWBs):
+        </label>
+        <textarea id="bulkPasteInput" class="input-field" style="height:170px; font-family:monospace; font-size:12px;" placeholder="AWB Number [Tab/Comma] Order ID [Tab/Comma] Status&#10;Example:&#10;45793110079516	GS11303	Ready for Pickup&#10;45793110080123	UC10421	In Transit"></textarea>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px;">
+        <button class="btn-command-main btn-cmd-pickup" style="flex:none; padding:10px 22px;" onclick="analyzePasteData()">🔍 Analyze & Detect Duplicates</button>
+        <button id="btnUpload" class="btn-command-main btn-cmd-payment" style="flex:none; padding:10px 22px; display:none;" onclick="submitBulkDataToSheet()">🚀 Commit to Google Sheet</button>
+        <button class="btn-command-main" style="background:#e2e8f0; color:#334155; flex:none; padding:10px 18px;" onclick="resetForm()">Clear</button>
+      </div>
+
+      <div id="statsSummary" style="display:none; margin-bottom:14px; gap:12px; flex-wrap:wrap;">
+        <span class="badge-counter badge-new" id="countNew">New to Add: 0</span>
+        <span class="badge-counter badge-dup" id="countDup">Duplicates Ignored: 0</span>
+      </div>
+
+      <div id="previewTableWrap" style="display:none; max-height:300px; overflow-y:auto;">
+        <table class="table-preview" id="tblPreview">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>AWB Number</th>
+              <th>Order Ref</th>
+              <th>Status</th>
+              <th>Duplicate Status</th>
+            </tr>
+          </thead>
+          <tbody id="tblPreviewBody"></tbody>
+        </table>
+      </div>
+
+      <div id="resultStatus" style="display:none; margin-top:14px; padding:12px; border-radius:10px; font-size:13px; font-weight:700;"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbw2Cz5rfxw8zztcyMo8f6eObg16gZpPeU8fnJN7AH1LhRSrg8mFT6m_cXHKw6pBwzlb/exec";
+    
+    // Security PIN Check: Agar user index.html se login hokar nahi aaya, toh wapas bhej do
+    let authPin = sessionStorage.getItem("harsidhi_erp_pin") || "";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // Check auth state
+      if (!authPin) {
+        const inputPin = prompt("🔒 Restricted Access: Enter Master Security PIN to access DTO Console:");
+        if (!inputPin) {
+          window.location.href = "index.html";
+          return;
+        }
+        fetch(`${API_URL}?action=verifyPin&pin=${encodeURIComponent(inputPin.trim())}`)
+          .then(r => r.json())
+          .then(res => {
+            if (res.success) {
+              authPin = inputPin.trim();
+              sessionStorage.setItem("harsidhi_erp_pin", authPin);
+            } else {
+              alert("Access Denied: Invalid Security PIN.");
+              window.location.href = "index.html";
+            }
+          })
+          .catch(() => {
+            window.location.href = "index.html";
+          });
+      }
+    });
+
+    let parsedRecordsToUpload = [];
+
+    async function analyzePasteData() {
+      const text = document.getElementById("bulkPasteInput").value.trim();
+      if (!text) return alert("Pehle Delhivery portal ka data paste karein.");
+
+      document.getElementById("statsSummary").style.display = "none";
+      document.getElementById("previewTableWrap").style.display = "none";
+      document.getElementById("btnUpload").style.display = "none";
+      document.getElementById("resultStatus").style.display = "none";
+
+      // 1. Fetch existing AWBs from Google Sheet to check duplicates
+      let existingAwbs = new Set();
+      try {
+        const res = await fetch(`${API_URL}?pin=${encodeURIComponent(authPin)}&action=getDelhiveryReverseQueue`).then(r => r.json());
+        if (res.success && res.dtoList) {
+          res.dtoList.forEach(d => existingAwbs.add(String(d.awb_number).trim()));
+        }
+      } catch(e) {
+        console.warn("Could not fetch active queue for local pre-check", e);
+      }
+
+      // 2. Parse Raw Lines
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      let newCount = 0;
+      let dupCount = 0;
+      parsedRecordsToUpload = [];
+      const seenInBatch = new Set();
+
+      let tableHtml = "";
+
+      lines.forEach((line, idx) => {
+        // Tab, Comma, ya Semicolon se split karein
+        const cols = line.split(/[\t,;]+/).map(c => c.trim().replace(/^["']|["']$/g, ''));
+        const awb = cols[0];
+        
+        // Skip header if pasted accidentally
+        if (awb.toLowerCase().includes("awb") || awb.toLowerCase().includes("waybill")) return;
+        if (!awb || awb.length < 5) return;
+
+        const refNo = cols[1] || "DTO_ORDER";
+        const status = cols[2] || "READY_FOR_PICKUP";
+
+        const isDuplicate = existingAwbs.has(awb) || seenInBatch.has(awb);
+        seenInBatch.add(awb);
+
+        if (isDuplicate) {
+          dupCount++;
+        } else {
+          newCount++;
+          parsedRecordsToUpload.push({ awb: awb, refNo: refNo, status: status, action: "Imported from Portal" });
+        }
+
+        tableHtml += `
+          <tr style="background:${isDuplicate ? '#fff1f2' : '#f0fdf4'};">
+            <td>${idx + 1}</td>
+            <td><b>${awb}</b></td>
+            <td>${refNo}</td>
+            <td>${status}</td>
+            <td>${isDuplicate ? '<span style="color:#dc2626; font-weight:800;">❌ Duplicate (Skipped)</span>' : '<span style="color:#16a34a; font-weight:800;">✅ Valid New</span>'}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById("countNew").innerText = `New to Add: ${newCount}`;
+      document.getElementById("countDup").innerText = `Duplicates Ignored: ${dupCount}`;
+      document.getElementById("tblPreviewBody").innerHTML = tableHtml;
+
+      document.getElementById("statsSummary").style.display = "flex";
+      document.getElementById("previewTableWrap").style.display = "block";
+
+      if (newCount > 0) {
+        document.getElementById("btnUpload").style.display = "inline-flex";
+        document.getElementById("btnUpload").innerText = `🚀 Commit ${newCount} New Orders to Sheet`;
+      } else {
+        alert("Saare AWBs pehle se sheet me exist karte hain. Koi naya order nahi mila.");
+      }
+    }
+
+    async function submitBulkDataToSheet() {
+      if (parsedRecordsToUpload.length === 0) return;
+
+      const btn = document.getElementById("btnUpload");
+      btn.disabled = true;
+      btn.innerText = "⏳ Saving to Google Sheet...";
+
+      const resStatus = document.getElementById("resultStatus");
+
+      try {
+        const payload = encodeURIComponent(JSON.stringify(parsedRecordsToUpload));
+        const res = await fetch(`${API_URL}?pin=${encodeURIComponent(authPin)}&action=bulkUploadDtoWatchlist&data=${payload}`).then(r => r.json());
+
+        if (res.success) {
+          resStatus.style.display = "block";
+          resStatus.style.background = "#dcfce7";
+          resStatus.style.color = "#15803d";
+          resStatus.innerHTML = `✅ Successfully added <b>${res.addedCount}</b> DTO orders to Watchlist! (Duplicates skipped: ${res.skippedCount}). Yeh orders ab main ERP ke RTO Queue me show ho jayenge.`;
+
+          document.getElementById("btnUpload").style.display = "none";
+          document.getElementById("bulkPasteInput").value = "";
+        } else {
+          throw new Error(res.error || "Failed to commit");
+        }
+      } catch (err) {
+        resStatus.style.display = "block";
+        resStatus.style.background = "#fee2e2";
+        resStatus.style.color = "#991b1b";
+        resStatus.innerText = "Error: " + err.message;
+        btn.disabled = false;
+        btn.innerText = "Retry Commit";
+      }
+    }
+
+    function resetForm() {
+      document.getElementById("bulkPasteInput").value = "";
+      document.getElementById("statsSummary").style.display = "none";
+      document.getElementById("previewTableWrap").style.display = "none";
+      document.getElementById("btnUpload").style.display = "none";
+      document.getElementById("resultStatus").style.display = "none";
+      parsedRecordsToUpload = [];
+    }
+  </script>
+</body>
+</html>
